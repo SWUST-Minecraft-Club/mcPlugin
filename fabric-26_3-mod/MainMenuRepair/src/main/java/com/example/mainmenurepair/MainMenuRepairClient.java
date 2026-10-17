@@ -46,8 +46,10 @@ public final class MainMenuRepairClient implements ClientModInitializer {
     private void registerScreenEvents() {
         try {
             net.fabricmc.fabric.api.client.screen.v1.ScreenEvents.AFTER_INIT.register(
-                    (client, screen, scaledWidth, scaledHeight) ->
-                            MenuCleaner.clean(screen, "ScreenEvents.AFTER_INIT"));
+                    (client, screen, scaledWidth, scaledHeight) -> {
+                        MenuCleaner.replaceDialogButton(screen);
+                        MenuCleaner.clean(screen, "ScreenEvents.AFTER_INIT");
+                    });
             StatusLog.append("Fabric API 钩子已注册：ScreenEvents.AFTER_INIT");
         } catch (final Throwable throwable) {
             StatusLog.append("ScreenEvents 注册失败（客户端可能没装 Fabric API）：" + throwable);

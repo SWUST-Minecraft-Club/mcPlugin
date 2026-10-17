@@ -1,14 +1,18 @@
 package com.example.mainmenurepair.util;
 
 import com.example.mainmenurepair.access.ScreenAccess;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.SpriteIconButton;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.dialog.DialogScreen;
+import net.minecraft.network.chat.Component;
 
 /**
  * 暂停菜单清理逻辑。
@@ -35,6 +39,60 @@ public final class MenuCleaner {
             return false;
         }
         return screen.getTitle().getString().contains(DIALOG_TITLE);
+    }
+
+    /**
+     * 把 ESC 菜单里的「主菜单」按钮换成"直接打开主菜单"的按钮，跳过中间的 dialog 页面。
+     *
+     * <p>做法：找到标签含 {@link #DIALOG_TITLE} 的按钮（服务端 dialog 的入口），
+     * 在它原来的位置上放一个自己的按钮（点击发 {@code /cd}），再把原按钮隐藏。
+     * 先加新按钮再隐藏旧的 —— 万一添加失败，原来的按钮还能用。
+     *
+     * <p>这条走的是 Fabric API 的界面事件（实测可靠）；Mixin 注入在这套环境里一直没生效，
+     * 所以不再依赖它。
+     */
+    public static void replaceDialogButton(final Screen screen) {
+        if (!(screen instanceof PauseScreen)) {
+            return;
+        }
+        final Minecraft client = Minecraft.getInstance();
+        if (client.player == null) {
+            return;
+        }
+
+        for (final GuiEventListener child : new ArrayList<>(screen.children())) {
+            if (!(child instanceof Button button)) {
+                continue;
+            }
+            final String label = button.getMessage().getString();
+            if (!label.contains(DIALOG_TITLE)) {
+                continue;
+            }
+            final Button replacement = Button.builder(
+                            Component.literal(label),
+                            pressed -> client.player.connection.sendCommand("cd"))
+                    .bounds(button.getX(), button.getY(), button.getWidth(), button.getHeight())
+                    .build();
+            if (addWidget(screen, replacement)) {
+                button.visible = false;
+                button.active = false;
+                StatusLog.append("已把「" + label + "」按钮换成直接打开主菜单（跳过中间 dialog）");
+            }
+            return;
+        }
+    }
+
+    /** Screen#addRenderableWidget 是 protected，这里用反射调用 */
+    private static boolean addWidget(final Screen screen, final GuiEventListener widget) {
+        try {
+            final Method method = Screen.class.getDeclaredMethod("addRenderableWidget", GuiEventListener.class);
+            method.setAccessible(true);
+            method.invoke(screen, widget);
+            return true;
+        } catch (final Throwable throwable) {
+            StatusLog.append("添加替换按钮失败：" + throwable);
+            return false;
+        }
     }
 
     /** 对暂停菜单做清理：隐藏并移除 4 个图标按钮、清空按钮上的提示 */
