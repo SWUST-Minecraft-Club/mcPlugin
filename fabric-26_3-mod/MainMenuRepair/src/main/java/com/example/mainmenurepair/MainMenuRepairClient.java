@@ -18,8 +18,10 @@ public final class MainMenuRepairClient implements ClientModInitializer {
             StatusLog.append("PauseScreen 可加载：是");
             StatusLog.append("ScreenInvokerMixin 生效（PauseScreen 实现 ScreenAccess）："
                     + ScreenAccess.class.isAssignableFrom(pauseScreen));
-            StatusLog.append("PauseScreenMixin 生效（有 mainmenuRepair$cleanupScreen 方法）："
-                    + hasMethod(pauseScreen, "mainmenuRepair$cleanupScreen"));
+            StatusLog.append("PauseScreenMixin 实例注入方法已合并（mainmenuRepair$cleanupOnInit）："
+                    + hasMethod(pauseScreen, "mainmenuRepair$cleanupOnInit"));
+            StatusLog.append("PauseScreenMixin 构造函数注入方法已合并（mainmenuRepair$logApplied）："
+                    + hasMethod(pauseScreen, "mainmenuRepair$logApplied"));
         } catch (final Throwable throwable) {
             StatusLog.append("检查失败：" + throwable);
         }
