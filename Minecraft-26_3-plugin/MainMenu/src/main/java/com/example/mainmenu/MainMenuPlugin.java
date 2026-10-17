@@ -6,6 +6,7 @@ import com.example.mainmenu.command.CdCommand;
 import com.example.mainmenu.debug.DebugReporter;
 import com.example.mainmenu.internal.FeatureRegistryImpl;
 import com.example.mainmenu.listener.ClockInteractListener;
+import com.example.mainmenu.listener.CustomClickListener;
 import com.example.mainmenu.menu.MenuListener;
 import com.example.mainmenu.menu.MenuService;
 import com.example.mainmenu.playtime.PlaytimeService;
@@ -61,6 +62,7 @@ public final class MainMenuPlugin extends JavaPlugin {
                 MenuFeatureRegistry.class, features, this, ServicePriority.Normal);
 
         getServer().getPluginManager().registerEvents(new MenuListener(this), this);
+        getServer().getPluginManager().registerEvents(new CustomClickListener(this), this);
         if (getConfig().getBoolean("menu.open.clock-right-click", true)) {
             getServer().getPluginManager().registerEvents(new ClockInteractListener(this), this);
         }

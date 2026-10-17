@@ -9,6 +9,9 @@ import org.bukkit.entity.Player;
 
 /**
  * {@code /cd}：打开主菜单；{@code /cd reload} 重载配置；{@code /cd debug} 输出布局与 ESC 按钮状态。
+ *
+ * <p>ESC 菜单里的 dialog 按钮也走这条命令（{@code DialogAction.commandTemplate("/cd")}），
+ * 所以这里刻意延迟 1 tick 再开界面：让客户端的 dialog 先关闭，避免开出来的界面被立刻顶掉。
  */
 public final class CdCommand {
 
@@ -23,7 +26,12 @@ public final class CdCommand {
                         plugin.message(context.getSource().getSender(), "messages.players-only");
                         return 0;
                     }
-                    plugin.menus().open(player);
+                    plugin.getLogger().info("玩家 " + player.getName() + " 通过 /cd 打开主菜单"
+                            + "（来源：" + context.getSource().getSender().getName() + "）");
+                    // 延迟 1 tick：ESC 菜单里的 dialog 按钮也是执行本命令，
+                    // 等客户端的 dialog 关闭后再开箱子界面，避免被顶掉
+                    plugin.getServer().getScheduler().runTaskLater(plugin,
+                            () -> plugin.menus().open(player), 1L);
                     return Command.SINGLE_SUCCESS;
                 })
                 .then(Commands.literal("reload")
@@ -41,5 +49,10 @@ public final class CdCommand {
                             return Command.SINGLE_SUCCESS;
                         }))
                 .build();
+    }
+
+    /** 保留给需要直接打开的场景（例如 dialog 的自定义点击回调） */
+    public static void openNow(final MainMenuPlugin plugin, final Player player) {
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> plugin.menus().open(player), 1L);
     }
 }

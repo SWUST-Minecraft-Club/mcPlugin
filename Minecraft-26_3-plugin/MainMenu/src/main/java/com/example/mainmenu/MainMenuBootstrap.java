@@ -1,5 +1,6 @@
 package com.example.mainmenu;
 
+import com.example.mainmenu.command.CdCommand;
 import io.papermc.paper.datapack.DatapackRegistrar;
 import io.papermc.paper.plugin.bootstrap.BootstrapContext;
 import io.papermc.paper.plugin.bootstrap.PluginBootstrap;
@@ -102,8 +103,8 @@ public final class MainMenuBootstrap implements PluginBootstrap {
                 .build();
     }
 
-    /** dialog 按钮被点击：在主线程打开菜单 */
-    private static void handleOpenClick(final DialogResponseView response, final Audience audience) {
+    /** dialog 按钮被点击：在主线程打开菜单（延迟 1 tick，让客户端的 dialog 先关闭，避免界面被顶掉） */
+    static void handleOpenClick(final DialogResponseView response, final Audience audience) {
         if (!(audience instanceof Player player)) {
             return;
         }
@@ -111,10 +112,11 @@ public final class MainMenuBootstrap implements PluginBootstrap {
         if (plugin == null) {
             return;
         }
+        plugin.getLogger().info("收到 dialog 按钮点击（玩家 " + player.getName() + "），准备打开主菜单");
         if (Bukkit.isPrimaryThread()) {
-            plugin.menus().open(player);
+            CdCommand.openNow(plugin, player);
         } else {
-            Bukkit.getScheduler().runTask(plugin, () -> plugin.menus().open(player));
+            Bukkit.getScheduler().runTask(plugin, () -> CdCommand.openNow(plugin, player));
         }
     }
 

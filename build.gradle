@@ -27,14 +27,20 @@ subprojects { pluginProject ->
         compileOnly "io.papermc.paper:paper-api:${paperApiVersion}"
     }
 
-    java {
-        toolchain {
-            languageVersion = JavaLanguageVersion.of(targetJavaVersion.toInteger())
+    // 本机 JDK 不低于目标版本时直接用当前 JDK 编译（避免 Gradle fork 工具链 worker 进程，
+    // 部分机器上会起不来）；只有本机 JDK 太旧时才启用 toolchain。
+    def targetJava = targetJavaVersion.toInteger()
+    if (JavaVersion.current().majorVersion.toInteger() < targetJava) {
+        java {
+            toolchain {
+                languageVersion = JavaLanguageVersion.of(targetJava)
+            }
         }
     }
 
     tasks.withType(JavaCompile).configureEach {
         options.encoding = 'UTF-8'
+        options.release = targetJava
     }
 
     // 打包时把 paper-plugin.yml 里的 ${version} 换成各自 build.gradle 里的 version。
