@@ -1,0 +1,85 @@
+# 主菜单配置（文本用 MiniMessage 格式：https://docs.advntr.dev/minimessage/format.html）
+# 改完用 /cd reload 热重载
+
+menu:
+  # 菜单标题
+  title: "<dark_gray>主菜单</dark_gray>"
+
+  # 打开方式
+  open:
+    # 手持时钟右键
+    clock-right-click: true
+    # 对着可交互方块（箱子、门等）右键时是否也打开主菜单；默认不抢方块交互
+    clock-right-click-on-block: true
+    # 潜行时是否仍然触发（默认不触发，方便正常使用时钟）
+    clock-while-sneaking: false
+
+  # 第 1 行第 2 格：当前时间（固定功能位）
+  clock:
+    material: CLOCK
+    name: "<yellow>当前时间</yellow>"
+    # 悬停文本，{time} 会替换成下面格式化的时间
+    line: "<gray>当前时间：<white>{time}</white></gray>"
+    format: "yyyy-MM-dd HH:mm:ss"
+    # 时区偏移：东 8 区 = 8
+    zone-offset-hours: 8
+    hint: "<dark_gray>固定功能位 · 点击无效</dark_gray>"
+
+  # 第 1 行第 5 格：在线时长（固定功能位，数据来自 YuDream 后端）
+  painting:
+    material: PAINTING
+    name: "<aqua>在线时长</aqua>"
+    hint: "<dark_gray>固定功能位 · 点击无效</dark_gray>"
+    lines:
+      total: "<gray>累计在线：<white>{duration}</white></gray>"
+      session: "<gray>本次会话：<white>{duration}</white></gray>"
+      afk: "<gray>累计挂机：<white>{duration}</white></gray>"
+
+  # 非固定空位（第 2 行、第 6 行以及功能区以外的其它格子）：白色染色玻璃板
+  # 属于“非固定位置功能物品”，功能插件可以用自定义位置占用
+  filler:
+    material: WHITE_STAINED_GLASS_PANE
+    name: "<gray> </gray>"
+
+  # 第 4 行第 1 格 / 第 9 格：翻页箭头（固定功能位）
+  paging:
+    previous-material: ARROW
+    next-material: ARROW
+    previous-name: "<yellow>上一页</yellow>"
+    next-name: "<yellow>下一页</yellow>"
+    page-line: "<gray>第 <white>{page}</white>/<white>{pages}</white> 页</gray>"
+    first-page: "<dark_gray>已经是第一页</dark_gray>"
+    last-page: "<dark_gray>已经是最后一页</dark_gray>"
+
+  # 功能物品的附加提示
+  feature:
+    clickable-hint: "<dark_gray>点击使用</dark_gray>"
+    not-clickable-hint: "<dark_gray>点击无效</dark_gray>"
+    # 自定义位置冲突时追加在悬停文本最后一行
+    conflict-hint: "<red>该功能插件位置不可用，已自动归到功能区</red>"
+
+# YuDream 后端：在线时长的唯一数据来源
+yudream:
+  # 宿主地址（YuDream-Admin 后端）
+  base-url: "http://127.0.0.1:8080"
+  # 鉴权二选一：
+  #   1) API Key（yda_ 开头）→ 请求头 X-API-Key
+  #   2) Sa-Token 裸 token     → 请求头 Authorization
+  api-key: ""
+  token: ""
+  # 服务器 ID；留空则尝试读取环境变量 MCSERVER_ID（mcpanel 会注入）
+  server-id: ""
+  # 在线时长缓存秒数（避免每次悬停都请求后端）
+  cache-seconds: 30
+  # 接口分页参数（宿主单页上限 200）
+  page-size: 200
+  max-pages: 10
+  timeout-ms: 5000
+
+messages:
+  no-permission: "<red>你没有权限执行该命令。</red>"
+  players-only: "<red>该命令只能由玩家执行。</red>"
+  reloaded: "<green>主菜单配置已重载。</green>"
+  playtime-loading: "<gray>正在获取在线时长…</gray>"
+  playtime-unavailable: "<red>在线时长暂时无法获取</red>"
+  playtime-not-configured: "<red>未配置 YuDream 后端，无法读取在线时长</red>"

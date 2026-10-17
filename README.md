@@ -7,7 +7,7 @@
 
 Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `Minecraft-26_3-plugin/<插件名>/`，由仓库根目录的一个 Gradle 工程统一管理：共享构建配置和服务端版本，每个插件又能单独打包、单独启动测试服。
 
-目前仓库里还没有插件，用 `./gradlew newPlugin -PpluginName=你的插件名` 生成第一个即可。
+目前仓库里有 1 个插件：**[MainMenu](Minecraft-26_3-plugin/MainMenu)**（主菜单，其它插件以它为依赖注册功能）。新增插件用 `./gradlew newPlugin -PpluginName=你的插件名`。
 
 ## 环境要求
 
@@ -31,7 +31,7 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `Minecraft-26_
 │       ├── build.gradle            # 只写版本号与额外依赖，公共配置在根 build.gradle
 │       └── src/main/{java,resources}
 ├── Minecraft-26_3-plugin/          # 插件都放这里，一个目录一个插件
-│   └── （用 newPlugin 生成）
+│   └── MainMenu/                   # 主菜单插件（功能插件接入规范见其 docs/）
 ├── run/                            # 共用的测试服目录（服务端、世界、插件配置都在这里，已 gitignore）
 └── .github/                        # CI、Release、Issue/PR 模板、Dependabot
 ```
@@ -94,6 +94,79 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `Minecraft-26_
 | `resources/config.yml` | 默认配置，MiniMessage 文本格式 |
 
 > 同一台服务器上装多个插件时，注意命令名和权限节点不要重复。脚手架会把权限节点一起改名（如 `shop.hello`），但命令字面量还是模板里的 `/hello`、`/mcplugin`，记得改成自己的。
+
+## 插件：MainMenu（主菜单）
+
+6×9 的功能主菜单，玩家可以通过三种方式打开：**ESC 菜单里的「主菜单」按钮**、**`/cd` 命令**、**手持时钟右键**。
+
+### 界面布局
+
+```
+第1行   [0]玻璃板 [1]时钟  [2]玻璃板 [3]玻璃板 [4]在线时长 [5]玻璃板 [6]玻璃板 [7]玻璃板 [8]玻璃板
+第2行   玻璃板 ×9
+第3行   [18]玻璃板 [19]功能区 [20]功能区 [21]功能区 [22]功能区 [23]功能区 [24]功能区 [25]功能区 [26]玻璃板
+第4行   [27]上一页 [28]功能区 [29]功能区 [30]功能区 [31]功能区 [32]功能区 [33]功能区 [34]功能区 [35]下一页
+第5行   [36]玻璃板 [37]功能区 [38]功能区 [39]功能区 [40]功能区 [41]功能区 [42]功能区 [43]功能区 [44]玻璃板
+第6行   玻璃板 ×9
+```
+
+- **时钟**（第 1 行第 2 格）：悬停显示当前时间（东 8 区），固定功能位，点击无效。
+- **画**（第 1 行第 5 格）：悬停显示在线时长（读 YuDream 后端），固定功能位，点击无效。
+- **玻璃板**：非固定功能位，功能插件可以用自定义位置占用。
+- **功能区**：第 3~5 行、第 2~8 列共 21 格，按注册顺序填充，每页 21 个，可翻页。
+- **箭头**（第 4 行第 1 / 第 9 格）：功能区翻页，固定功能位。
+
+### 命令与权限
+
+| 命令 | 权限 | 说明 |
+| --- | --- | --- |
+| `/cd` | `mainmenu.use`（默认所有人） | 打开主菜单 |
+| `/cd reload` | `mainmenu.reload`（OP） | 重载配置并清空在线时长缓存 |
+| `/cd debug` | `mainmenu.reload`（OP） | 输出布局、功能位置、ESC 按钮状态、配置自检 |
+
+### 其它插件怎么挂功能
+
+功能插件以 MainMenu 为依赖，调用 `com.example.mainmenu.api` 注册「物品 / 悬停文本 / 点击是否有效 / 点击做什么 / 自定义位置」。
+完整规范见 [功能插件接入规范](Minecraft-26_3-plugin/MainMenu/docs/功能插件接入规范.md)，最简形式：
+
+```java
+MainMenuApi.registry().register(
+        MenuFeature.builder("shop:main")
+                .icon(Material.EMERALD)
+                .name("<green>商店</green>")
+                .line("<gray>点击打开商店</gray>")
+                .onClick((player, click) -> openShop(player))
+                .build());
+```
+
+### ESC 菜单按钮是怎么实现的
+
+Paper 26.3 没有“直接往暂停界面加按钮”的 API。官方途径是 dialog 系统：
+
+1. 插件在 **bootstrapper** 阶段注册一个 dialog（`mainmenu:main_menu`），并把它声明进 `minecraft:pause_screen_additions` 标签；
+2. 插件 jar 内自带一个数据包（`src/main/resources/pack/`）负责把 dialog 键填进该标签；
+3. 客户端会在暂停界面为标签里的每个 dialog 生成一个按钮，按钮文字取 dialog 的 `externalTitle`（即「主菜单」）；
+4. 点击后打开该 dialog 页面，页面里的「打开主菜单」按钮通过自定义点击动作回调服务端，服务端再打开 6×9 箱子菜单。
+
+所以 ESC 那条路径是**两次点击**：`ESC → 主菜单 → 打开主菜单`（客户端暂停界面只能打开 dialog，无法直接开容器界面）；`/cd` 和时钟右键都是一步到位。
+
+ESC 按钮是否就绪用 `/cd debug` 查看，正常会显示：
+
+```
+内置数据包：MainMenu/mainmenu（已启用） 来源=plugin
+ESC 菜单按钮：已就绪：pause_screen_additions 包含 mainmenu:main_menu（标签共 1 项）
+```
+
+### 在线时长的数据来源
+
+画（在线时长）走 YuDream 宿主插件 `minecraft-server` 的 HTTP 接口：
+
+```
+GET {base-url}/api/plugins/minecraft-server/admin/servers/{serverId}/players?page=0&size=200
+```
+
+在 `Minecraft-26_3-plugin/MainMenu/src/main/resources/config.yml` 的 `yudream` 段配置 `base-url`、`api-key`（或 `token`）、`server-id`（留空则读环境变量 `MCSERVER_ID`）。
+未配置或后端不可用时，画上会显示对应提示而不是报错；结果按 `cache-seconds`（默认 30 秒）缓存，请求走异步线程。
 
 ## 26.3 开发要点
 

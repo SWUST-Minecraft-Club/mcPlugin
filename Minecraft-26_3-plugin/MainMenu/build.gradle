@@ -1,0 +1,12 @@
+// 主菜单插件：全服统一的功能入口
+//   - ESC 菜单里的「主菜单」按钮（Paper dialog + pause_screen_additions 标签）
+//   - /cd 命令
+//   - 手持时钟右键
+// 其它插件通过 com.example.mainmenu.api 注册自己的功能，规范见 docs/功能插件接入规范.md
+
+version = '0.1.0'
+
+dependencies {
+    // 其它插件以 compileOnly project(':MainMenu') 依赖本插件来使用 API；
+    // 本插件自身不需要额外依赖：JSON 解析用服务端自带的 Gson。
+}

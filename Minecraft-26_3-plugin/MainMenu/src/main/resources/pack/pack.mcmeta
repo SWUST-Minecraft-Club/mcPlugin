@@ -1,0 +1,7 @@
+{
+  "pack": {
+    "description": "MainMenu 插件内置数据包：把主菜单 dialog 加入 ESC 菜单",
+    "max_format": 121,
+    "min_format": 121
+  }
+}

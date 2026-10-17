@@ -1,0 +1,19 @@
+# Paper 插件描述文件
+# bootstrapper 用于在服务端启动早期（注册表构建阶段）注册主菜单 dialog 与内置数据包，
+# 这是把按钮挂到 ESC 菜单上的唯一时机。
+name: MainMenu
+version: '${version}'
+main: com.example.mainmenu.MainMenuPlugin
+bootstrapper: com.example.mainmenu.MainMenuBootstrap
+api-version: '26.3'
+description: 主菜单：ESC 菜单按钮 / /cd / 手持时钟右键 打开 6×9 功能菜单
+authors: [zhou-BZDDX]
+website: https://github.com/zhou-BZDDX/mcPligin
+
+permissions:
+  mainmenu.use:
+    description: 允许打开主菜单
+    default: true
+  mainmenu.reload:
+    description: 允许使用 /cd reload、/cd debug
+    default: op
