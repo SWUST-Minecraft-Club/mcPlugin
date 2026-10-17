@@ -30,10 +30,21 @@ jobs:
       - name: Build all plugins
         run: ./gradlew build --no-daemon --stacktrace
 
+      # Fabric 客户端模组是独立工程（不依赖 fabric-loom，只下载官方客户端 jar）
+      - name: Build Fabric mod
+        run: ./gradlew -p fabric-26_3-mod/MainMenuRepair build --no-daemon --stacktrace
+
       - name: Upload plugin jars
         uses: actions/upload-artifact@v7
         with:
           name: plugin-jars
           path: Minecraft-26_3-plugin/*/build/libs/*.jar
           # 仓库里还没有插件时不会产生 jar，这里只告警不失败
+          if-no-files-found: warn
+
+      - name: Upload mod jar
+        uses: actions/upload-artifact@v7
+        with:
+          name: mod-jar
+          path: fabric-26_3-mod/*/build/libs/*.jar
           if-no-files-found: warn

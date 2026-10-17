@@ -28,15 +28,18 @@ jobs:
       - name: Build all plugins
         run: ./gradlew build --no-daemon --stacktrace
 
+      - name: Build Fabric mod
+        run: ./gradlew -p fabric-26_3-mod/MainMenuRepair build --no-daemon --stacktrace
+
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # 收集所有插件产物；没有 jar 时也不报错。
+          # 收集插件与模组产物；没有 jar 时也不报错。
           # 测试插件（Minecraft-26_3-plugin/TestPlugin*）只用于本地联调，不随 Release 发布。
           shopt -s nullglob
           assets=()
-          for jar in Minecraft-26_3-plugin/*/build/libs/*.jar; do
+          for jar in Minecraft-26_3-plugin/*/build/libs/*.jar fabric-26_3-mod/*/build/libs/*.jar; do
             case "$jar" in
               */TestPlugin*) continue ;;
             esac

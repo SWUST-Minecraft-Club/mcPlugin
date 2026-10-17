@@ -75,17 +75,6 @@ tasks.register('clean') {
     dependsOn { subprojects.collect { "${it.path}:clean" } }
 }
 
-// 客户端资源包（清理 ESC 暂停菜单的第三方提示与图标）：./gradlew buildResourcePack
-tasks.register('buildResourcePack', Zip) {
-    group = 'build'
-    description = '把 resourcepack/ 打包成可分发的资源包 zip'
-    from('resourcepack') {
-        exclude 'README.md', '.tools/**'
-    }
-    archiveFileName = 'mcpligin-resourcepack.zip'
-    destinationDirectory = layout.buildDirectory.dir('resourcepack')
-}
-
 tasks.register('listPlugins') {
     group = '插件管理'
     description = '列出所有插件及其打包 / 测试服命令'

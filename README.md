@@ -32,7 +32,8 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `Minecraft-26_
 │       └── src/main/{java,resources}
 ├── Minecraft-26_3-plugin/          # 插件都放这里，一个目录一个插件
 │   └── MainMenu/                   # 主菜单插件（功能插件接入规范见其 docs/）
-├── resourcepack/                   # 客户端资源包：清理 ESC 暂停菜单的提示与图标
+├── fabric-26_3-mod/                # Fabric 客户端模组（独立 Gradle 工程，不参与上面的插件构建）
+│   └── MainMenuRepair/             # 清理 ESC 暂停菜单的界面修复模组
 ├── run/                            # 共用的测试服目录（服务端、世界、插件配置都在这里，已 gitignore）
 └── .github/                        # CI、Release、Issue/PR 模板、Dependabot
 ```
@@ -190,27 +191,29 @@ GET {base-url}/api/plugins/minecraft-server/admin/servers/{serverId}/players?pag
 在 `Minecraft-26_3-plugin/MainMenu/src/main/resources/config.yml` 的 `yudream` 段配置 `base-url`、`api-key`（或 `token`）、`server-id`（留空则读环境变量 `MCSERVER_ID`）。
 未配置或后端不可用时，画上会显示对应提示而不是报错；结果按 `cache-seconds`（默认 30 秒）缓存，请求走异步线程。
 
-## 客户端资源包：清理 ESC 暂停菜单
+## 客户端模组：MainMenuRepair
 
-`resourcepack/` 是一个客户端资源包，做两件**只能由客户端完成**的事：
+`fabric-26_3-mod/MainMenuRepair/` 是一个 **Fabric 客户端模组**，直接改客户端界面，把 ESC 暂停菜单里的这两样东西真正删掉：
 
-| 目标 | 覆盖内容 |
+| 目标 | 做法 |
 | --- | --- |
-| 去掉「主菜单」按钮上那句 *注：自定义选项由第三方服务器或内容提供。请小心操作！* | `menu.custom_options.tooltip` 文案清空 |
-| 让暂停菜单右下角 4 个原版图标不可见（报告 Bug / 给予反馈 / 好友 / 举报玩家） | 4 个贴图替换为同尺寸全透明图 |
+| 「主菜单」按钮上那句 *注：自定义选项由第三方服务器或内容提供。请小心操作！* | Mixin 掉 `PauseScreen.addCustomDialogButtons` 里对 `Button$Builder.tooltip(...)` 的调用 |
+| 右下角 4 个原版图标按钮（报告 Bug / 给予反馈 / 好友 / 举报玩家） | 把 `PauseScreen.createPauseMenu()` 里的图标行 `LinearLayout.horizontal()` 换成不接收子控件的实现，4 个按钮根本不会被创建 |
 
-原因：那句提示是客户端 `PauseScreen.addCustomDialogButtons` 里**无条件**附加的（对应语言 key `menu.custom_options.tooltip`），右下角 4 个图标也是 `PauseScreen` 在多人游戏里**无条件创建**的原版按钮，服务端没有任何 API 或配置可以关闭它们 —— 资源包是唯一的办法。
+**为什么用模组而不是资源包**：那句提示是客户端 `PauseScreen` 里**无条件**附加的，4 个图标也是**无条件**创建的原版按钮，服务端既没有 API 也没有配置项能关掉；资源包只能改文案和贴图（图标会变成看不见但仍可点的按钮），模组才能真正删除。
+
+### 构建与安装
 
 ```bash
-./gradlew buildResourcePack     # 产物：build/resourcepack/mcpligin-resourcepack.zip
+./gradlew -p fabric-26_3-mod/MainMenuRepair build
+# 产物：fabric-26_3-mod/MainMenuRepair/build/libs/MainMenuRepair-1.0.0.jar
 ```
 
-启用方式二选一：
+把 jar 放进客户端该实例的 `mods/` 目录，重启客户端即可。模组是纯客户端的，**不需要 Fabric API，也不需要服务端做任何事**。
 
-- **本地**：把 zip 放进客户端的 `resourcepacks/`，在 `选项 → 资源包` 里启用（对该客户端所有服务器生效）；
-- **服务端统一下发**：把 zip 传到可访问的地址，然后在 `server.properties` 里填 `resource-pack=<url>`、`resource-pack-sha1=<sha1>`（`./gradlew buildResourcePack` 后可用 `sha1sum` 取）。
-
-细节（只想去掉一部分、想换成自己的文案、注意事项）见 [resourcepack/README.md](resourcepack/README.md)。
+> 26.3 客户端不再混淆，Fabric 也没有 26.3 的 yarn/intermediary，所以编译不需要 mappings、构建不需要 remap。
+> 本工程因此不依赖 fabric-loom（`maven.fabricmc.net` 在部分网络下被限速到 KB 级，loom 会卡在下载上），
+> 只下载官方客户端 jar + 用 `src/mixin-stubs/java` 里的 Mixin 注解桩编译，细节见模组自己的 README。
 
 ## 26.3 开发要点
 

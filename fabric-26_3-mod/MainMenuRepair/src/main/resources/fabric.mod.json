@@ -1,0 +1,27 @@
+{
+	"schemaVersion": 1,
+	"id": "mainmenu-repair",
+	"version": "${version}",
+	"name": "MainMenuRepair",
+	"description": "清理 ESC 暂停菜单：移除右下角 4 个原版图标按钮（报告 Bug / 给予反馈 / 好友 / 举报玩家），并去掉服务器自定义选项按钮上的“第三方内容”警告提示。",
+	"authors": [
+		"zhou-BZDDX"
+	],
+	"contact": {
+		"homepage": "https://github.com/zhou-BZDDX/mcPligin",
+		"sources": "https://github.com/zhou-BZDDX/mcPligin"
+	},
+	"license": "MIT",
+	"environment": "client",
+	"mixins": [
+		{
+			"config": "mainmenu-repair.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.20.0",
+		"minecraft": "~26.3",
+		"java": ">=25"
+	}
+}
