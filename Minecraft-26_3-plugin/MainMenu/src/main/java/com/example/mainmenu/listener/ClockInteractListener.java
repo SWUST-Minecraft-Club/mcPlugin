@@ -1,6 +1,9 @@
 package com.example.mainmenu.listener;
 
 import com.example.mainmenu.MainMenuPlugin;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -8,23 +11,27 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 /**
  * 手持时钟右键打开主菜单。
  *
- * <p>对着空气（{@code RIGHT_CLICK_AIR}）和对着方块（{@code RIGHT_CLICK_BLOCK}）都会触发；
+ * <p>对着空气（{@code RIGHT_CLICK_AIR}）和对着方块（{@code RIGHT_CLICK_BLOCK}）都会触发。
  * 为了不影响正常游戏：
  * <ul>
  *     <li>右键可交互方块（箱子、工作台等）时不抢事件，交给方块本身处理；</li>
- *     <li>只处理"实际拿着时钟的那只手"的事件，避免一次点击触发两次；</li>
+ *     <li><b>主手或副手拿着时钟都算</b> —— 只认"拿着钟的那只手"会漏掉一种情况：
+ *         对着空气右键时服务端只会为<b>主手</b>触发事件，钟在副手就打不开了；</li>
+ *     <li>用 200ms 冷却避免主副手各触发一次导致界面被重复打开；</li>
  *     <li>潜行默认也允许（可用 {@code menu.open.clock-while-sneaking} 关掉）。</li>
  * </ul>
  */
 public final class ClockInteractListener implements Listener {
 
+    private static final long COOLDOWN_MILLIS = 200L;
+
     private final MainMenuPlugin plugin;
+    private final Map<UUID, Long> lastOpen = new HashMap<>();
 
     public ClockInteractListener(final MainMenuPlugin plugin) {
         this.plugin = plugin;
@@ -45,16 +52,29 @@ public final class ClockInteractListener implements Listener {
                 && !plugin.getConfig().getBoolean("menu.open.clock-while-sneaking", true)) {
             return;
         }
-        if (!holdingClock(player, event.getHand())) {
+        if (!holdingClock(player)) {
             return;
         }
         if (action == Action.RIGHT_CLICK_BLOCK && !handleBlockClick(event)) {
             return;
         }
 
+        final long now = System.currentTimeMillis();
+        final Long last = lastOpen.get(player.getUniqueId());
+        if (last != null && now - last < COOLDOWN_MILLIS) {
+            return;
+        }
+        lastOpen.put(player.getUniqueId(), now);
+
         event.setCancelled(true);
-        plugin.getLogger().info("玩家 " + player.getName() + " 用时钟右键（" + action + "）打开主菜单");
+        plugin.getLogger().info("玩家 " + player.getName() + " 用时钟右键（" + action
+                + "，手=" + event.getHand() + "）打开主菜单");
         plugin.menus().open(player);
+    }
+
+    @EventHandler
+    public void onQuit(final PlayerQuitEvent event) {
+        lastOpen.remove(event.getPlayer().getUniqueId());
     }
 
     /**
@@ -76,15 +96,11 @@ public final class ClockInteractListener implements Listener {
         return !isInteractable(block.getType());
     }
 
-    /** 只认"实际拿着时钟的那只手"，避免主副手各触发一次 */
-    private boolean holdingClock(final Player player, final EquipmentSlot hand) {
+    /** 主手或副手拿着时钟都算 */
+    private boolean holdingClock(final Player player) {
         final Material clock = clockMaterial();
-        final ItemStack main = player.getInventory().getItemInMainHand();
-        final ItemStack off = player.getInventory().getItemInOffHand();
-        if (hand == EquipmentSlot.OFF_HAND) {
-            return off.getType() == clock && main.getType() != clock;
-        }
-        return main.getType() == clock;
+        return player.getInventory().getItemInMainHand().getType() == clock
+                || player.getInventory().getItemInOffHand().getType() == clock;
     }
 
     private Material clockMaterial() {

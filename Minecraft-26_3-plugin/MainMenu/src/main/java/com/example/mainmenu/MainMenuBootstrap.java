@@ -18,6 +18,7 @@ import io.papermc.paper.registry.event.RegistryEvents;
 import io.papermc.paper.registry.keys.tags.DialogTagKeys;
 import io.papermc.paper.dialog.DialogResponseView;
 import java.net.URL;
+import java.time.Duration;
 import java.util.List;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.key.Key;
@@ -97,9 +98,14 @@ public final class MainMenuBootstrap implements PluginBootstrap {
         return ActionButton.builder(Component.text("打开主菜单"))
                 .tooltip(Component.text("打开 6×9 功能菜单"))
                 .width(200)
+                // 注意：ClickCallback 默认只能使用 1 次、默认寿命 12 小时。
+                // 不显式放开的话，ESC 菜单按钮就只有第一次点得开。
                 .action(DialogAction.customClick(
                         MainMenuBootstrap::handleOpenClick,
-                        ClickCallback.Options.builder().build()))
+                        ClickCallback.Options.builder()
+                                .uses(ClickCallback.UNLIMITED_USES)
+                                .lifetime(Duration.ofDays(365L * 100L))
+                                .build()))
                 .build();
     }
 
