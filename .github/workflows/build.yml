@@ -26,12 +26,13 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v6
 
-      - name: Build
+      # 根工程的 build 会构建 Minecraft-26_3-plugin/ 下的所有插件
+      - name: Build all plugins
         run: ./gradlew build --no-daemon --stacktrace
 
-      - name: Upload plugin jar
+      - name: Upload plugin jars
         uses: actions/upload-artifact@v7
         with:
-          name: plugin-jar
-          path: build/libs/*.jar
+          name: plugin-jars
+          path: Minecraft-26_3-plugin/*/build/libs/*.jar
           if-no-files-found: error

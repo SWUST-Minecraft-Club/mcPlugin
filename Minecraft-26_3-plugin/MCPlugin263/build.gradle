@@ -1,0 +1,11 @@
+// 本插件独有的配置。
+// 公共配置（Java 工具链、Paper API 依赖、仓库、processResources、runServer 版本）
+// 统一在仓库根目录的 build.gradle 里，改一次对所有插件生效。
+
+version = '0.1.0'
+
+dependencies {
+    // 需要额外依赖时加在这里，例如：
+    // compileOnly 'com.github.stefanvanschie.inventoryframework:IF:0.10.11'
+    // implementation 'com.zaxxer:HikariCP:7.0.2'
+}

@@ -25,10 +25,10 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v6
 
-      - name: Build
+      - name: Build all plugins
         run: ./gradlew build --no-daemon --stacktrace
 
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" build/libs/*.jar --title "$GITHUB_REF_NAME" --generate-notes
+        run: gh release create "$GITHUB_REF_NAME" Minecraft-26_3-plugin/*/build/libs/*.jar --title "$GITHUB_REF_NAME" --generate-notes
