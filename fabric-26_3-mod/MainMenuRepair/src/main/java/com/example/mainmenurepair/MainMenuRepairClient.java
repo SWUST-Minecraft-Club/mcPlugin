@@ -15,13 +15,13 @@ public final class MainMenuRepairClient implements ClientModInitializer {
         StatusLog.reset("MainMenuRepair 状态报告");
         try {
             final Class<?> pauseScreen = Class.forName("net.minecraft.client.gui.screens.PauseScreen");
+            final Class<?> screen = Class.forName("net.minecraft.client.gui.screens.Screen");
+            final Class<?> gui = Class.forName("net.minecraft.client.gui.Gui");
             StatusLog.append("PauseScreen 可加载：是");
-            StatusLog.append("ScreenInvokerMixin 生效（PauseScreen 实现 ScreenAccess）："
-                    + ScreenAccess.class.isAssignableFrom(pauseScreen));
-            StatusLog.append("PauseScreenMixin 实例注入方法已合并（mainmenuRepair$cleanupOnInit）："
-                    + hasMethod(pauseScreen, "mainmenuRepair$cleanupOnInit"));
-            StatusLog.append("PauseScreenMixin 构造函数注入方法已合并（mainmenuRepair$logApplied）："
-                    + hasMethod(pauseScreen, "mainmenuRepair$logApplied"));
+            StatusLog.append("ScreenAccess 已混入 Screen：" + ScreenAccess.class.isAssignableFrom(screen));
+            StatusLog.append("ScreenInitMixin 已合并到 Screen：" + hasMethod(screen, "mainmenuRepair$afterInit"));
+            StatusLog.append("GuiSetScreenMixin 已合并到 Gui：" + hasMethod(gui, "mainmenuRepair$afterSetScreen"));
+            StatusLog.append("PauseScreenMixin 已合并到 PauseScreen：" + hasMethod(pauseScreen, "mainmenuRepair$onConstructed"));
         } catch (final Throwable throwable) {
             StatusLog.append("检查失败：" + throwable);
         }
