@@ -1,21 +1,21 @@
 # Paper 插件描述文件（26.3 起推荐使用 paper-plugin.yml）
 # 注意：Paper 插件不在 yml 中声明命令，命令通过代码里的 LifecycleEvents.COMMANDS 注册
-name: MCPlugin263
+name: ExamplePlugin
 version: '${version}'
-main: com.example.mcplugin263.MCPlugin263
+main: com.example.exampleplugin.ExamplePlugin
 api-version: '26.3'
 description: Minecraft 26.3 (Paper) 插件开发模板
 authors: [你的名字]
-website: https://github.com/your-name/MCPlugin263
+website: https://github.com/your-name/ExamplePlugin
 
 # 权限声明；default 可取 true / false / op / not_op
 permissions:
-  mcplugin263.hello:
+  exampleplugin.hello:
     description: 允许使用 /hello
     default: true
-  mcplugin263.admin:
+  exampleplugin.admin:
     description: 允许使用 /mcplugin
     default: op
-  mcplugin263.reload:
+  exampleplugin.reload:
     description: 允许使用 /mcplugin reload
     default: op

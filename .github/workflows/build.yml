@@ -35,4 +35,5 @@ jobs:
         with:
           name: plugin-jars
           path: Minecraft-26_3-plugin/*/build/libs/*.jar
-          if-no-files-found: error
+          # 仓库里还没有插件时不会产生 jar，这里只告警不失败
+          if-no-files-found: warn

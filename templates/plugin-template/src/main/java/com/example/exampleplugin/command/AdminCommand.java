@@ -1,6 +1,6 @@
-package com.example.mcplugin263.command;
+package com.example.exampleplugin.command;
 
-import com.example.mcplugin263.MCPlugin263;
+import com.example.exampleplugin.ExamplePlugin;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
@@ -16,11 +16,11 @@ public final class AdminCommand {
     private AdminCommand() {
     }
 
-    public static LiteralCommandNode<CommandSourceStack> create(MCPlugin263 plugin) {
+    public static LiteralCommandNode<CommandSourceStack> create(ExamplePlugin plugin) {
         return Commands.literal("mcplugin")
-                .requires(source -> source.getSender().hasPermission("mcplugin263.admin"))
+                .requires(source -> source.getSender().hasPermission("exampleplugin.admin"))
                 .then(Commands.literal("reload")
-                        .requires(source -> source.getSender().hasPermission("mcplugin263.reload"))
+                        .requires(source -> source.getSender().hasPermission("exampleplugin.reload"))
                         .executes(context -> {
                             plugin.reloadConfig();
                             plugin.send(context.getSource().getSender(), "messages.reloaded");

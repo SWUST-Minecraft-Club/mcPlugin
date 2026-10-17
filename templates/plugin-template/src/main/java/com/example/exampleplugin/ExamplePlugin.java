@@ -1,8 +1,8 @@
-package com.example.mcplugin263;
+package com.example.exampleplugin;
 
-import com.example.mcplugin263.command.AdminCommand;
-import com.example.mcplugin263.command.HelloCommand;
-import com.example.mcplugin263.listener.PlayerJoinListener;
+import com.example.exampleplugin.command.AdminCommand;
+import com.example.exampleplugin.command.HelloCommand;
+import com.example.exampleplugin.listener.PlayerJoinListener;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import java.util.List;
 import net.kyori.adventure.text.Component;
@@ -15,13 +15,13 @@ import org.bukkit.plugin.java.JavaPlugin;
 /**
  * 插件主类：负责加载配置、注册命令与事件监听器。
  */
-public final class MCPlugin263 extends JavaPlugin {
+public final class ExamplePlugin extends JavaPlugin {
 
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
 
     @Override
     public void onEnable() {
-        // 将 jar 内的 config.yml 释放到 plugins/MCPlugin263/config.yml（文件已存在时不会覆盖）
+        // 将 jar 内的 config.yml 释放到 plugins/ExamplePlugin/config.yml（文件已存在时不会覆盖）
         saveDefaultConfig();
 
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(this), this);
@@ -48,7 +48,7 @@ public final class MCPlugin263 extends JavaPlugin {
      * @param resolvers 占位符，例如 Placeholder.unparsed("name", player.getName())
      */
     public Component render(String key, TagResolver... resolvers) {
-        String raw = getConfig().getString(key, "<red>[MCPlugin263] 缺少配置项：" + key);
+        String raw = getConfig().getString(key, "<red>[ExamplePlugin] 缺少配置项：" + key);
         return miniMessage.deserialize(raw, resolvers);
     }
 

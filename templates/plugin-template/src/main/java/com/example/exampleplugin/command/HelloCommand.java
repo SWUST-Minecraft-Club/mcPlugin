@@ -1,6 +1,6 @@
-package com.example.mcplugin263.command;
+package com.example.exampleplugin.command;
 
-import com.example.mcplugin263.MCPlugin263;
+import com.example.exampleplugin.ExamplePlugin;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.tree.LiteralCommandNode;
@@ -17,10 +17,10 @@ public final class HelloCommand {
     private HelloCommand() {
     }
 
-    public static LiteralCommandNode<CommandSourceStack> create(MCPlugin263 plugin) {
+    public static LiteralCommandNode<CommandSourceStack> create(ExamplePlugin plugin) {
         return Commands.literal("hello")
                 // 无权限时命令不会被补全，也无法执行
-                .requires(source -> source.getSender().hasPermission("mcplugin263.hello"))
+                .requires(source -> source.getSender().hasPermission("exampleplugin.hello"))
                 .executes(context -> {
                     CommandSourceStack source = context.getSource();
                     String name = source.getSender() instanceof Player player ? player.getName() : "控制台";

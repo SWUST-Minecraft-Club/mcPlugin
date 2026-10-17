@@ -48,12 +48,14 @@ subprojects { pluginProject ->
     }
 
     tasks.named('runServer') {
-        // 测试服用的服务端版本；每个插件有独立的 run/ 目录
+        // 测试服用的服务端版本
         minecraftVersion(project.minecraftVersion)
+        // 所有插件共用仓库根目录下的 run/ 测试服（只下一份服务端、只生成一份世界）。
+        // 共用目录时不要同时启动两个插件的 runServer（会抢同一个端口）。
+        // 想让某个插件用独立目录，在它自己的 build.gradle 里写 runDirectory(file('run'))
+        runDirectory(rootProject.file('run'))
         // 想固定服务端构建号时打开这行（构建号见 papermc.io/downloads/paper）
         // build(200)
-        // 想共用同一个测试服目录时打开这行
-        // runDirectory(rootProject.file('run-shared'))
     }
 }
 
@@ -96,8 +98,11 @@ tasks.register('newPlugin') {
     group = '插件管理'
     description = '复制模板生成新插件：./gradlew newPlugin -PpluginName=MyPlugin'
     doLast {
-        def templateName = (findProperty('template') ?: 'MCPlugin263').toString().trim()
-        def templateDir = rootProject.file("Minecraft-26_3-plugin/${templateName}")
+        // 模板放在 templates/plugin-template/，里面的占位符固定为 ExamplePlugin / exampleplugin
+        def templateDir = rootProject.file('templates/plugin-template')
+        def templateName = 'ExamplePlugin'
+        def templateLower = 'exampleplugin'
+        def templatePackage = 'com.example.exampleplugin'
         def pluginsDir = rootProject.file('Minecraft-26_3-plugin')
 
         def pluginName = (findProperty('pluginName') ?: '').toString().trim()
@@ -108,11 +113,8 @@ tasks.register('newPlugin') {
             throw new GradleException("插件名只能由字母、数字、下划线组成且以字母开头：${pluginName}")
         }
         if (!templateDir.isDirectory()) {
-            throw new GradleException("模板目录不存在：${templateDir}\n" +
-                    'newPlugin 默认以 MCPlugin263 为模板，别删它；' +
-                    '也可以指定别的插件当模板：-Ptemplate=其他插件名')
+            throw new GradleException("模板目录不存在：${templateDir}")
         }
-        def templateLower = templateName.toLowerCase(Locale.ROOT)
 
         def lowerName = pluginName.toLowerCase(Locale.ROOT)
         def packageName = (findProperty('packageName') ?: "com.example.${lowerName}").toString().trim()
@@ -134,9 +136,9 @@ tasks.register('newPlugin') {
 
         // 2) 替换文件内容（包名要整体先替换，避免被短名替换拆散）
         def replacements = [
-                ("com.example.${templateLower}"): packageName,
-                (templateName)                  : pluginName,
-                (templateLower)                 : lowerName,
+                (templatePackage): packageName,
+                (templateName)   : pluginName,
+                (templateLower)  : lowerName,
         ]
         targetDir.eachFileRecurse { f ->
             if (f.isFile() && f.name ==~ /.*\.(java|yml|yaml|gradle|properties|md|txt|json)$/) {
@@ -146,7 +148,7 @@ tasks.register('newPlugin') {
             }
         }
 
-        // 3) 重命名带模板名的文件（MCPlugin263.java -> MyPlugin.java）
+        // 3) 重命名带模板名的文件（ExamplePlugin.java -> MyPlugin.java）
         def toRename = []
         targetDir.eachFileRecurse { f ->
             if (f.isFile() && f.name.contains(templateName)) {
@@ -159,7 +161,7 @@ tasks.register('newPlugin') {
 
         // 4) 把包目录搬到新包名对应的路径
         def javaRoot = new File(targetDir, 'src/main/java')
-        def oldPkgDir = new File(javaRoot, "com/example/${templateLower}")
+        def oldPkgDir = new File(javaRoot, templatePackage.replace('.', '/'))
         def newPkgDir = new File(javaRoot, packageName.replace('.', '/'))
         if (oldPkgDir.isDirectory() && oldPkgDir != newPkgDir) {
             newPkgDir.parentFile.mkdirs()
@@ -170,7 +172,10 @@ tasks.register('newPlugin') {
                 }
                 delete oldPkgDir
             }
-            [new File(javaRoot, 'com/example'), new File(javaRoot, 'com')].each { d ->
+            // 清掉搬空后的旧包目录（只删空目录，不动其它东西）
+            def pkgParts = templatePackage.split('\\.')
+            for (int i = pkgParts.length; i > 0; i--) {
+                def d = new File(javaRoot, pkgParts[0..<i].join('/'))
                 if (d.isDirectory() && d.listFiles()?.length == 0) {
                     delete d
                 }

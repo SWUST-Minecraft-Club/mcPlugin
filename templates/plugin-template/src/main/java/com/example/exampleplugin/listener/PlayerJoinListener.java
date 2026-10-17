@@ -1,6 +1,6 @@
-package com.example.mcplugin263.listener;
+package com.example.exampleplugin.listener;
 
-import com.example.mcplugin263.MCPlugin263;
+import com.example.exampleplugin.ExamplePlugin;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,9 +13,9 @@ import org.bukkit.event.player.PlayerJoinEvent;
  */
 public final class PlayerJoinListener implements Listener {
 
-    private final MCPlugin263 plugin;
+    private final ExamplePlugin plugin;
 
-    public PlayerJoinListener(MCPlugin263 plugin) {
+    public PlayerJoinListener(ExamplePlugin plugin) {
         this.plugin = plugin;
     }
 
