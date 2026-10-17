@@ -1,6 +1,6 @@
 # Minecraft 26.3 插件集合
 
-[![Build](https://github.com/your-name/your-repo/actions/workflows/build.yml/badge.svg)](https://github.com/your-name/your-repo/actions/workflows/build.yml)
+[![Build](https://github.com/zhou-BZDDX/mcPligin/actions/workflows/build.yml/badge.svg)](https://github.com/zhou-BZDDX/mcPligin/actions/workflows/build.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Minecraft](https://img.shields.io/badge/Minecraft-26.3-green.svg)
 ![Java](https://img.shields.io/badge/Java-25-orange.svg)

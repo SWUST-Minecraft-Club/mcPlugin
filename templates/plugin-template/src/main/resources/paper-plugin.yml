@@ -5,8 +5,8 @@ version: '${version}'
 main: com.example.exampleplugin.ExamplePlugin
 api-version: '26.3'
 description: Minecraft 26.3 (Paper) 插件开发模板
-authors: [你的名字]
-website: https://github.com/your-name/ExamplePlugin
+authors: [zhou-BZDDX]
+website: https://github.com/zhou-BZDDX/mcPligin
 
 # 权限声明；default 可取 true / false / op / not_op
 permissions:
