@@ -32,6 +32,7 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `Minecraft-26_
 │       └── src/main/{java,resources}
 ├── Minecraft-26_3-plugin/          # 插件都放这里，一个目录一个插件
 │   └── MainMenu/                   # 主菜单插件（功能插件接入规范见其 docs/）
+├── resourcepack/                   # 客户端资源包：清理 ESC 暂停菜单的提示与图标
 ├── run/                            # 共用的测试服目录（服务端、世界、插件配置都在这里，已 gitignore）
 └── .github/                        # CI、Release、Issue/PR 模板、Dependabot
 ```
@@ -188,6 +189,28 @@ GET {base-url}/api/plugins/minecraft-server/admin/servers/{serverId}/players?pag
 
 在 `Minecraft-26_3-plugin/MainMenu/src/main/resources/config.yml` 的 `yudream` 段配置 `base-url`、`api-key`（或 `token`）、`server-id`（留空则读环境变量 `MCSERVER_ID`）。
 未配置或后端不可用时，画上会显示对应提示而不是报错；结果按 `cache-seconds`（默认 30 秒）缓存，请求走异步线程。
+
+## 客户端资源包：清理 ESC 暂停菜单
+
+`resourcepack/` 是一个客户端资源包，做两件**只能由客户端完成**的事：
+
+| 目标 | 覆盖内容 |
+| --- | --- |
+| 去掉「主菜单」按钮上那句 *注：自定义选项由第三方服务器或内容提供。请小心操作！* | `menu.custom_options.tooltip` 文案清空 |
+| 让暂停菜单右下角 4 个原版图标不可见（报告 Bug / 给予反馈 / 好友 / 举报玩家） | 4 个贴图替换为同尺寸全透明图 |
+
+原因：那句提示是客户端 `PauseScreen.addCustomDialogButtons` 里**无条件**附加的（对应语言 key `menu.custom_options.tooltip`），右下角 4 个图标也是 `PauseScreen` 在多人游戏里**无条件创建**的原版按钮，服务端没有任何 API 或配置可以关闭它们 —— 资源包是唯一的办法。
+
+```bash
+./gradlew buildResourcePack     # 产物：build/resourcepack/mcpligin-resourcepack.zip
+```
+
+启用方式二选一：
+
+- **本地**：把 zip 放进客户端的 `resourcepacks/`，在 `选项 → 资源包` 里启用（对该客户端所有服务器生效）；
+- **服务端统一下发**：把 zip 传到可访问的地址，然后在 `server.properties` 里填 `resource-pack=<url>`、`resource-pack-sha1=<sha1>`（`./gradlew buildResourcePack` 后可用 `sha1sum` 取）。
+
+细节（只想去掉一部分、想换成自己的文案、注意事项）见 [resourcepack/README.md](resourcepack/README.md)。
 
 ## 26.3 开发要点
 
