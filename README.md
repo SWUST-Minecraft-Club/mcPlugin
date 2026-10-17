@@ -139,6 +139,27 @@ MainMenuApi.registry().register(
                 .build());
 ```
 
+可选项：`preferredSlot(0~53)` 自定义位置（功能区以外的格子），`order(int)` 功能区排序值（越小越靠前；默认 0 = 按注册顺序，而跨插件的注册顺序由服务端加载顺序决定，需要确定性排序时用它）。
+
+### 测试用功能插件
+
+`Minecraft-26_3-plugin/TestPlugin01` ~ `TestPlugin25` 是为验证主菜单而生成的测试插件，每个依赖 MainMenu 并注册 1 个功能（TestPlugin01 注册 2 个），共 26 个功能，用来压测排序、自定义位置、冲突改排和分页：
+
+| 插件 | 场景 |
+| --- | --- |
+| TestPlugin01 | 自定义位置占第 1 行第 1 格（若被抢先则冲突改排）+ 额外注册第 2 个功能 |
+| TestPlugin02 | 自定义位置占第 1 行第 9 格 |
+| TestPlugin03 | 想占用时钟（固定功能位）→ 应改排到功能区并提示 |
+| TestPlugin04 | 也想要第 1 行第 1 格（与 TestPlugin01 抢同一格，先注册者得） |
+| TestPlugin05 | 想占用在线时长（固定功能位）→ 应改排到功能区并提示 |
+| TestPlugin06 | `preferredSlot` 写在功能区格子上 → 视为未指定位置，不算冲突 |
+| TestPlugin07 ~ 25 | 无自定义位置，按 `order` 排进功能区（19 个） |
+
+一共 26 个功能：2 个自定义位置 + 24 个在功能区 → 2 页（21 + 3）。
+
+安装到测试服：把 `Minecraft-26_3-plugin/*/build/libs/*.jar` 全部拷进服务端 `plugins/` 后重启即可。
+不需要它们时一条命令删除：`rm -rf Minecraft-26_3-plugin/TestPlugin*`（Release 工作流已经排除 `TestPlugin*`，不会发布测试插件）。
+
 ### ESC 菜单按钮是怎么实现的
 
 Paper 26.3 没有“直接往暂停界面加按钮”的 API。官方途径是 dialog 系统：

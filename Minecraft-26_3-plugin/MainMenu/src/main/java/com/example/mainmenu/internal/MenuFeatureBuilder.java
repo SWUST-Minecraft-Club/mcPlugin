@@ -30,6 +30,7 @@ public final class MenuFeatureBuilder implements MenuFeature.Builder {
     private boolean clickable;
     private BiConsumer<Player, ClickType> handler;
     private Integer preferredSlot;
+    private int order;
 
     public MenuFeatureBuilder(final String id) {
         this.id = Objects.requireNonNull(id, "id");
@@ -106,6 +107,12 @@ public final class MenuFeatureBuilder implements MenuFeature.Builder {
     }
 
     @Override
+    public MenuFeature.Builder order(final int order) {
+        this.order = order;
+        return this;
+    }
+
+    @Override
     public MenuFeature build() {
         if (clickable && handler == null) {
             throw new IllegalStateException("功能 " + id + " 标记为可点击，但没有设置 onClick");
@@ -131,7 +138,8 @@ public final class MenuFeatureBuilder implements MenuFeature.Builder {
                 description,
                 clickable,
                 handler,
-                preferredSlot != null ? OptionalInt.of(preferredSlot) : OptionalInt.empty()
+                preferredSlot != null ? OptionalInt.of(preferredSlot) : OptionalInt.empty(),
+                order
         );
     }
 

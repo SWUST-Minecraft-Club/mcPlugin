@@ -1,0 +1,14 @@
+name: TestPlugin22
+version: '${version}'
+main: com.example.testplugin22.TestPlugin22
+api-version: '26.3'
+description: 测试用功能插件 22
+authors: [zhou-BZDDX]
+website: https://github.com/zhou-BZDDX/mcPligin
+
+# 功能插件规范：依赖 MainMenu，保证它先加载
+dependencies:
+  server:
+    MainMenu:
+      load: BEFORE
+      required: true

@@ -19,7 +19,8 @@ record SimpleMenuFeature(
         List<Component> description,
         boolean clickable,
         BiConsumer<Player, ClickType> handler,
-        OptionalInt preferredSlot
+        OptionalInt preferredSlot,
+        int order
 ) implements MenuFeature {
 
     @Override

@@ -1,0 +1,6 @@
+// 测试用功能插件 23（依赖 MainMenu，见 MainMenu/docs/功能插件接入规范.md）
+version = '0.1.0'
+
+dependencies {
+    compileOnly project(':MainMenu')
+}

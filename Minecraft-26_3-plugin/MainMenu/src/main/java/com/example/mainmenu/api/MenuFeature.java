@@ -47,6 +47,16 @@ public interface MenuFeature {
     /** 自定义显示位置（0~53）；{@link OptionalInt#empty()} 表示进功能区按顺序排 */
     OptionalInt preferredSlot();
 
+    /**
+     * 功能区排序值：数值小的排在前面。
+     *
+     * <p>默认 {@code 0}，即按注册顺序。跨插件时“注册顺序”等于服务端的插件加载顺序（服务端决定，
+     * 不一定是字母序），想让自己的功能固定排在前面/后面时用它。自定义位置的功能不参与排序。
+     */
+    default int order() {
+        return 0;
+    }
+
     /** 创建一个功能项构建器 */
     static Builder builder(final String id) {
         return new com.example.mainmenu.internal.MenuFeatureBuilder(id);
@@ -87,6 +97,9 @@ public interface MenuFeature {
 
         /** 自定义显示位置（0~53，功能区以外的格子） */
         Builder preferredSlot(int slot);
+
+        /** 功能区排序值（越小越靠前，默认 0 表示按注册顺序） */
+        Builder order(int order);
 
         MenuFeature build();
     }

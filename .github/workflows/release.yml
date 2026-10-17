@@ -32,8 +32,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # 收集所有插件产物；没有 jar 时也不报错
+          # 收集所有插件产物；没有 jar 时也不报错。
+          # 测试插件（Minecraft-26_3-plugin/TestPlugin*）只用于本地联调，不随 Release 发布。
           shopt -s nullglob
-          jars=(Minecraft-26_3-plugin/*/build/libs/*.jar)
-          echo "将上传 ${#jars[@]} 个 jar"
-          gh release create "$GITHUB_REF_NAME" "${jars[@]}" --title "$GITHUB_REF_NAME" --generate-notes
+          assets=()
+          for jar in Minecraft-26_3-plugin/*/build/libs/*.jar; do
+            case "$jar" in
+              */TestPlugin*) continue ;;
+            esac
+            assets+=("$jar")
+          done
+          echo "将上传 ${#assets[@]} 个 jar"
+          gh release create "$GITHUB_REF_NAME" "${assets[@]}" --title "$GITHUB_REF_NAME" --generate-notes

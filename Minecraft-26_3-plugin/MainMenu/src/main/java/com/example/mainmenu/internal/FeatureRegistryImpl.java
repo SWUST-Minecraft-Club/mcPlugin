@@ -153,6 +153,8 @@ public final class FeatureRegistryImpl implements MenuFeatureRegistry {
             }
         }
 
+        // 功能区按 order 升序（相同则保持注册顺序），再按每页 21 格分页
+        pending.sort(java.util.Comparator.comparingInt(MenuFeature::order));
         for (int index = 0; index < pending.size(); index++) {
             final MenuFeature feature = pending.get(index);
             final int page = index / MenuLayout.PAGE_SIZE + 1;
