@@ -16,4 +16,6 @@ public @interface Inject {
     int require() default -1;
 
     int expect() default 1;
+
+    boolean remap() default true;
 }

@@ -28,15 +28,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  *     <li><b>移除右下角 4 个原版图标按钮</b>（报告 Bug / 给予反馈 / 好友 / 举报玩家）。</li>
  * </ol>
  *
- * <p>做法分两层，互为兜底：
- * <ul>
- *     <li>第一层（精确）：{@code @Redirect} 让图标行布局不接收子控件 + {@code @ModifyArg} 把警告置空；</li>
- *     <li>第二层（兜底）：{@code @Inject} 在 {@code createPauseMenu()} 返回后遍历控件，
- *         先隐藏、再移除所有 {@link SpriteIconButton}（{@code FriendsButton} 也继承它），
- *         并清空按钮上的提示。即使第一层的注入点匹配失败（{@code require = 0} 会静默跳过），这一层也能生效。</li>
- * </ul>
+ * <p><b>所有注入都写了 {@code remap = false}</b>：26.3 客户端不再混淆，这里写的就是运行时名字，
+ * 交给 Mixin 去 remap 反而会改写目标名导致匹配失败（{@code <init>} 这类特殊名字不受影响，
+ * 所以之前只有它能匹配上）。
  *
- * <p>除诊断注入外都用 {@code require = 0}：将来版本改了方法名/调用点也不会崩客户端。
+ * <p>做法分两层：{@code @Redirect}/{@code @ModifyArg} 精确拦截 + {@code @Inject} 在
+ * {@code createPauseMenu()} 返回后遍历控件兜底清理。
  */
 @Mixin(PauseScreen.class)
 public abstract class PauseScreenMixin {
@@ -45,8 +42,8 @@ public abstract class PauseScreenMixin {
     @Unique
     private static boolean mainmenuRepair$applied;
 
-    /** 诊断：确认 mixin 真的被应用（第一次创建暂停菜单时打一行）。<init> 任何版本都有，用 require = 1 保证不静默。 */
-    @Inject(method = "<init>", at = @At("TAIL"), require = 1)
+    /** 诊断：确认 mixin 真的被应用 */
+    @Inject(method = "<init>", at = @At("TAIL"), require = 1, remap = false)
     private void mainmenuRepair$logApplied(final CallbackInfo ci) {
         if (!mainmenuRepair$applied) {
             mainmenuRepair$applied = true;
@@ -55,7 +52,7 @@ public abstract class PauseScreenMixin {
     }
 
     /** 兜底清理：菜单构建完成后，直接遍历控件做清理 */
-    @Inject(method = "createPauseMenu", at = @At("RETURN"), require = 0)
+    @Inject(method = "createPauseMenu", at = @At("RETURN"), require = 0, remap = false)
     private void mainmenuRepair$cleanup(final CallbackInfo ci) {
         final Screen self = (Screen) (Object) this;
 
@@ -93,19 +90,20 @@ public abstract class PauseScreenMixin {
                 + " 个，清空 " + tooltips + " 个控件的提示");
     }
 
-    /** 第一层：让图标行布局不接收任何子控件（4 个按钮就不会被创建） */
+    /** 精确拦截：让图标行布局不接收任何子控件（4 个按钮就不会被创建） */
     @Redirect(
             method = "createPauseMenu",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/gui/layouts/LinearLayout;"
                             + "horizontal()Lnet/minecraft/client/gui/layouts/LinearLayout;"),
-            require = 0)
+            require = 0,
+            remap = false)
     private LinearLayout mainmenuRepair$removeIconButtons() {
         return new EmptyIconRow();
     }
 
-    /** 第一层：把自定义选项按钮的 tooltip 参数置空 */
+    /** 精确拦截：把自定义选项按钮的 tooltip 参数置空 */
     @ModifyArg(
             method = "addCustomDialogButtons",
             at = @At(
@@ -113,7 +111,8 @@ public abstract class PauseScreenMixin {
                     target = "Lnet/minecraft/client/gui/components/Button$Builder;"
                             + "tooltip(Lnet/minecraft/client/gui/components/Tooltip;)"
                             + "Lnet/minecraft/client/gui/components/Button$Builder;"),
-            require = 0)
+            require = 0,
+            remap = false)
     private Tooltip mainmenuRepair$removeThirdPartyWarning(final Tooltip tooltip) {
         return null;
     }

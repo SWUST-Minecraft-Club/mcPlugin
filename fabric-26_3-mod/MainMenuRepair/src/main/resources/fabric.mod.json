@@ -13,6 +13,11 @@
 	},
 	"license": "MIT",
 	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"com.example.mainmenurepair.MainMenuRepairClient"
+		]
+	},
 	"mixins": [
 		{
 			"config": "mainmenu-repair.mixins.json",
