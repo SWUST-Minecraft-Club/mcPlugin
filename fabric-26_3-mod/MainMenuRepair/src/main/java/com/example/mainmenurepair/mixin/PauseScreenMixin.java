@@ -1,5 +1,6 @@
 package com.example.mainmenurepair.mixin;
 
+import com.example.mainmenurepair.access.ScreenAccess;
 import com.example.mainmenurepair.util.EmptyIconRow;
 import java.util.ArrayList;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -31,11 +32,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * <ul>
  *     <li>第一层（精确）：{@code @Redirect} 让图标行布局不接收子控件 + {@code @ModifyArg} 把警告置空；</li>
  *     <li>第二层（兜底）：{@code @Inject} 在 {@code createPauseMenu()} 返回后遍历控件，
- *         移除所有 {@link SpriteIconButton}（{@code FriendsButton} 也继承它）并清空按钮上的提示。
- *         即使第一层的注入点匹配失败（{@code require = 0} 会静默跳过），这一层也能生效。</li>
+ *         先隐藏、再移除所有 {@link SpriteIconButton}（{@code FriendsButton} 也继承它），
+ *         并清空按钮上的提示。即使第一层的注入点匹配失败（{@code require = 0} 会静默跳过），这一层也能生效。</li>
  * </ul>
  *
- * <p>所有注入都用 {@code require = 0}：将来版本改了方法名/调用点也不会崩客户端，只是那一项失效。
+ * <p>除诊断注入外都用 {@code require = 0}：将来版本改了方法名/调用点也不会崩客户端。
  */
 @Mixin(PauseScreen.class)
 public abstract class PauseScreenMixin {
@@ -44,7 +45,7 @@ public abstract class PauseScreenMixin {
     @Unique
     private static boolean mainmenuRepair$applied;
 
-    /** 诊断：确认 mixin 真的被应用（第一次创建暂停菜单时打一行）。<init> 任何版本都存在，用 require = 1 保证不静默。 */
+    /** 诊断：确认 mixin 真的被应用（第一次创建暂停菜单时打一行）。<init> 任何版本都有，用 require = 1 保证不静默。 */
     @Inject(method = "<init>", at = @At("TAIL"), require = 1)
     private void mainmenuRepair$logApplied(final CallbackInfo ci) {
         if (!mainmenuRepair$applied) {
@@ -57,14 +58,25 @@ public abstract class PauseScreenMixin {
     @Inject(method = "createPauseMenu", at = @At("RETURN"), require = 0)
     private void mainmenuRepair$cleanup(final CallbackInfo ci) {
         final Screen self = (Screen) (Object) this;
-        final ScreenInvoker invoker = (ScreenInvoker) (Object) this;
 
-        int icons = 0;
+        int hidden = 0;
+        int removed = 0;
         for (final GuiEventListener child : new ArrayList<>(self.children())) {
             // SpriteIconButton 覆盖报告 Bug / 给予反馈 / 举报玩家，FriendsButton 也继承它
-            if (child instanceof SpriteIconButton) {
-                invoker.mainmenuRepair$removeWidget(child);
-                icons++;
+            if (!(child instanceof SpriteIconButton)) {
+                continue;
+            }
+            if (child instanceof AbstractWidget widget) {
+                // 先隐藏：即使下面的移除失败，玩家也看不到它们
+                widget.visible = false;
+                widget.active = false;
+                hidden++;
+            }
+            try {
+                ((ScreenAccess) (Object) this).mainmenuRepair$removeWidget(child);
+                removed++;
+            } catch (final Throwable throwable) {
+                // 移除失败也没关系，已经隐藏了
             }
         }
 
@@ -77,7 +89,8 @@ public abstract class PauseScreenMixin {
             }
         }
 
-        System.out.println("[MainMenuRepair] 暂停菜单清理：移除图标 " + icons + " 个，清空提示 " + tooltips + " 个控件");
+        System.out.println("[MainMenuRepair] 暂停菜单清理：隐藏图标 " + hidden + " 个 / 移除 " + removed
+                + " 个，清空 " + tooltips + " 个控件的提示");
     }
 
     /** 第一层：让图标行布局不接收任何子控件（4 个按钮就不会被创建） */
