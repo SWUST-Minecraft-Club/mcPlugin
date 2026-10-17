@@ -3,7 +3,8 @@
 	"package": "com.example.mainmenurepair.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"client": [
-		"PauseScreenMixin"
+		"PauseScreenMixin",
+		"ScreenInvoker"
 	],
 	"injectors": {
 		"defaultRequire": 0

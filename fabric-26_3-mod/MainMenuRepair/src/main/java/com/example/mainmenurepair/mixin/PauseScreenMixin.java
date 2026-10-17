@@ -1,37 +1,98 @@
 package com.example.mainmenurepair.mixin;
 
 import com.example.mainmenurepair.util.EmptyIconRow;
+import java.util.ArrayList;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.SpriteIconButton;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.PauseScreen;
+import net.minecraft.client.gui.screens.Screen;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
  * 清理 ESC 暂停菜单（目标与签名取自 26.3 官方未混淆客户端 jar）。
  *
- * <p>两处改动：
+ * <p>两件事：
  * <ol>
  *     <li><b>去掉“第三方内容”警告</b>：客户端在 {@code addCustomDialogButtons} 里对每个
- *         {@code pause_screen_additions} 按钮都无条件设置了 {@code CUSTOM_OPTIONS_TOOLTIP}
- *         （语言 key {@code menu.custom_options.tooltip}），这里把它的参数置空。</li>
- *     <li><b>移除右下角 4 个原版图标按钮</b>：它们在 {@code createPauseMenu()} 里被加进同一个
- *         {@code LinearLayout.horizontal()} 布局，这里把该布局换成不接收子控件的
- *         {@link EmptyIconRow}，四个按钮就不会被创建。</li>
+ *         {@code pause_screen_additions} 按钮无条件设置 {@code CUSTOM_OPTIONS_TOOLTIP}。</li>
+ *     <li><b>移除右下角 4 个原版图标按钮</b>（报告 Bug / 给予反馈 / 好友 / 举报玩家）。</li>
  * </ol>
  *
- * <p>{@code require = 0}：将来版本改了方法名或调用点也不会让客户端崩溃，只是这一项改动不生效。
+ * <p>做法分两层，互为兜底：
+ * <ul>
+ *     <li>第一层（精确）：{@code @Redirect} 让图标行布局不接收子控件 + {@code @ModifyArg} 把警告置空；</li>
+ *     <li>第二层（兜底）：{@code @Inject} 在 {@code createPauseMenu()} 返回后遍历控件，
+ *         移除所有 {@link SpriteIconButton}（{@code FriendsButton} 也继承它）并清空按钮上的提示。
+ *         即使第一层的注入点匹配失败（{@code require = 0} 会静默跳过），这一层也能生效。</li>
+ * </ul>
+ *
+ * <p>所有注入都用 {@code require = 0}：将来版本改了方法名/调用点也不会崩客户端，只是那一项失效。
  */
 @Mixin(PauseScreen.class)
 public abstract class PauseScreenMixin {
 
-    /** 只在第一次替换图标行时打一行日志 */
+    /** 只打一次日志 */
     @Unique
-    private static boolean mainmenuRepair$logged;
+    private static boolean mainmenuRepair$applied;
 
+    /** 诊断：确认 mixin 真的被应用（第一次创建暂停菜单时打一行）。<init> 任何版本都存在，用 require = 1 保证不静默。 */
+    @Inject(method = "<init>", at = @At("TAIL"), require = 1)
+    private void mainmenuRepair$logApplied(final CallbackInfo ci) {
+        if (!mainmenuRepair$applied) {
+            mainmenuRepair$applied = true;
+            System.out.println("[MainMenuRepair] Mixin 已应用到 PauseScreen");
+        }
+    }
+
+    /** 兜底清理：菜单构建完成后，直接遍历控件做清理 */
+    @Inject(method = "createPauseMenu", at = @At("RETURN"), require = 0)
+    private void mainmenuRepair$cleanup(final CallbackInfo ci) {
+        final Screen self = (Screen) (Object) this;
+        final ScreenInvoker invoker = (ScreenInvoker) (Object) this;
+
+        int icons = 0;
+        for (final GuiEventListener child : new ArrayList<>(self.children())) {
+            // SpriteIconButton 覆盖报告 Bug / 给予反馈 / 举报玩家，FriendsButton 也继承它
+            if (child instanceof SpriteIconButton) {
+                invoker.mainmenuRepair$removeWidget(child);
+                icons++;
+            }
+        }
+
+        int tooltips = 0;
+        for (final GuiEventListener child : self.children()) {
+            // 剩下的按钮里只有服务器自定义选项按钮带提示（那句第三方警告）
+            if (child instanceof AbstractWidget widget) {
+                widget.setTooltip(null);
+                tooltips++;
+            }
+        }
+
+        System.out.println("[MainMenuRepair] 暂停菜单清理：移除图标 " + icons + " 个，清空提示 " + tooltips + " 个控件");
+    }
+
+    /** 第一层：让图标行布局不接收任何子控件（4 个按钮就不会被创建） */
+    @Redirect(
+            method = "createPauseMenu",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/layouts/LinearLayout;"
+                            + "horizontal()Lnet/minecraft/client/gui/layouts/LinearLayout;"),
+            require = 0)
+    private LinearLayout mainmenuRepair$removeIconButtons() {
+        return new EmptyIconRow();
+    }
+
+    /** 第一层：把自定义选项按钮的 tooltip 参数置空 */
     @ModifyArg(
             method = "addCustomDialogButtons",
             at = @At(
@@ -42,21 +103,5 @@ public abstract class PauseScreenMixin {
             require = 0)
     private Tooltip mainmenuRepair$removeThirdPartyWarning(final Tooltip tooltip) {
         return null;
-    }
-
-    @Redirect(
-            method = "createPauseMenu",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/layouts/LinearLayout;"
-                            + "horizontal()Lnet/minecraft/client/gui/layouts/LinearLayout;"),
-            require = 0)
-    private LinearLayout mainmenuRepair$removeIconButtons() {
-        if (!mainmenuRepair$logged) {
-            mainmenuRepair$logged = true;
-            System.out.println("[MainMenuRepair] 已接管 ESC 暂停菜单：右下角图标行不再创建，"
-                    + "自定义选项按钮的第三方内容警告已去掉");
-        }
-        return new EmptyIconRow();
     }
 }
