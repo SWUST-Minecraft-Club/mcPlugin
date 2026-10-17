@@ -8,15 +8,18 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 
 /**
  * 手持时钟右键打开主菜单。
  *
- * <p>为了不影响正常游戏：
+ * <p>对着空气（{@code RIGHT_CLICK_AIR}）和对着方块（{@code RIGHT_CLICK_BLOCK}）都会触发；
+ * 为了不影响正常游戏：
  * <ul>
- *     <li>默认潜行时不触发（可在配置里打开）；</li>
  *     <li>右键可交互方块（箱子、工作台等）时不抢事件，交给方块本身处理；</li>
- *     <li>主手优先，其次副手。</li>
+ *     <li>只处理"实际拿着时钟的那只手"的事件，避免一次点击触发两次；</li>
+ *     <li>潜行默认也允许（可用 {@code menu.open.clock-while-sneaking} 关掉）。</li>
  * </ul>
  */
 public final class ClockInteractListener implements Listener {
@@ -33,17 +36,24 @@ public final class ClockInteractListener implements Listener {
         if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) {
             return;
         }
-        final Player player = event.getPlayer();
-        if (player.isSneaking() && !plugin.getConfig().getBoolean("menu.open.clock-while-sneaking", false)) {
+        if (!plugin.getConfig().getBoolean("menu.open.clock-right-click", true)) {
             return;
         }
-        if (!holdingClock(player)) {
+
+        final Player player = event.getPlayer();
+        if (player.isSneaking()
+                && !plugin.getConfig().getBoolean("menu.open.clock-while-sneaking", true)) {
+            return;
+        }
+        if (!holdingClock(player, event.getHand())) {
             return;
         }
         if (action == Action.RIGHT_CLICK_BLOCK && !handleBlockClick(event)) {
             return;
         }
+
         event.setCancelled(true);
+        plugin.getLogger().info("玩家 " + player.getName() + " 用时钟右键（" + action + "）打开主菜单");
         plugin.menus().open(player);
     }
 
@@ -66,20 +76,24 @@ public final class ClockInteractListener implements Listener {
         return !isInteractable(block.getType());
     }
 
-    @SuppressWarnings("deprecation")
-    private static boolean isInteractable(final Material material) {
-        return material.isInteractable();
-    }
-
-    private boolean holdingClock(final Player player) {
-        if (player.getInventory().getItemInMainHand().getType() == clockMaterial()) {
-            return true;
+    /** 只认"实际拿着时钟的那只手"，避免主副手各触发一次 */
+    private boolean holdingClock(final Player player, final EquipmentSlot hand) {
+        final Material clock = clockMaterial();
+        final ItemStack main = player.getInventory().getItemInMainHand();
+        final ItemStack off = player.getInventory().getItemInOffHand();
+        if (hand == EquipmentSlot.OFF_HAND) {
+            return off.getType() == clock && main.getType() != clock;
         }
-        return player.getInventory().getItemInOffHand().getType() == clockMaterial();
+        return main.getType() == clock;
     }
 
     private Material clockMaterial() {
         final Material material = Material.matchMaterial(plugin.string("menu.clock.material", "CLOCK"));
         return material == null || material.isAir() ? Material.CLOCK : material;
+    }
+
+    @SuppressWarnings("deprecation")
+    private static boolean isInteractable(final Material material) {
+        return material.isInteractable();
     }
 }

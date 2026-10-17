@@ -99,12 +99,12 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `Minecraft-26_
 
 ## 插件：MainMenu（主菜单）
 
-6×9 的功能主菜单，玩家可以通过三种方式打开：**ESC 菜单里的「主菜单」按钮**、**`/cd` 命令**、**手持时钟右键**。
+6×9 的功能主菜单，玩家可以通过三种方式打开：**ESC 菜单里的「主菜单」按钮**、**`/cd` 命令**、**手持时钟右键**（对着空气或方块都行）。
 
 ### 界面布局
 
 ```
-第1行   [0]玻璃板 [1]时钟  [2]玻璃板 [3]玻璃板 [4]在线时长 [5]玻璃板 [6]玻璃板 [7]玻璃板 [8]玻璃板
+第1行   [0]玻璃板 [1]时钟  [2]玻璃板 [3]玻璃板 [4]玻璃板 [5]玻璃板 [6]玻璃板 [7]玻璃板 [8]玻璃板
 第2行   玻璃板 ×9
 第3行   [18]玻璃板 [19]功能区 [20]功能区 [21]功能区 [22]功能区 [23]功能区 [24]功能区 [25]功能区 [26]玻璃板
 第4行   [27]上一页 [28]功能区 [29]功能区 [30]功能区 [31]功能区 [32]功能区 [33]功能区 [34]功能区 [35]下一页
@@ -113,7 +113,6 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `Minecraft-26_
 ```
 
 - **时钟**（第 1 行第 2 格）：悬停显示当前时间（东 8 区），固定功能位，点击无效。
-- **画**（第 1 行第 5 格）：悬停显示在线时长（读 YuDream 后端），固定功能位，点击无效。
 - **玻璃板**：非固定功能位，功能插件可以用自定义位置占用。
 - **功能区**：第 3~5 行、第 2~8 列共 21 格，按注册顺序填充，每页 21 个，可翻页。
 - **箭头**（第 4 行第 1 / 第 9 格）：功能区翻页，固定功能位。
@@ -123,7 +122,7 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `Minecraft-26_
 | 命令 | 权限 | 说明 |
 | --- | --- | --- |
 | `/cd` | `mainmenu.use`（默认所有人） | 打开主菜单 |
-| `/cd reload` | `mainmenu.reload`（OP） | 重载配置并清空在线时长缓存 |
+| `/cd reload` | `mainmenu.reload`（OP） | 重载配置 |
 | `/cd debug` | `mainmenu.reload`（OP） | 输出布局、功能位置、ESC 按钮状态、配置自检 |
 
 ### 其它插件怎么挂功能
@@ -153,7 +152,7 @@ MainMenuApi.registry().register(
 | TestPlugin02 | 自定义位置占第 1 行第 9 格 |
 | TestPlugin03 | 想占用时钟（固定功能位）→ 应改排到功能区并提示 |
 | TestPlugin04 | 也想要第 1 行第 1 格（与 TestPlugin01 抢同一格，先注册者得） |
-| TestPlugin05 | 想占用在线时长（固定功能位）→ 应改排到功能区并提示 |
+| TestPlugin05 | 想占用时钟（固定功能位）→ 应改排到功能区并提示 |
 | TestPlugin06 | `preferredSlot` 写在功能区格子上 → 视为未指定位置，不算冲突 |
 | TestPlugin07 ~ 25 | 无自定义位置，按 `order` 排进功能区（19 个） |
 
@@ -180,16 +179,6 @@ ESC 按钮是否就绪用 `/cd debug` 查看，正常会显示：
 ESC 菜单按钮：已就绪：pause_screen_additions 包含 mainmenu:main_menu（标签共 1 项）
 ```
 
-### 在线时长的数据来源
-
-画（在线时长）走 YuDream 宿主插件 `minecraft-server` 的 HTTP 接口：
-
-```
-GET {base-url}/api/plugins/minecraft-server/admin/servers/{serverId}/players?page=0&size=200
-```
-
-在 `Minecraft-26_3-plugin/MainMenu/src/main/resources/config.yml` 的 `yudream` 段配置 `base-url`、`api-key`（或 `token`）、`server-id`（留空则读环境变量 `MCSERVER_ID`）。
-未配置或后端不可用时，画上会显示对应提示而不是报错；结果按 `cache-seconds`（默认 30 秒）缓存，请求走异步线程。
 
 ## 客户端模组：MainMenuRepair
 

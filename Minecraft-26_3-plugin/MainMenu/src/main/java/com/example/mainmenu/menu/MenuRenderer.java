@@ -3,9 +3,6 @@ package com.example.mainmenu.menu;
 import com.example.mainmenu.MainMenuPlugin;
 import com.example.mainmenu.api.FeaturePlacement;
 import com.example.mainmenu.api.MenuFeature;
-import com.example.mainmenu.playtime.PlaytimeInfo;
-import com.example.mainmenu.playtime.PlaytimeService;
-import com.example.mainmenu.util.Durations;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -47,7 +44,6 @@ public final class MenuRenderer {
 
         // 固定功能位
         items[MenuLayout.CLOCK_SLOT] = clockItem();
-        items[MenuLayout.PAINTING_SLOT] = paintingItem(viewer);
         items[MenuLayout.PREVIOUS_PAGE_SLOT] = pageArrow(true, page);
         items[MenuLayout.NEXT_PAGE_SLOT] = pageArrow(false, page);
 
@@ -77,41 +73,6 @@ public final class MenuRenderer {
             item.setItemMeta(meta);
         }
         return item;
-    }
-
-    /** 第 1 行第 5 格：在线时长（来自 YuDream 后端） */
-    public ItemStack paintingItem(final Player viewer) {
-        final ItemStack item = plugin.configItem("menu.painting");
-        final ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            final List<Component> lore = new ArrayList<>(4);
-            final PlaytimeService.Result result = plugin.playtime().get(viewer);
-            switch (result.status()) {
-                case NOT_CONFIGURED -> lore.add(plugin.mini("messages.playtime-not-configured"));
-                case LOADING -> lore.add(plugin.mini("messages.playtime-loading"));
-                case UNAVAILABLE -> lore.add(plugin.mini("messages.playtime-unavailable"));
-                case OK -> appendPlaytime(lore, result.info());
-            }
-            addHint(lore, "menu.painting.hint");
-            meta.lore(lore);
-            item.setItemMeta(meta);
-        }
-        return item;
-    }
-
-    private void appendPlaytime(final List<Component> lore, final PlaytimeInfo info) {
-        final long now = System.currentTimeMillis();
-        lore.add(plugin.miniRaw(plugin.string("menu.painting.lines.total",
-                        "<gray>累计在线：<white>{duration}</white></gray>")
-                .replace("{duration}", Durations.format(info.totalOnlineMillis()))));
-        if (info.online()) {
-            lore.add(plugin.miniRaw(plugin.string("menu.painting.lines.session",
-                            "<gray>本次会话：<white>{duration}</white></gray>")
-                    .replace("{duration}", Durations.format(info.currentSessionMillis(now)))));
-        }
-        lore.add(plugin.miniRaw(plugin.string("menu.painting.lines.afk",
-                        "<gray>累计挂机：<white>{duration}</white></gray>")
-                .replace("{duration}", Durations.format(info.totalAfkMillis()))));
     }
 
     /** 第 4 行第 1 / 第 9 格：翻页箭头 */

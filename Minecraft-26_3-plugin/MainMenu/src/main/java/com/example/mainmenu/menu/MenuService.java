@@ -58,7 +58,6 @@ public final class MenuService {
             }
             final Inventory inventory = online.getOpenInventory().getTopInventory();
             inventory.setItem(MenuLayout.CLOCK_SLOT, renderer.clockItem());
-            inventory.setItem(MenuLayout.PAINTING_SLOT, renderer.paintingItem(online));
         }, 20L, 20L);
         refreshTasks.put(uuid, task);
     }

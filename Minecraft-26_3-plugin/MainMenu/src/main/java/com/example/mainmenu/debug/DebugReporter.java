@@ -31,14 +31,11 @@ public final class DebugReporter {
     private static final List<String> TEXT_KEYS = List.of(
             "menu.title",
             "menu.clock.name", "menu.clock.line", "menu.clock.hint",
-            "menu.painting.name", "menu.painting.hint",
-            "menu.painting.lines.total", "menu.painting.lines.session", "menu.painting.lines.afk",
             "menu.filler.name",
             "menu.paging.previous-name", "menu.paging.next-name", "menu.paging.page-line",
             "menu.paging.first-page", "menu.paging.last-page",
             "menu.feature.clickable-hint", "menu.feature.not-clickable-hint", "menu.feature.conflict-hint",
-            "messages.no-permission", "messages.players-only", "messages.reloaded",
-            "messages.playtime-loading", "messages.playtime-unavailable", "messages.playtime-not-configured");
+            "messages.no-permission", "messages.players-only", "messages.reloaded");
 
     private final MainMenuPlugin plugin;
 
@@ -51,10 +48,6 @@ public final class DebugReporter {
         line(sender, "插件", plugin.getPluginMeta().getName() + " v" + plugin.getPluginMeta().getVersion()
                 + "（API " + plugin.getPluginMeta().getAPIVersion() + "）");
         line(sender, "服务端", plugin.getServer().getMinecraftVersion() + " / " + plugin.getServer().getVersion());
-        line(sender, "在线时长后端", plugin.playtime().isConfigured()
-                ? "已配置：" + plugin.string("yudream.base-url", "") + "（server-id="
-                        + plugin.string("yudream.server-id", System.getenv("MCSERVER_ID") == null ? "" : System.getenv("MCSERVER_ID")) + "）"
-                : "未配置（config.yml → yudream.api-key / yudream.token）");
         reportDatapack(sender);
         reportDialogTag(sender);
         reportFeatures(sender);
@@ -126,9 +119,6 @@ public final class DebugReporter {
     private String labelOf(final int slot, final int page) {
         if (slot == MenuLayout.CLOCK_SLOT) {
             return "时钟";
-        }
-        if (slot == MenuLayout.PAINTING_SLOT) {
-            return "在线时长";
         }
         if (slot == MenuLayout.PREVIOUS_PAGE_SLOT) {
             return "上一页";

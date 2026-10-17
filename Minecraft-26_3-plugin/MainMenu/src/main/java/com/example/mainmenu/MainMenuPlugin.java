@@ -9,7 +9,6 @@ import com.example.mainmenu.listener.ClockInteractListener;
 import com.example.mainmenu.listener.CustomClickListener;
 import com.example.mainmenu.menu.MenuListener;
 import com.example.mainmenu.menu.MenuService;
-import com.example.mainmenu.playtime.PlaytimeService;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import java.util.List;
 import net.kyori.adventure.text.Component;
@@ -38,7 +37,6 @@ public final class MainMenuPlugin extends JavaPlugin {
     private static volatile MainMenuPlugin instance;
 
     private FeatureRegistryImpl features;
-    private PlaytimeService playtime;
     private MenuService menus;
     private DebugReporter debug;
 
@@ -53,7 +51,6 @@ public final class MainMenuPlugin extends JavaPlugin {
         saveDefaultConfig();
 
         this.features = new FeatureRegistryImpl();
-        this.playtime = new PlaytimeService(this);
         this.menus = new MenuService(this);
         this.debug = new DebugReporter(this);
 
@@ -88,10 +85,6 @@ public final class MainMenuPlugin extends JavaPlugin {
 
     public FeatureRegistryImpl features() {
         return features;
-    }
-
-    public PlaytimeService playtime() {
-        return playtime;
     }
 
     public MenuService menus() {
