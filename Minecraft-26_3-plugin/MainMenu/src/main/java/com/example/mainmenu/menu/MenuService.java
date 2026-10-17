@@ -14,9 +14,13 @@ import org.bukkit.scheduler.BukkitTask;
  */
 public final class MenuService {
 
+    /** 同一个玩家在这个时间内重复请求开界面会被忽略（同一次点击被多条路径触发时只开一次） */
+    private static final long OPEN_COOLDOWN_MILLIS = 200L;
+
     private final MainMenuPlugin plugin;
     private final MenuRenderer renderer;
     private final Map<UUID, BukkitTask> refreshTasks = new HashMap<>();
+    private final Map<UUID, Long> lastOpen = new HashMap<>();
 
     public MenuService(final MainMenuPlugin plugin) {
         this.plugin = plugin;
@@ -29,6 +33,13 @@ public final class MenuService {
 
     /** 打开主菜单（必须主线程） */
     public void open(final Player player) {
+        final long now = System.currentTimeMillis();
+        final Long last = lastOpen.get(player.getUniqueId());
+        if (last != null && now - last < OPEN_COOLDOWN_MILLIS) {
+            return;
+        }
+        lastOpen.put(player.getUniqueId(), now);
+
         final MenuHolder holder = new MenuHolder(player.getUniqueId(), player.getName());
         final Inventory inventory = Bukkit.createInventory(holder, MenuLayout.SIZE, plugin.menuTitle());
         holder.attach(inventory);
@@ -72,5 +83,6 @@ public final class MenuService {
     public void shutdown() {
         refreshTasks.values().forEach(BukkitTask::cancel);
         refreshTasks.clear();
+        lastOpen.clear();
     }
 }

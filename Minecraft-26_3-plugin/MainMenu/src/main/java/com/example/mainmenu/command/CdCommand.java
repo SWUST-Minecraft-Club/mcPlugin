@@ -5,13 +5,18 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 /**
  * {@code /cd}：打开主菜单；{@code /cd reload} 重载配置；{@code /cd debug} 输出布局与 ESC 按钮状态。
  *
- * <p>ESC 菜单里的 dialog 按钮也走这条命令（{@code DialogAction.commandTemplate("/cd")}），
- * 所以这里刻意延迟 1 tick 再开界面：让客户端的 dialog 先关闭，避免开出来的界面被立刻顶掉。
+ * <p>{@code /cd clockair} 是给客户端模组用的：服务端不会为"手持非可用物品右键空气"触发
+ * {@code PlayerInteractEvent}（已 javap 服务端 jar 确认），所以由客户端模组检测这种点击后调用本子命令，
+ * 服务端在这里校验是否手持时钟。
+ *
+ * <p>打开界面统一延迟 1 tick：ESC 菜单里的 dialog 按钮也走这条路径，等客户端的 dialog 关闭后再开箱子界面，
+ * 避免刚打开的界面被顶掉。
  */
 public final class CdCommand {
 
@@ -26,14 +31,20 @@ public final class CdCommand {
                         plugin.message(context.getSource().getSender(), "messages.players-only");
                         return 0;
                     }
-                    plugin.getLogger().info("玩家 " + player.getName() + " 通过 /cd 打开主菜单"
-                            + "（来源：" + context.getSource().getSender().getName() + "）");
-                    // 延迟 1 tick：ESC 菜单里的 dialog 按钮也是执行本命令，
-                    // 等客户端的 dialog 关闭后再开箱子界面，避免被顶掉
-                    plugin.getServer().getScheduler().runTaskLater(plugin,
-                            () -> plugin.menus().open(player), 1L);
+                    openLater(plugin, player, "/cd");
                     return Command.SINGLE_SUCCESS;
                 })
+                .then(Commands.literal("clockair")
+                        .executes(context -> {
+                            if (!(context.getSource().getSender() instanceof Player player)) {
+                                return 0;
+                            }
+                            if (!holdingClock(plugin, player)) {
+                                return 0;
+                            }
+                            openLater(plugin, player, "/cd clockair（时钟右键空气）");
+                            return Command.SINGLE_SUCCESS;
+                        }))
                 .then(Commands.literal("reload")
                         .requires(source -> source.getSender().hasPermission("mainmenu.reload"))
                         .executes(context -> {
@@ -50,8 +61,21 @@ public final class CdCommand {
                 .build();
     }
 
-    /** 保留给需要直接打开的场景（例如 dialog 的自定义点击回调） */
+    /** 供 dialog 的自定义点击回调复用 */
     public static void openNow(final MainMenuPlugin plugin, final Player player) {
+        openLater(plugin, player, "ESC 菜单按钮");
+    }
+
+    private static void openLater(final MainMenuPlugin plugin, final Player player, final String source) {
+        plugin.getLogger().info("玩家 " + player.getName() + " 打开主菜单（来源：" + source + "）");
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> plugin.menus().open(player), 1L);
+    }
+
+    /** 主手或副手拿着时钟都算 */
+    private static boolean holdingClock(final MainMenuPlugin plugin, final Player player) {
+        final Material configured = Material.matchMaterial(plugin.string("menu.clock.material", "CLOCK"));
+        final Material clock = configured == null || configured.isAir() ? Material.CLOCK : configured;
+        return player.getInventory().getItemInMainHand().getType() == clock
+                || player.getInventory().getItemInOffHand().getType() == clock;
     }
 }
