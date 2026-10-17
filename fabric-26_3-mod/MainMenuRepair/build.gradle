@@ -15,11 +15,8 @@ base {
 	archivesName = project.archives_base_name
 }
 
-java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(25)
-	}
-}
+// 不声明 Java toolchain：直接用当前 JDK 编译（避免 Gradle fork worker daemon，部分机器上会起不来），
+// 字节码版本由下面的 options.release = 25 保证。
 
 // Mixin 注解桩：单独 sourceSet，只参与编译，不打进模组 jar
 sourceSets {
