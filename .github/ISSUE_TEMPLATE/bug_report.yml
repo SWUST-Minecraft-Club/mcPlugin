@@ -1,0 +1,48 @@
+name: Bug 反馈
+description: 报告插件或构建脚本的问题
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈！请尽量填写完整信息，方便定位问题。
+  - type: input
+    id: server-version
+    attributes:
+      label: 服务端版本
+      description: 例如 Paper 26.3 build 200
+      placeholder: Paper 26.3 build 200
+    validations:
+      required: true
+  - type: input
+    id: plugin-version
+    attributes:
+      label: 插件版本
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: 问题描述
+      description: 发生了什么？你期望的结果是什么？
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. 执行 /...
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志 / 堆栈
+      description: 请粘贴完整报错（logs/latest.log 或控制台输出）
+      render: shell
+    validations:
+      required: false

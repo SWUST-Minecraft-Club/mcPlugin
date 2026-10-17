@@ -1,0 +1,12 @@
+# MCPlugin263 配置文件
+# 文本使用 MiniMessage 格式：https://docs.advntr.dev/minimessage/format.html
+# 修改后可用 /mcplugin reload 热重载
+
+welcome:
+  # 是否在玩家进服时发送欢迎消息
+  enabled: true
+  message: "<yellow>欢迎 <player> 来到服务器！</yellow>"
+
+messages:
+  hello: "<green>你好，<name>！</green>"
+  reloaded: "<green>配置已重新加载。</green>"

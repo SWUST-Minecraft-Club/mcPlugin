@@ -1,0 +1,46 @@
+plugins {
+    id 'java'
+    // 提供 runServer 任务：自动下载 Paper 服务端并加载本插件，用于本地联调
+    id 'xyz.jpenilla.run-paper' version '3.1.0'
+}
+
+group = 'com.example'
+version = '0.1.0'
+description = 'Minecraft 26.3 (Paper) 插件开发模板'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'papermc'
+        url = 'https://repo.papermc.io/repository/maven-public/'
+    }
+}
+
+dependencies {
+    // 只在编译期使用，运行期由服务端提供，因此必须是 compileOnly
+    compileOnly "io.papermc.paper:paper-api:${paperApiVersion}"
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(targetJavaVersion.toInteger())
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+tasks.named('processResources') {
+    def props = [version: project.version]
+    inputs.properties props
+    filteringCharset = 'UTF-8'
+    filesMatching('paper-plugin.yml') {
+        expand props
+    }
+}
+
+tasks.named('runServer') {
+    // 指定测试服务器版本；首次运行会在 run/ 目录下载服务端并生成世界
+    minecraftVersion(project.minecraftVersion)
+}

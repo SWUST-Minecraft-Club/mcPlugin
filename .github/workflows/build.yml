@@ -1,0 +1,37 @@
+name: Build
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # 仓库里的 wrapper 默认指向国内镜像，CI 上换回官方地址
+      - name: Use official Gradle distribution
+        run: sed -i 's#mirrors.huaweicloud.com/gradle/#services.gradle.org/distributions/#' gradle/wrapper/gradle-wrapper.properties
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Build
+        run: ./gradlew build --no-daemon --stacktrace
+
+      - name: Upload plugin jar
+        uses: actions/upload-artifact@v7
+        with:
+          name: plugin-jar
+          path: build/libs/*.jar
+          if-no-files-found: error

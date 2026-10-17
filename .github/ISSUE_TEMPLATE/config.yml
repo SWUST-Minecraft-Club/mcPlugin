@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Paper 官方文档
+    url: https://docs.papermc.io/paper/dev/
+    about: 插件开发 API 相关问题，先查阅官方文档往往更快
+  - name: PaperMC 服务端下载 / 构建列表
+    url: https://papermc.io/downloads/paper
+    about: 查看可用的 Minecraft 版本与构建号
