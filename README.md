@@ -64,6 +64,9 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `Minecraft-26_
 # 也可以指定包名（默认 com.example.shop）
 ./gradlew newPlugin -PpluginName=Shop -PpackageName=com.myserver.shop
 
+# 换一个插件当模板（默认以 MCPlugin263 为模板，所以别删它）
+./gradlew newPlugin -PpluginName=Shop -Ptemplate=MCPlugin263
+
 # 确认已注册
 ./gradlew listPlugins
 ```
