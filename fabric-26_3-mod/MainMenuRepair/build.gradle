@@ -5,8 +5,9 @@ plugins {
 // 为什么不用 fabric-loom：
 //   26.3 客户端不再混淆，Fabric 也没有 26.3 的 yarn/intermediary —— 编译不需要 mappings，构建也不需要 remap。
 //   而 maven.fabricmc.net 在部分网络环境下会被限速到 KB 级（Loom 自身依赖很多，会卡在下载上），
-//   所以这里直接手工编译：编译期只需要「官方客户端 jar」+「Mixin 注解」，
-//   后者用 src/mixin-stubs/java 里的同名注解桩，不引入任何外部依赖。
+//   所以这里直接手工编译：编译期只需要「官方客户端 jar」+「注解桩」，
+//   后者用 src/mixin-stubs/java 里的同名注解桩（Mixin 注解、Fabric API 与 Loader 的少量接口），
+//   不引入任何外部依赖。
 
 group = project.group
 version = project.version
@@ -18,16 +19,17 @@ base {
 // 不声明 Java toolchain：直接用当前 JDK 编译（避免 Gradle fork worker daemon，部分机器上会起不来），
 // 字节码版本由下面的 options.release = 25 保证。
 
-// Mixin 注解桩：单独 sourceSet，只参与编译，不打进模组 jar
+def clientJar = layout.buildDirectory.file("minecraft/client-${project.minecraft_version}.jar")
+
+// 注解桩：单独 sourceSet，只参与编译，不打进模组 jar
 sourceSets {
 	mixinStubs {
 		java.srcDir 'src/mixin-stubs/java'
-		compileClasspath = files()
+		// 桩里引用了 Minecraft 类（例如 ScreenEvents.AfterInit 的参数类型），所以需要客户端 jar
+		compileClasspath = files(clientJar)
 		runtimeClasspath = files()
 	}
 }
-
-def clientJar = layout.buildDirectory.file("minecraft/client-${project.minecraft_version}.jar")
 
 // 下载官方客户端 jar（26.3）
 tasks.register('downloadMinecraftClient') {
@@ -47,8 +49,14 @@ tasks.register('downloadMinecraftClient') {
 dependencies {
 	// 官方客户端 jar：26.3 未混淆，可直接作为编译依赖
 	compileOnly files(clientJar)
-	// Mixin 注解桩
+	// 注解桩（Mixin / Fabric API / Loader）
 	compileOnly sourceSets.mixinStubs.output
+}
+
+tasks.named('compileMixinStubsJava') {
+	dependsOn 'downloadMinecraftClient'
+	options.encoding = 'UTF-8'
+	options.release = 25
 }
 
 tasks.named('compileJava') {

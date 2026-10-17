@@ -7,8 +7,5 @@
 		"GuiSetScreenMixin",
 		"PauseScreenMixin",
 		"ScreenInvokerMixin"
-	],
-	"injectors": {
-		"defaultRequire": 0
-	}
+	]
 }
