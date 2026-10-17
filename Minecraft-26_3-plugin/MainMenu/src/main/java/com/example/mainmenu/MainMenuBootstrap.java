@@ -50,8 +50,8 @@ public final class MainMenuBootstrap implements PluginBootstrap {
     /** 内置数据包名 */
     public static final String PACK_NAME = "mainmenu";
 
-    /** 暂停界面按钮与 dialog 标题 */
-    private static final Component TITLE = Component.text("主菜单").color(NamedTextColor.GOLD);
+    /** 暂停界面按钮与 dialog 标题（用默认颜色，即原版按钮的白色） */
+    private static final Component TITLE = Component.text("主菜单");
 
     @Override
     public void bootstrap(final BootstrapContext context) {

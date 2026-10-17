@@ -8,6 +8,7 @@ import net.minecraft.client.gui.components.SpriteIconButton;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.dialog.DialogScreen;
 
 /**
  * 暂停菜单清理逻辑。
@@ -17,7 +18,23 @@ import net.minecraft.client.gui.screens.Screen;
  */
 public final class MenuCleaner {
 
+    /** 服务端注册的 dialog 标题，用来识别"点 ESC 菜单里那个按钮时打开的中间页面" */
+    public static final String DIALOG_TITLE = "主菜单";
+
     private MenuCleaner() {
+    }
+
+    /**
+     * 是否是主菜单插件注册的那个 dialog 界面（ESC → 主菜单 会先打开它）。
+     *
+     * <p>判断方式：类型是 {@link DialogScreen}，且标题里含服务端下发的“主菜单”。
+     * 标题文本是服务端下发的字面量，不受客户端语言影响。
+     */
+    public static boolean isOurDialog(final Screen screen) {
+        if (!(screen instanceof DialogScreen)) {
+            return false;
+        }
+        return screen.getTitle().getString().contains(DIALOG_TITLE);
     }
 
     /** 对暂停菜单做清理：隐藏并移除 4 个图标按钮、清空按钮上的提示 */
