@@ -1,0 +1,14 @@
+# RealTime 配置（文本用 MiniMessage 格式）
+# 改完用 /cd reload 不会重载本插件，需要重启或重新加载插件
+
+time:
+  # 显示用的物品
+  material: CLOCK
+  name: "<yellow>当前时间</yellow>"
+  # 悬停文本，{time} 会替换成格式化的时间
+  line: "<gray>当前时间：<white>{time}</white></gray>"
+  # 时间格式与时区偏移（东 8 区 = 8）
+  format: "yyyy-MM-dd HH:mm:ss"
+  zone-offset-hours: 8
+  # 固定位置提示（留空则不显示）
+  hint: "<dark_gray>固定功能位 · 点击无效</dark_gray>"

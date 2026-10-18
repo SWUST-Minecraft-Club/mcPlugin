@@ -55,10 +55,16 @@ public final class MenuService {
         holder.getInventory().setContents(renderer.render(player, holder.page()));
     }
 
-    /** 菜单打开期间每秒刷新时钟与在线时长格（这两格的内容会变） */
+    /**
+     * 菜单打开期间周期性整页重绘。
+     *
+     * <p>功能插件的 {@code icon()} / {@code description()} 每次渲染都会被重新调用，
+     * 所以动态内容（例如 RealTime 插件的当前时间）会自动刷新。
+     */
     private void startRefresh(final Player player, final MenuHolder holder) {
         stopRefresh(player.getUniqueId());
         final UUID uuid = player.getUniqueId();
+        final long periodTicks = Math.max(1L, plugin.getConfig().getLong("menu.refresh-seconds", 1L)) * 20L;
         final BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             final Player online = Bukkit.getPlayer(uuid);
             if (online == null
@@ -68,8 +74,8 @@ public final class MenuService {
                 return;
             }
             final Inventory inventory = online.getOpenInventory().getTopInventory();
-            inventory.setItem(MenuLayout.CLOCK_SLOT, renderer.clockItem());
-        }, 20L, 20L);
+            inventory.setContents(renderer.render(online, holder.page()));
+        }, periodTicks, periodTicks);
         refreshTasks.put(uuid, task);
     }
 

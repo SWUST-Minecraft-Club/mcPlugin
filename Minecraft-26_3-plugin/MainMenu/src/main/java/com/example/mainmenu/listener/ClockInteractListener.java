@@ -104,7 +104,7 @@ public final class ClockInteractListener implements Listener {
     }
 
     private Material clockMaterial() {
-        final Material material = Material.matchMaterial(plugin.string("menu.clock.material", "CLOCK"));
+        final Material material = Material.matchMaterial(plugin.string("menu.open.clock-material", "CLOCK"));
         return material == null || material.isAir() ? Material.CLOCK : material;
     }
 

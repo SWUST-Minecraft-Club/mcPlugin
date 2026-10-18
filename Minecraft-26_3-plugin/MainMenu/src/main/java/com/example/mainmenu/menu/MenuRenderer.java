@@ -3,9 +3,6 @@ package com.example.mainmenu.menu;
 import com.example.mainmenu.MainMenuPlugin;
 import com.example.mainmenu.api.FeaturePlacement;
 import com.example.mainmenu.api.MenuFeature;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -43,7 +40,6 @@ public final class MenuRenderer {
         }
 
         // 固定功能位
-        items[MenuLayout.CLOCK_SLOT] = clockItem();
         items[MenuLayout.PREVIOUS_PAGE_SLOT] = pageArrow(true, page);
         items[MenuLayout.NEXT_PAGE_SLOT] = pageArrow(false, page);
 
@@ -59,21 +55,6 @@ public final class MenuRenderer {
     }
 
     // ------------------------------------------------------------------ 固定功能位
-
-    /** 第 1 行第 2 格：当前时间（东 8 区） */
-    public ItemStack clockItem() {
-        final ItemStack item = plugin.configItem("menu.clock");
-        final ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            final List<Component> lore = new ArrayList<>(2);
-            lore.add(plugin.miniRaw(plugin.string("menu.clock.line", "<gray>当前时间：<white>{time}</white></gray>")
-                    .replace("{time}", currentTime())));
-            addHint(lore, "menu.clock.hint");
-            meta.lore(lore);
-            item.setItemMeta(meta);
-        }
-        return item;
-    }
 
     /** 第 4 行第 1 / 第 9 格：翻页箭头 */
     public ItemStack pageArrow(final boolean previous, final int page) {
@@ -147,14 +128,6 @@ public final class MenuRenderer {
         if (!raw.isBlank()) {
             lore.add(plugin.miniRaw(raw));
         }
-    }
-
-    private String currentTime() {
-        final int offsetHours = plugin.getConfig().getInt("menu.clock.zone-offset-hours", 8);
-        final String pattern = plugin.string("menu.clock.format", "yyyy-MM-dd HH:mm:ss");
-        return DateTimeFormatter.ofPattern(pattern)
-                .withZone(ZoneOffset.ofHours(offsetHours))
-                .format(Instant.now());
     }
 
     private static Material material(final String name, final Material fallback) {

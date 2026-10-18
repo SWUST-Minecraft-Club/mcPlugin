@@ -73,7 +73,7 @@ public final class CdCommand {
 
     /** 主手或副手拿着时钟都算 */
     private static boolean holdingClock(final MainMenuPlugin plugin, final Player player) {
-        final Material configured = Material.matchMaterial(plugin.string("menu.clock.material", "CLOCK"));
+        final Material configured = Material.matchMaterial(plugin.string("menu.open.clock-material", "CLOCK"));
         final Material clock = configured == null || configured.isAir() ? Material.CLOCK : configured;
         return player.getInventory().getItemInMainHand().getType() == clock
                 || player.getInventory().getItemInOffHand().getType() == clock;

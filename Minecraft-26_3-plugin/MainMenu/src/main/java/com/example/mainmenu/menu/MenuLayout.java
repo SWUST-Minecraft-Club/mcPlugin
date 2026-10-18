@@ -8,7 +8,7 @@ import java.util.Set;
  * 6×9 主菜单的布局规则（与需求一一对应）。
  *
  * <pre>
- * 第1行   [ ][钟][ ][ ][ ][ ][ ][ ][ ]
+ * 第1行   [ ][ ][ ][ ][ ][ ][ ][ ][ ]      ← 第 1 行第 2 格推荐留给 RealTime 插件显示时间
  * 第2行   玻璃板 ×9                      ← 非固定功能位，可被功能插件占用
  * 第3行   [ ][功能区 ×7 ][ ]              ┐
  * 第4行   [←][功能区 ×7 ][→]              ├ 功能区：第 3~5 行、第 2~8 列，共 21 格，可翻页
@@ -16,7 +16,7 @@ import java.util.Set;
  * 第6行   玻璃板 ×9                      ← 非固定功能位，可被功能插件占用
  * </pre>
  *
- * 固定功能位（不可被功能插件占用）：时钟、上一页、下一页。
+ * 固定功能位（不可被功能插件占用）：上一页、下一页。
  * 其余空位默认放白色染色玻璃板，属于非固定功能位，功能插件可以用自定义位置占用。
  */
 public final class MenuLayout {
@@ -28,8 +28,8 @@ public final class MenuLayout {
     /** 总格子数 */
     public static final int SIZE = ROWS * COLUMNS;
 
-    /** 第 1 行第 2 格：当前时间 */
-    public static final int CLOCK_SLOT = 1;
+    /** 第 1 行第 2 格：推荐给功能插件放“当前时间”（RealTime 插件用 preferredSlot 占用） */
+    public static final int RECOMMENDED_TIME_SLOT = 1;
     /** 第 4 行第 1 格：上一页 */
     public static final int PREVIOUS_PAGE_SLOT = 3 * COLUMNS;
     /** 第 4 行第 9 格：下一页 */
@@ -37,7 +37,7 @@ public final class MenuLayout {
 
     /** 固定功能位：不可被功能插件占用，冲突时功能会被改排到功能区 */
     public static final Set<Integer> FIXED_SLOTS =
-            Set.of(CLOCK_SLOT, PREVIOUS_PAGE_SLOT, NEXT_PAGE_SLOT);
+            Set.of(PREVIOUS_PAGE_SLOT, NEXT_PAGE_SLOT);
 
     /** 功能区：第 3~5 行、第 2~8 列 */
     public static final List<Integer> FUNCTION_AREA = buildFunctionArea();

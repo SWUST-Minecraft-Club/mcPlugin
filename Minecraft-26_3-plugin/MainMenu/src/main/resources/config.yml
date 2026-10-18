@@ -5,25 +5,20 @@ menu:
   # 菜单标题
   title: "<dark_gray>主菜单</dark_gray>"
 
+  # 菜单打开期间的重绘间隔（秒）：功能插件的 icon()/description() 会被重新调用，
+  # 动态内容（例如 RealTime 插件的时间）靠这个刷新
+  refresh-seconds: 1
+
   # 打开方式
   open:
     # 手持时钟右键（对着空气或方块都行）
     clock-right-click: true
+    # 触发用的物品材质（RealTime 插件显示的也是这个物品）
+    clock-material: CLOCK
     # 对着可交互方块（箱子、门等）右键时是否也打开主菜单；默认不抢方块交互
     clock-right-click-on-block: true
     # 潜行时是否仍然触发（默认也允许，避免"蹲着点没反应"）
     clock-while-sneaking: true
-
-  # 第 1 行第 2 格：当前时间（固定功能位）
-  clock:
-    material: CLOCK
-    name: "<yellow>当前时间</yellow>"
-    # 悬停文本，{time} 会替换成下面格式化的时间
-    line: "<gray>当前时间：<white>{time}</white></gray>"
-    format: "yyyy-MM-dd HH:mm:ss"
-    # 时区偏移：东 8 区 = 8
-    zone-offset-hours: 8
-    hint: "<dark_gray>固定功能位 · 点击无效</dark_gray>"
 
   # 非固定空位（第 2 行、第 6 行以及功能区以外的其它格子）：白色染色玻璃板
   # 属于“非固定位置功能物品”，功能插件可以用自定义位置占用

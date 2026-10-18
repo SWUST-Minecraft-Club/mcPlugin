@@ -10,7 +10,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 /**
  * 测试用功能插件 03：注册 1 个主菜单功能。
  *
- * <p>场景：冲突用例：想占用时钟所在的固定功能位，应被改排到功能区
+ * <p>场景：冲突用例：想占用上一页所在的固定功能位（槽位 27），应被改排到功能区
  */
 public final class TestPlugin03 extends JavaPlugin {
 
@@ -25,9 +25,9 @@ public final class TestPlugin03 extends JavaPlugin {
                 .icon(Material.REDSTONE)
                 .name("<yellow>测试功能 03</yellow>")
                 .line("<gray>来自 TestPlugin03</gray>")
-                .line("<dark_gray>冲突用例：想占用时钟所在的固定功能位，应被改排到功能区</dark_gray>")
+                .line("<dark_gray>冲突用例：想占用上一页所在的固定功能位（槽位 27），应被改排到功能区</dark_gray>")
                 .onClick((player, click) -> player.sendMessage(Component.text("测试功能 03 被点击：" + click.name())))
-                .preferredSlot(1)
+                .preferredSlot(27)
                 .order(3)
                 .build());
     }

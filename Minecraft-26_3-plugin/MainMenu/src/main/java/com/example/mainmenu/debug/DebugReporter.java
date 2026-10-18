@@ -30,7 +30,6 @@ public final class DebugReporter {
     /** 会被渲染成文本的配置项，用于自检 MiniMessage 是否可解析 */
     private static final List<String> TEXT_KEYS = List.of(
             "menu.title",
-            "menu.clock.name", "menu.clock.line", "menu.clock.hint",
             "menu.filler.name",
             "menu.paging.previous-name", "menu.paging.next-name", "menu.paging.page-line",
             "menu.paging.first-page", "menu.paging.last-page",
@@ -117,9 +116,6 @@ public final class DebugReporter {
     }
 
     private String labelOf(final int slot, final int page) {
-        if (slot == MenuLayout.CLOCK_SLOT) {
-            return "时钟";
-        }
         if (slot == MenuLayout.PREVIOUS_PAGE_SLOT) {
             return "上一页";
         }
