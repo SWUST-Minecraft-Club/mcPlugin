@@ -1,6 +1,0 @@
-// 测试用功能插件 04（依赖 MainMenu，见 MainMenu/docs/功能插件接入规范.md）
-version = 'Beta_0_1_0'
-
-dependencies {
-    compileOnly project(':MainMenu')
-}

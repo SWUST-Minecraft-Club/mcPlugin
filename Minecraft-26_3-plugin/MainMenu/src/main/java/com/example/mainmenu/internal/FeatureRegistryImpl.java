@@ -21,7 +21,7 @@ import java.util.Set;
  * <p>排布规则：
  * <ol>
  *     <li>被隐藏的功能不显示、也不占用位置（所以原来与它冲突的插件可以正常显示）；</li>
- *     <li>固定位置功能插件（声明了 {@code preferredSlot} 或被管理员用拉杆改成固定的）：
+ *     <li>固定位置功能插件（声明了功能区以外的 {@code preferredSlot}，或被管理员用拉杆改成固定的）：
  *         位置可用就放在那里；位置冲突则<b>依然算固定位置功能插件</b>，但显示在功能区<b>最前面</b>；</li>
  *     <li>其余功能按 {@code order}（可被管理员覆盖）排进功能区，每页 21 个。</li>
  * </ol>
@@ -155,8 +155,7 @@ public final class FeatureRegistryImpl implements MenuFeatureRegistry {
         if (state.position() != null) {
             return state.position();
         }
-        final OptionalInt declared = feature.preferredSlot();
-        return declared.isPresent() ? declared.getAsInt() : null;
+        return declaredPosition(feature);
     }
 
     /**
@@ -172,8 +171,7 @@ public final class FeatureRegistryImpl implements MenuFeatureRegistry {
         if (recorded != null) {
             return recorded;
         }
-        final OptionalInt declared = found.get().preferredSlot();
-        return declared.isPresent() ? declared.getAsInt() : null;
+        return declaredPosition(found.get());
     }
 
     /** 功能区排序值（管理界面可用空地图调整） */
@@ -261,9 +259,26 @@ public final class FeatureRegistryImpl implements MenuFeatureRegistry {
 
     // ------------------------------------------------------------------
 
+    /**
+     * 功能插件自己声明的固定位置；没声明、或声明在功能区（含越界）都返回 null。
+     *
+     * <p>功能区本来就是"没声明位置"的功能的去处，所以声明在功能区里不算自定义位置，也不算冲突。
+     */
+    private static Integer declaredPosition(final MenuFeature feature) {
+        final OptionalInt declared = feature.preferredSlot();
+        if (declared.isEmpty()) {
+            return null;
+        }
+        final int slot = declared.getAsInt();
+        if (slot < 0 || slot >= MenuLayout.SIZE || MenuLayout.isFunctionArea(slot)) {
+            return null;
+        }
+        return slot;
+    }
+
     /** 功能插件自己是否声明过位置（{@code preferredSlot}） */
     private boolean hasDeclaredPosition(final String id) {
-        return featureById(id).map(feature -> feature.preferredSlot().isPresent()).orElse(false);
+        return featureById(id).map(FeatureRegistryImpl::declaredPosition).isPresent();
     }
 
     private void rebuild() {

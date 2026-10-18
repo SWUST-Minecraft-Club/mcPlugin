@@ -44,7 +44,14 @@ public interface MenuFeature {
     /** 点击有效时的处理逻辑；{@link #clickable()} 为 false 时不会被调用 */
     void onClick(Player player, ClickType clickType);
 
-    /** 自定义显示位置（0~53）；{@link OptionalInt#empty()} 表示进功能区按顺序排 */
+    /**
+     * 自定义显示位置（0~53）；{@link OptionalInt#empty()} 表示进功能区按顺序排。
+     *
+     * <p>只有<b>功能区以外</b>的格子才算自定义位置：声明在功能区里（第 3~5 行、第 2~8 列）或超出
+     * 0~53 时按"没声明位置"处理，直接进功能区，不算冲突、也不会追加提示。
+     * 与固定功能位（翻页箭头、管理入口）或其它插件的自定义位置冲突时，功能会被改排到功能区，
+     * 并在悬停文本末尾追加提示（见《功能插件接入规范》）。
+     */
     OptionalInt preferredSlot();
 
     /**
