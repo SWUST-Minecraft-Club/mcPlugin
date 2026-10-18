@@ -32,7 +32,7 @@ public interface MenuFeatureRegistry {
     /** 某个功能项的最终位置 */
     Optional<FeaturePlacement> placement(String id);
 
-    /** 所有功能项的最终位置（注册顺序） */
+    /** 所有功能项的最终位置（固定位置在前，其余按功能区顺序） */
     List<FeaturePlacement> placements();
 
     /** 功能区总页数（至少 1 页） */

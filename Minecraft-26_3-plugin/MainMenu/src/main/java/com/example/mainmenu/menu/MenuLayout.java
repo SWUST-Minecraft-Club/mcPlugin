@@ -28,8 +28,6 @@ public final class MenuLayout {
     /** 总格子数 */
     public static final int SIZE = ROWS * COLUMNS;
 
-    /** 第 1 行第 2 格：推荐给功能插件放“当前时间”（RealTime 插件用 preferredSlot 占用） */
-    public static final int RECOMMENDED_TIME_SLOT = 1;
     /** 第 4 行第 1 格：上一页 */
     public static final int PREVIOUS_PAGE_SLOT = 3 * COLUMNS;
     /** 第 4 行第 9 格：下一页 */

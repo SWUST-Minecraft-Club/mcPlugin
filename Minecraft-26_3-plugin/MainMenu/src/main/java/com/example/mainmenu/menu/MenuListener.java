@@ -9,6 +9,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 /**
  * 菜单交互：翻页、功能点击、禁止移动菜单里的物品。
@@ -85,5 +86,10 @@ public final class MenuListener implements Listener {
         if (event.getView().getTopInventory().getHolder() instanceof MenuHolder) {
             plugin.menus().stopRefresh(event.getPlayer().getUniqueId());
         }
+    }
+
+    @EventHandler
+    public void onQuit(final PlayerQuitEvent event) {
+        plugin.menus().forget(event.getPlayer().getUniqueId());
     }
 }

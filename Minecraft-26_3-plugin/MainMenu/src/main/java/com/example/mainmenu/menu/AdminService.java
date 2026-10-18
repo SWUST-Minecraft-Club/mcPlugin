@@ -48,7 +48,7 @@ public final class AdminService {
         holder.attach(inventory);
         holder.leftPage(leftPage);
         holder.rightPage(rightPage);
-        fillManage(player, holder);
+        fillManage(holder);
         player.openInventory(inventory);
     }
 
@@ -76,7 +76,7 @@ public final class AdminService {
 
     // ------------------------------------------------------------------ 构建界面
 
-    private void fillManage(final Player player, final AdminHolder holder) {
+    private void fillManage(final AdminHolder holder) {
         final ItemStack[] items = new ItemStack[MenuLayout.SIZE];
 
         final ItemStack divider = named("BLACK_STAINED_GLASS_PANE", "<gray> </gray>", null);
@@ -226,12 +226,12 @@ public final class AdminService {
         }
         if (slot == AdminLayout.LEFT_PREVIOUS || slot == AdminLayout.LEFT_NEXT) {
             holder.leftPage(holder.leftPage() + (slot == AdminLayout.LEFT_NEXT ? 1 : -1));
-            fillManage(player, holder);
+            fillManage(holder);
             return;
         }
         if (slot == AdminLayout.RIGHT_PREVIOUS || slot == AdminLayout.RIGHT_NEXT) {
             holder.rightPage(holder.rightPage() + (slot == AdminLayout.RIGHT_NEXT ? 1 : -1));
-            fillManage(player, holder);
+            fillManage(holder);
             return;
         }
 
@@ -330,10 +330,12 @@ public final class AdminService {
     // ------------------------------------------------------------------ 物品构建
 
     private ItemStack entryItem(final MenuFeature feature, final String stateLine) {
-        final ItemStack item = feature.icon();
+        // 复制一份：功能插件可能复用同一个 ItemStack 实例，避免改它的 meta
+        final ItemStack item = feature.icon().clone();
         final ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            final List<Component> lore = new ArrayList<>(feature.description());
+            final List<Component> own = feature.description();
+            final List<Component> lore = new ArrayList<>(own == null ? List.of() : own);
             lore.add(plugin.miniRaw("<dark_gray>插件：<gray>" + feature.owner() + "</gray></dark_gray>"));
             lore.add(plugin.miniRaw("<dark_gray>id：<gray>" + feature.id() + "</gray></dark_gray>"));
             lore.add(plugin.miniRaw("<gray>" + stateLine + "</gray>"));
@@ -348,7 +350,7 @@ public final class AdminService {
     }
 
     private ItemStack pageArrow(final boolean previous, final int page, final int pages) {
-        final ItemStack item = named(previous ? "ARROW" : "ARROW",
+        final ItemStack item = named("ARROW",
                 previous ? "<yellow>上一页</yellow>" : "<yellow>下一页</yellow>",
                 List.of(plugin.miniRaw("<gray>第 <white>" + page + "</white>/<white>" + pages + "</white> 页</gray>")));
         return item;

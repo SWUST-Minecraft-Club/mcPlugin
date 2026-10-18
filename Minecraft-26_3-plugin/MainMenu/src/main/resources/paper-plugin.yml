@@ -17,3 +17,6 @@ permissions:
   mainmenu.reload:
     description: 允许使用 /cd reload、/cd debug
     default: op
+  mainmenu.admin:
+    description: 允许进入功能插件管理界面
+    default: op
