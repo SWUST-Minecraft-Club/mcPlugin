@@ -341,8 +341,11 @@ git push origin main --tags
 | 项目 | 版本 |
 | --- | --- |
 | MainMenu | `Beta_0_6_0` |
-| RealTime | `Beta_0_1_0` |
-| MainMenuRepair（fabric） | `Beta_0_3_1` |
+| RealTime | `1_0_0`（正式版，2026.10.18） |
+| MainMenuRepair（fabric） | `1_0_0`（正式版，2026.10.18） |
+
+> RealTime 与 MainMenuRepair 已出正式版：之后按「第 1 位 +1、后两位归 0」涨号，不再带 `Beta`。
+> 逐版本改动见各项目目录下的 ChangeLog：`…-ChangeLog-Beta.md` 记测试期，`…-ChangeLog.md` 记正式版。
 
 ### 版本历史
 
