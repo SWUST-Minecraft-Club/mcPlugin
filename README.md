@@ -419,7 +419,7 @@ git push origin main --tags
 | `Beta_0_8_2` | `d9dedd3` | 修：改回固定位置时还原原来的位置（只有从未设置过位置的才默认第 1 行第 1 格） |
 | `1_0_0` | `f4d7a65` | 出正式版：测试期功能汇总（主菜单框架 + 功能插件 API + 管理员管理界面 + 位置规则）；产物已留档 |
 | `1_0_1` | `f4d7a65` | 修：`preferredSlot` 写在功能区或越界时被误判为位置冲突 |
-| `1_0_2` | `e5c2189` | 修正 jar 元数据里的仓库地址（`mcPligin` → `mcPlugin`）；仓库路径统一为相对路径；产物已留档 |
+| `Beta_1_0_2` | `da87b2c` | 正式版后重回测试版：修 jar 元数据里的仓库地址（`mcPligin` → `mcPlugin`）；仓库路径统一为相对路径；产物已留档 |
 
 **RealTime（插件）**
 
@@ -427,7 +427,7 @@ git push origin main --tags
 | --- | --- | --- |
 | `Beta_0_1_0` | `9108bca` | 首个版本：主菜单第 1 行第 2 格显示当前时间 |
 | `1_0_0` | `0c83099` | 出正式版：主菜单第 1 行第 2 格显示当前时间（时区与格式可配）；产物已留档 |
-| `1_0_1` | `e5c2189` | 修正 jar 元数据里的仓库地址（`mcPligin` → `mcPlugin`）；产物已留档 |
+| `Beta_1_0_1` | `da87b2c` | 正式版后重回测试版：修 jar 元数据里的仓库地址（`mcPligin` → `mcPlugin`）；产物已留档 |
 
 **MainMenuRepair（fabric 模组）**
 
@@ -446,7 +446,7 @@ git push origin main --tags
 | `Beta_0_3_0` | `abc1ded` | 拦下中间 dialog，ESC→主菜单 一步到位 |
 | `Beta_0_3_1` | `a11139f` | 改用 Fabric API 把按钮直接换成"发 /cd" |
 | `1_0_0` | `0c83099` | 出正式版：清理 ESC 暂停菜单（去掉 4 个图标按钮 + 第三方内容警告，ESC→主菜单一步到位）；产物已留档 |
-| `1_0_1` | `e5c2189` | 修正 `fabric.mod.json` 里的仓库地址（`mcPligin` → `mcPlugin`）；产物已留档 |
+| `Beta_1_0_1` | `da87b2c` | 正式版后重回测试版：修 `fabric.mod.json` 里的仓库地址（`mcPligin` → `mcPlugin`）；产物已留档 |
 
 ## 常见问题
 
