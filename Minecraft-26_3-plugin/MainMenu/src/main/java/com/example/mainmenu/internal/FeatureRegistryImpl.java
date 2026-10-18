@@ -147,9 +147,13 @@ public final class FeatureRegistryImpl implements MenuFeatureRegistry {
 
     /** 固定位置功能插件的槽位；非固定位置功能插件返回 null */
     public synchronized Integer fixedPositionOf(final MenuFeature feature) {
-        final Integer override = states.stateOf(feature.id()).position();
-        if (override != null) {
-            return override;
+        final FeatureState state = states.stateOf(feature.id());
+        if (state.forcedFunction()) {
+            // 被管理员改回了非固定位置：忽略插件自己声明的位置
+            return null;
+        }
+        if (state.position() != null) {
+            return state.position();
         }
         final OptionalInt declared = feature.preferredSlot();
         return declared.isPresent() ? declared.getAsInt() : null;
@@ -204,9 +208,20 @@ public final class FeatureRegistryImpl implements MenuFeatureRegistry {
     public synchronized void makeFixed(final String id) {
         final FeatureState state = states.stateOf(id);
         state.forcedFixed(true);
+        state.forcedFunction(false);
         if (state.position() == null) {
             state.position(0);
         }
+        rebuild();
+        states.save();
+    }
+
+    /** 改回非固定位置功能插件（按 order 排进功能区）；插件自己声明的位置也会被忽略 */
+    public synchronized void makeFunction(final String id) {
+        final FeatureState state = states.stateOf(id);
+        state.forcedFunction(true);
+        state.forcedFixed(false);
+        state.position(null);
         rebuild();
         states.save();
     }

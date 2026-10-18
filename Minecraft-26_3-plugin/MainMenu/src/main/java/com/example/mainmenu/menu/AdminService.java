@@ -156,6 +156,10 @@ public final class AdminService {
                     plugin.miniRaw("<gray>当前位置：<white>"
                             + (position == null ? "未设置" : MenuLayout.describe(position)) + "</white></gray>"),
                     plugin.miniRaw("<dark_gray>点击进入位置选择界面</dark_gray>")));
+            // 第 3 行第 7 格：改回非固定位置功能插件
+            items[AdminLayout.ATTR_RIGHT] = named("REDSTONE_TORCH", "<yellow>设为非固定位置</yellow>", List.of(
+                    plugin.miniRaw("<gray>把该功能变回非固定位置功能插件</gray>"),
+                    plugin.miniRaw("<dark_gray>之后按排序值排进功能区</dark_gray>")));
         } else {
             // 第 3 行第 5 格：排序值
             items[AdminLayout.ATTR_MIDDLE] = named("MAP", "<yellow>排序值</yellow>", List.of(
@@ -301,6 +305,12 @@ public final class AdminService {
         }
         if (slot == AdminLayout.ATTR_MIDDLE) {
             openPositionPicker(player, id);
+            return;
+        }
+        if (slot == AdminLayout.ATTR_RIGHT) {
+            // 改回非固定位置功能插件，并切换到非固定位置的属性界面
+            plugin.features().makeFunction(id);
+            openAttribute(player, id, false);
         }
     }
 

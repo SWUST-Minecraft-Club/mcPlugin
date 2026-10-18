@@ -16,6 +16,7 @@ public final class FeatureState {
     private boolean hidden;
     private Integer order;
     private boolean fixed;
+    private boolean function;
     private Integer position;
 
     public boolean hidden() {
@@ -43,6 +44,19 @@ public final class FeatureState {
         this.fixed = fixed;
     }
 
+    /**
+     * 是否被管理员强制改回非固定位置功能插件。
+     *
+     * <p>有些功能插件自带 {@code preferredSlot}，光清掉位置覆盖不够 —— 需要这个标记来忽略它声明的位置。
+     */
+    public boolean forcedFunction() {
+        return function;
+    }
+
+    public void forcedFunction(final boolean function) {
+        this.function = function;
+    }
+
     /** 覆盖的位置（固定位置功能插件的槽位）；null 表示用插件声明的 preferredSlot */
     public Integer position() {
         return position;
@@ -54,6 +68,6 @@ public final class FeatureState {
 
     /** 是否没有任何覆盖项（可以不用写进配置文件） */
     public boolean isEmpty() {
-        return !hidden && order == null && !fixed && position == null;
+        return !hidden && order == null && !fixed && !function && position == null;
     }
 }
