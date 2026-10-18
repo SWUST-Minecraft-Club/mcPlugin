@@ -3,7 +3,7 @@
 # 用法：bash scripts/rebuild-history.sh
 set -u
 
-REPO="D:/code/Plugin/mcPligin"
+REPO="D:/code/Plugin/mcPlugin"
 RB="/tmp/rebuild"
 GRADLE="$REPO/gradlew"
 
