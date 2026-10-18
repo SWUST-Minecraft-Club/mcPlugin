@@ -1,0 +1,59 @@
+package com.example.mainmenu.internal;
+
+/**
+ * 功能项的管理状态（由主菜单的管理界面修改，持久化在 plugins/MainMenu/features.yml）。
+ *
+ * <p>各项为空表示"用功能插件自己声明的值"：
+ * <ul>
+ *     <li>{@link #hidden}：隐藏的功能不显示，也不占用它的位置（所以原来位置冲突的插件可以正常显示）</li>
+ *     <li>{@link #order}：覆盖功能区的排序值</li>
+ *     <li>{@link #fixed}：被管理员通过拉杆改成固定位置功能插件</li>
+ *     <li>{@link #position}：覆盖位置（固定位置功能插件的槽位）</li>
+ * </ul>
+ */
+public final class FeatureState {
+
+    private boolean hidden;
+    private Integer order;
+    private boolean fixed;
+    private Integer position;
+
+    public boolean hidden() {
+        return hidden;
+    }
+
+    public void hidden(final boolean hidden) {
+        this.hidden = hidden;
+    }
+
+    public Integer order() {
+        return order;
+    }
+
+    public void order(final Integer order) {
+        this.order = order;
+    }
+
+    /** 是否被管理员改成了固定位置功能插件 */
+    public boolean forcedFixed() {
+        return fixed;
+    }
+
+    public void forcedFixed(final boolean fixed) {
+        this.fixed = fixed;
+    }
+
+    /** 覆盖的位置（固定位置功能插件的槽位）；null 表示用插件声明的 preferredSlot */
+    public Integer position() {
+        return position;
+    }
+
+    public void position(final Integer position) {
+        this.position = position;
+    }
+
+    /** 是否没有任何覆盖项（可以不用写进配置文件） */
+    public boolean isEmpty() {
+        return !hidden && order == null && !fixed && position == null;
+    }
+}

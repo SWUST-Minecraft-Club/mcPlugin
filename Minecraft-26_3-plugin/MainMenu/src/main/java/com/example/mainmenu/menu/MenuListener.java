@@ -38,6 +38,13 @@ public final class MenuListener implements Listener {
         }
 
         final int slot = event.getSlot();
+        if (slot == MenuLayout.ADMIN_SLOT) {
+            // 管理入口：只有管理员能点开
+            if (player.hasPermission("mainmenu.admin")) {
+                plugin.admin().openManage(player);
+            }
+            return;
+        }
         if (slot == MenuLayout.PREVIOUS_PAGE_SLOT) {
             if (holder.page() > 1) {
                 plugin.menus().show(player, holder, holder.page() - 1);

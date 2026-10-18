@@ -42,6 +42,10 @@ public final class MenuRenderer {
         // 固定功能位
         items[MenuLayout.PREVIOUS_PAGE_SLOT] = pageArrow(true, page);
         items[MenuLayout.NEXT_PAGE_SLOT] = pageArrow(false, page);
+        // 第 6 行第 5 格：功能插件管理入口，只有管理员看得到（其他人看到的是普通玻璃板）
+        items[MenuLayout.ADMIN_SLOT] = viewer.hasPermission("mainmenu.admin")
+                ? adminItem()
+                : plugin.configItem("menu.filler");
 
         // 自定义位置的功能（每页都显示）
         for (final MenuFeature feature : plugin.features().customPositionFeatures()) {
@@ -55,6 +59,20 @@ public final class MenuRenderer {
     }
 
     // ------------------------------------------------------------------ 固定功能位
+
+    /** 第 6 行第 5 格：功能插件管理入口（仅管理员可见） */
+    private ItemStack adminItem() {
+        final ItemStack item = plugin.configItem("menu.admin.entry");
+        final ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            final List<Component> lore = new ArrayList<>(2);
+            lore.add(plugin.miniRaw("<gray>点击进入功能插件管理</gray>"));
+            lore.add(plugin.miniRaw("<dark_gray>仅管理员可见</dark_gray>"));
+            meta.lore(lore);
+            item.setItemMeta(meta);
+        }
+        return item;
+    }
 
     /** 第 4 行第 1 / 第 9 格：翻页箭头 */
     public ItemStack pageArrow(final boolean previous, final int page) {

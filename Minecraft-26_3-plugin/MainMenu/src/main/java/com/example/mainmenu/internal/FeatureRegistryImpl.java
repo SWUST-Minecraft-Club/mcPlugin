@@ -5,10 +5,9 @@ import com.example.mainmenu.api.MenuFeature;
 import com.example.mainmenu.api.MenuFeatureRegistry;
 import com.example.mainmenu.menu.MenuLayout;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -17,20 +16,26 @@ import java.util.OptionalInt;
 import java.util.Set;
 
 /**
- * 功能注册表实现：负责位置冲突判定与功能区排序、分页。
+ * 功能注册表实现：负责位置冲突判定、功能区排序分页，以及管理界面要用的状态读写。
  *
- * <p>排布规则（见 docs/功能插件接入规范.md）：
+ * <p>排布规则：
  * <ol>
- *     <li>自定义位置优先，但必须是功能区以外的格子，且不能是固定功能位、也不能已被别的功能占用；
- *         冲突时该功能改排到功能区，并在悬停文本末尾追加提示。</li>
- *     <li>其余功能按注册顺序填进功能区（第 3~5 行、第 2~8 列），每页 21 个。</li>
+ *     <li>被隐藏的功能不显示、也不占用位置（所以原来与它冲突的插件可以正常显示）；</li>
+ *     <li>固定位置功能插件（声明了 {@code preferredSlot} 或被管理员用拉杆改成固定的）：
+ *         位置可用就放在那里；位置冲突则<b>依然算固定位置功能插件</b>，但显示在功能区<b>最前面</b>；</li>
+ *     <li>其余功能按 {@code order}（可被管理员覆盖）排进功能区，每页 21 个。</li>
  * </ol>
  */
 public final class FeatureRegistryImpl implements MenuFeatureRegistry {
 
+    private final FeatureStateStore states;
     private final List<MenuFeature> features = new ArrayList<>();
     private final Map<String, FeaturePlacement> placements = new LinkedHashMap<>();
     private int pageCount = 1;
+
+    public FeatureRegistryImpl(final FeatureStateStore states) {
+        this.states = states;
+    }
 
     @Override
     public synchronized void register(final MenuFeature feature) {
@@ -85,7 +90,9 @@ public final class FeatureRegistryImpl implements MenuFeatureRegistry {
         return MenuLayout.PAGE_SIZE;
     }
 
-    /** 某一页功能区里的功能（page 从 1 开始）；自定义位置的功能不在功能区，不会出现在这里 */
+    // ------------------------------------------------------------------ 渲染用查询
+
+    /** 某一页功能区里的功能（page 从 1 开始）；放在固定位置的功能不在功能区，不会出现在这里 */
     public synchronized List<MenuFeature> featuresOnPage(final int page) {
         final List<MenuFeature> result = new ArrayList<>();
         for (final MenuFeature feature : features) {
@@ -97,7 +104,7 @@ public final class FeatureRegistryImpl implements MenuFeatureRegistry {
         return result;
     }
 
-    /** 自定义位置的功能（每页都会显示） */
+    /** 放在固定位置的功能（每页都会显示） */
     public synchronized List<MenuFeature> customPositionFeatures() {
         final List<MenuFeature> result = new ArrayList<>();
         for (final MenuFeature feature : features) {
@@ -109,7 +116,7 @@ public final class FeatureRegistryImpl implements MenuFeatureRegistry {
         return result;
     }
 
-    /** 某个格子当前显示的功能（自定义位置的功能在所有页都命中） */
+    /** 某个格子当前显示的功能（固定位置的功能在所有页都命中） */
     public synchronized Optional<MenuFeature> featureAt(final int slot, final int page) {
         for (final MenuFeature feature : features) {
             final FeaturePlacement placement = placements.get(feature.id());
@@ -123,46 +130,135 @@ public final class FeatureRegistryImpl implements MenuFeatureRegistry {
         return Optional.empty();
     }
 
+    public synchronized Optional<MenuFeature> featureById(final String id) {
+        return features.stream().filter(feature -> feature.id().equals(id)).findFirst();
+    }
+
+    // ------------------------------------------------------------------ 管理界面用
+
+    public synchronized boolean isHidden(final String id) {
+        return states.stateOf(id).hidden();
+    }
+
+    /** 是否固定位置功能插件（声明了位置，或被管理员用拉杆改过） */
+    public synchronized boolean isFixed(final MenuFeature feature) {
+        return fixedPositionOf(feature) != null;
+    }
+
+    /** 固定位置功能插件的槽位；非固定位置功能插件返回 null */
+    public synchronized Integer fixedPositionOf(final MenuFeature feature) {
+        final Integer override = states.stateOf(feature.id()).position();
+        if (override != null) {
+            return override;
+        }
+        final OptionalInt declared = feature.preferredSlot();
+        return declared.isPresent() ? declared.getAsInt() : null;
+    }
+
+    /** 功能区排序值（管理界面可用空地图调整） */
+    public synchronized int orderOf(final MenuFeature feature) {
+        final Integer override = states.stateOf(feature.id()).order();
+        return override != null ? override : feature.order();
+    }
+
+    /** 管理界面左栏：非固定位置功能插件（含被隐藏的），按 order 排序 */
+    public synchronized List<MenuFeature> functionAreaFeatures() {
+        final List<MenuFeature> result = new ArrayList<>();
+        for (final MenuFeature feature : features) {
+            if (fixedPositionOf(feature) == null) {
+                result.add(feature);
+            }
+        }
+        result.sort(Comparator.comparingInt(this::orderOf));
+        return result;
+    }
+
+    /** 管理界面右栏：固定位置功能插件（含被隐藏的、位置冲突的），按位置排序 */
+    public synchronized List<MenuFeature> fixedFeatures() {
+        final List<MenuFeature> result = new ArrayList<>();
+        for (final MenuFeature feature : features) {
+            if (fixedPositionOf(feature) != null) {
+                result.add(feature);
+            }
+        }
+        result.sort(Comparator.comparingInt(feature -> {
+            final Integer position = fixedPositionOf(feature);
+            return position == null ? Integer.MAX_VALUE : position;
+        }));
+        return result;
+    }
+
+    public synchronized void setHidden(final String id, final boolean hidden) {
+        states.stateOf(id).hidden(hidden);
+        rebuild();
+        states.save();
+    }
+
+    public synchronized void setOrder(final String id, final int order) {
+        states.stateOf(id).order(order);
+        rebuild();
+        states.save();
+    }
+
+    /** 转成固定位置功能插件：此前没设置过位置的话，默认放到第 1 行第 1 格 */
+    public synchronized void makeFixed(final String id) {
+        final FeatureState state = states.stateOf(id);
+        state.forcedFixed(true);
+        if (state.position() == null) {
+            state.position(0);
+        }
+        rebuild();
+        states.save();
+    }
+
+    /** 设置固定位置功能插件的位置（即使与其它固定位置功能插件冲突也照样记录） */
+    public synchronized void setPosition(final String id, final int slot) {
+        states.stateOf(id).position(slot);
+        rebuild();
+        states.save();
+    }
+
     // ------------------------------------------------------------------
 
     private void rebuild() {
         placements.clear();
 
         final Set<Integer> occupied = new HashSet<>(MenuLayout.FIXED_SLOTS);
-        final Set<String> conflictMoved = new LinkedHashSet<>();
-        final List<MenuFeature> pending = new ArrayList<>();
+        final List<MenuFeature> functionPending = new ArrayList<>();
+        final List<MenuFeature> fixedOverflow = new ArrayList<>();
 
         for (final MenuFeature feature : features) {
-            final OptionalInt preferred = feature.preferredSlot();
-            if (preferred.isEmpty()) {
-                pending.add(feature);
+            if (states.stateOf(feature.id()).hidden()) {
                 continue;
             }
-            final int slot = preferred.getAsInt();
-            final boolean usable = MenuLayout.isFreeSlot(slot) && !occupied.contains(slot);
-            if (usable) {
-                placements.put(feature.id(),
-                        new FeaturePlacement(feature.id(), slot, 0, true, false));
-                occupied.add(slot);
+            final Integer position = fixedPositionOf(feature);
+            if (position == null) {
+                functionPending.add(feature);
+                continue;
+            }
+            if (MenuLayout.isFreeSlot(position) && !occupied.contains(position)) {
+                placements.put(feature.id(), new FeaturePlacement(feature.id(), position, 0, true, false));
+                occupied.add(position);
             } else {
-                // 位置冲突：固定功能位 / 已被别的功能占用 / 不在允许范围（含功能区）
-                pending.add(feature);
-                if (MenuLayout.isFixed(slot) || occupied.contains(slot)) {
-                    conflictMoved.add(feature.id());
-                }
+                // 固定位置冲突：依然是固定位置功能插件，只是显示在功能区最前面
+                fixedOverflow.add(feature);
             }
         }
 
-        // 功能区按 order 升序（相同则保持注册顺序），再按每页 21 格分页
-        pending.sort(java.util.Comparator.comparingInt(MenuFeature::order));
-        for (int index = 0; index < pending.size(); index++) {
-            final MenuFeature feature = pending.get(index);
+        fixedOverflow.sort(Comparator.comparingInt(this::orderOf));
+        functionPending.sort(Comparator.comparingInt(this::orderOf));
+
+        final List<MenuFeature> pageOrder = new ArrayList<>(fixedOverflow);
+        pageOrder.addAll(functionPending);
+
+        for (int index = 0; index < pageOrder.size(); index++) {
+            final MenuFeature feature = pageOrder.get(index);
             final int page = index / MenuLayout.PAGE_SIZE + 1;
             final int slot = MenuLayout.FUNCTION_AREA.get(index % MenuLayout.PAGE_SIZE);
             placements.put(feature.id(), new FeaturePlacement(
-                    feature.id(), slot, page, false, conflictMoved.contains(feature.id())));
+                    feature.id(), slot, page, false, fixedOverflow.contains(feature)));
         }
 
-        pageCount = Math.max(1, (pending.size() + MenuLayout.PAGE_SIZE - 1) / MenuLayout.PAGE_SIZE);
+        pageCount = Math.max(1, (pageOrder.size() + MenuLayout.PAGE_SIZE - 1) / MenuLayout.PAGE_SIZE);
     }
 }

@@ -34,10 +34,12 @@ public final class MenuLayout {
     public static final int PREVIOUS_PAGE_SLOT = 3 * COLUMNS;
     /** 第 4 行第 9 格：下一页 */
     public static final int NEXT_PAGE_SLOT = 3 * COLUMNS + (COLUMNS - 1);
+    /** 第 6 行第 5 格：功能插件管理入口（只有管理员看得到、点得动） */
+    public static final int ADMIN_SLOT = 5 * COLUMNS + 4;
 
     /** 固定功能位：不可被功能插件占用，冲突时功能会被改排到功能区 */
     public static final Set<Integer> FIXED_SLOTS =
-            Set.of(PREVIOUS_PAGE_SLOT, NEXT_PAGE_SLOT);
+            Set.of(PREVIOUS_PAGE_SLOT, NEXT_PAGE_SLOT, ADMIN_SLOT);
 
     /** 功能区：第 3~5 行、第 2~8 列 */
     public static final List<Integer> FUNCTION_AREA = buildFunctionArea();

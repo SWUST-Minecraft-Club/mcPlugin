@@ -5,8 +5,11 @@ import com.example.mainmenu.api.MenuFeatureRegistry;
 import com.example.mainmenu.command.CdCommand;
 import com.example.mainmenu.debug.DebugReporter;
 import com.example.mainmenu.internal.FeatureRegistryImpl;
+import com.example.mainmenu.internal.FeatureStateStore;
 import com.example.mainmenu.listener.ClockInteractListener;
 import com.example.mainmenu.listener.CustomClickListener;
+import com.example.mainmenu.menu.AdminListener;
+import com.example.mainmenu.menu.AdminService;
 import com.example.mainmenu.menu.MenuListener;
 import com.example.mainmenu.menu.MenuService;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
@@ -36,8 +39,10 @@ public final class MainMenuPlugin extends JavaPlugin {
 
     private static volatile MainMenuPlugin instance;
 
+    private FeatureStateStore states;
     private FeatureRegistryImpl features;
     private MenuService menus;
+    private AdminService admin;
     private DebugReporter debug;
 
     /** 供引导阶段注册的点击回调使用（那时插件实例还不存在） */
@@ -50,8 +55,11 @@ public final class MainMenuPlugin extends JavaPlugin {
         instance = this;
         saveDefaultConfig();
 
-        this.features = new FeatureRegistryImpl();
+        this.states = new FeatureStateStore(this);
+        this.states.load();
+        this.features = new FeatureRegistryImpl(states);
         this.menus = new MenuService(this);
+        this.admin = new AdminService(this);
         this.debug = new DebugReporter(this);
 
         MainMenuApi.install(features);
@@ -59,6 +67,7 @@ public final class MainMenuPlugin extends JavaPlugin {
                 MenuFeatureRegistry.class, features, this, ServicePriority.Normal);
 
         getServer().getPluginManager().registerEvents(new MenuListener(this), this);
+        getServer().getPluginManager().registerEvents(new AdminListener(this), this);
         getServer().getPluginManager().registerEvents(new CustomClickListener(this), this);
         if (getConfig().getBoolean("menu.open.clock-right-click", true)) {
             getServer().getPluginManager().registerEvents(new ClockInteractListener(this), this);
@@ -89,6 +98,14 @@ public final class MainMenuPlugin extends JavaPlugin {
 
     public MenuService menus() {
         return menus;
+    }
+
+    public AdminService admin() {
+        return admin;
+    }
+
+    public FeatureStateStore states() {
+        return states;
     }
 
     public DebugReporter debug() {

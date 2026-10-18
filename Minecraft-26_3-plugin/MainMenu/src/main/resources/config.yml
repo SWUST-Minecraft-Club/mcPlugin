@@ -36,6 +36,23 @@ menu:
     first-page: "<dark_gray>已经是第一页</dark_gray>"
     last-page: "<dark_gray>已经是最后一页</dark_gray>"
 
+  # 功能插件管理（第 6 行第 5 格入口，仅管理员可见可点）
+  admin:
+    title: "<dark_gray>插件管理</dark_gray>"
+    attribute-title: "<dark_gray>功能属性</dark_gray>"
+    position-title: "<dark_gray>选择新位置</dark_gray>"
+    # 管理入口物品
+    entry:
+      material: COMMAND_BLOCK
+      name: "<red>插件管理</red>"
+    # 管理页的分隔玻璃板（第 1 行、第 6 行、第 5 列）
+    divider:
+      material: BLACK_STAINED_GLASS_PANE
+      name: "<gray> </gray>"
+    # 位置选择界面里显示功能名称用的物品
+    picker:
+      material: NAME_TAG
+
   # 功能物品的附加提示
   feature:
     clickable-hint: "<dark_gray>点击使用</dark_gray>"

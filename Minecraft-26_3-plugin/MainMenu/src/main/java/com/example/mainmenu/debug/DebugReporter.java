@@ -87,6 +87,8 @@ public final class DebugReporter {
         final List<MenuFeature> features = plugin.features().features();
         line(sender, "功能区", features.size() + " 个功能，共 " + plugin.features().pageCount()
                 + " 页（每页 " + plugin.features().pageSize() + " 格）");
+        line(sender, "功能分类", "固定位置 " + plugin.features().fixedFeatures().size() + " 个；非固定位置 "
+                + plugin.features().functionAreaFeatures().size() + " 个（都含被隐藏的）");
         if (features.isEmpty()) {
             sender.sendMessage(Component.text("  （还没有插件注册功能；功能插件需 depend MainMenu）", NamedTextColor.GRAY));
         }
@@ -121,6 +123,9 @@ public final class DebugReporter {
         }
         if (slot == MenuLayout.NEXT_PAGE_SLOT) {
             return "下一页";
+        }
+        if (slot == MenuLayout.ADMIN_SLOT) {
+            return "管理入口";
         }
         final Optional<MenuFeature> feature = plugin.features().featureAt(slot, page);
         if (feature.isPresent()) {
