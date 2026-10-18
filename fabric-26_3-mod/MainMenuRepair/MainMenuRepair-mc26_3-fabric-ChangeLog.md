@@ -13,3 +13,8 @@
 5.新增：状态文件 `mainmenu-repair-status.txt`，记录各条钩子是否生效，便于排查
 
 依赖说明：第 3、4 条需要服务端装有 MainMenu（`/cd`、`/cd clockair` 由它提供）。
+
+[正式版1_0_0 -> 1_0_1] 2026.10.18
+1.修正了 `fabric.mod.json` 的 `homepage` / `sources`：GitHub 仓库已由 `mcPligin` 更名为 `mcPlugin`
+2.调整：仓库内所有文件的路径引用统一写成相对路径（`./xxx/xxx`），重建脚本改为按自身位置定位仓库根目录，
+   不再出现 `C:\`、`D:/` 之类的绝对路径；模组功能无变化

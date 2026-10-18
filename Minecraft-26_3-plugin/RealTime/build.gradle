@@ -1,6 +1,6 @@
 // RealTime：在主菜单里显示当前时间。
 // 它是 MainMenu 的功能插件（compileOnly 依赖 MainMenu 工程，运行期由服务端提供）。
-version = '1_0_0'
+version = '1_0_1'
 
 dependencies {
     compileOnly project(':MainMenu')
