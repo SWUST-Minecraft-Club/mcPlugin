@@ -60,11 +60,13 @@ public final class MenuRenderer {
 
     // ------------------------------------------------------------------ 固定功能位
 
-    /** 第 6 行第 5 格：功能插件管理入口（仅管理员可见） */
+    /** 第 6 行第 5 格：功能插件管理入口（仅管理员可见，材质固定为命令方块） */
     private ItemStack adminItem() {
-        final ItemStack item = plugin.configItem("menu.admin.entry");
+        final ItemStack item = new ItemStack(Material.COMMAND_BLOCK);
         final ItemMeta meta = item.getItemMeta();
         if (meta != null) {
+            meta.displayName(plugin.miniRaw(plugin.string("menu.admin.entry-name", "<red>插件管理</red>"))
+                    .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
             final List<Component> lore = new ArrayList<>(2);
             lore.add(plugin.miniRaw("<gray>点击进入功能插件管理</gray>"));
             lore.add(plugin.miniRaw("<dark_gray>仅管理员可见</dark_gray>"));

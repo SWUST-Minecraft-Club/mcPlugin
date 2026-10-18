@@ -37,21 +37,16 @@ menu:
     last-page: "<dark_gray>已经是最后一页</dark_gray>"
 
   # 功能插件管理（第 6 行第 5 格入口，仅管理员可见可点）
+  # 管理界面里的物品材质固定，不开放配置：
+  #   入口=命令方块、分隔=黑色染色玻璃板、显示/隐藏=黄绿色/红色羊毛、
+  #   排序值=空地图、更改位置=末影之眼、转固定位置=拉杆、转非固定位置=红石火把、
+  #   位置选择界面里的功能名=命名牌、返回/取消=屏障、翻页=箭
   admin:
     title: "<dark_gray>插件管理</dark_gray>"
     attribute-title: "<dark_gray>功能属性</dark_gray>"
     position-title: "<dark_gray>选择新位置</dark_gray>"
-    # 管理入口物品
-    entry:
-      material: COMMAND_BLOCK
-      name: "<red>插件管理</red>"
-    # 管理页的分隔玻璃板（第 1 行、第 6 行、第 5 列）
-    divider:
-      material: BLACK_STAINED_GLASS_PANE
-      name: "<gray> </gray>"
-    # 位置选择界面里显示功能名称用的物品
-    picker:
-      material: NAME_TAG
+    # 管理入口物品的名字
+    entry-name: "<red>插件管理</red>"
 
   # 功能物品的附加提示
   feature:

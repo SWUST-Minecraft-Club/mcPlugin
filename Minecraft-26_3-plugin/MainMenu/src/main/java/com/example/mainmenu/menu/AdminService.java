@@ -79,7 +79,7 @@ public final class AdminService {
     private void fillManage(final Player player, final AdminHolder holder) {
         final ItemStack[] items = new ItemStack[MenuLayout.SIZE];
 
-        final ItemStack divider = plugin.configItem("menu.admin.divider");
+        final ItemStack divider = named("BLACK_STAINED_GLASS_PANE", "<gray> </gray>", null);
         for (final int slot : AdminLayout.dividerSlots()) {
             items[slot] = divider.clone();
         }
@@ -117,8 +117,7 @@ public final class AdminService {
         items[AdminLayout.RIGHT_PREVIOUS] = pageArrow(true, holder.rightPage(), rightPages);
         items[AdminLayout.RIGHT_NEXT] = pageArrow(false, holder.rightPage(), rightPages);
 
-        items[AdminLayout.BACK] = named(plugin.string("menu.admin.back.material", "BARRIER"),
-                "<gray>返回主菜单</gray>", null);
+        items[AdminLayout.BACK] = named("BARRIER", "<gray>返回主菜单</gray>", null);
 
         holder.getInventory().setContents(items);
     }
@@ -131,11 +130,8 @@ public final class AdminService {
         }
         final MenuFeature feature = found.get();
 
+        // 属性页只放三个操作位和返回键，其余格子保持空
         final ItemStack[] items = new ItemStack[MenuLayout.SIZE];
-        final ItemStack divider = plugin.configItem("menu.admin.divider");
-        for (int slot = 0; slot < MenuLayout.SIZE; slot++) {
-            items[slot] = divider.clone();
-        }
 
         final boolean hidden = plugin.features().isHidden(feature.id());
 
@@ -195,7 +191,7 @@ public final class AdminService {
             if (feature.isEmpty() || placement.slot() < 0 || placement.slot() >= MenuLayout.SIZE) {
                 continue;
             }
-            items[placement.slot()] = named(plugin.string("menu.admin.picker.material", "NAME_TAG"),
+            items[placement.slot()] = named("NAME_TAG",
                     "<white>" + feature.get().id() + "</white>",
                     List.of(plugin.miniRaw("<dark_gray>插件：" + feature.get().owner() + "</dark_gray>")));
         }
