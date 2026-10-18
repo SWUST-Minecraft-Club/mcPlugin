@@ -4,7 +4,7 @@ main: com.example.realtime.RealTimePlugin
 api-version: '26.3'
 description: 在主菜单里显示当前时间（时区与格式可配）
 authors: [zhou-BZDDX]
-website: https://github.com/zhou-BZDDX/mcPligin
+website: https://github.com/zhou-BZDDX/mcPlugin
 
 # 功能插件规范：依赖 MainMenu，保证它先加载
 dependencies:

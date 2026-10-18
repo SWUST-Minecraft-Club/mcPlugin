@@ -8,8 +8,8 @@
 		"zhou-BZDDX"
 	],
 	"contact": {
-		"homepage": "https://github.com/zhou-BZDDX/mcPligin",
-		"sources": "https://github.com/zhou-BZDDX/mcPligin"
+		"homepage": "https://github.com/zhou-BZDDX/mcPlugin",
+		"sources": "https://github.com/zhou-BZDDX/mcPlugin"
 	},
 	"license": "MIT",
 	"environment": "client",

@@ -20,10 +20,10 @@ Paper 插件侧没有对应 API；资源包也只能改文案/贴图（图标会
 
 ```bash
 # 在本仓库根目录执行（用仓库自带的 Gradle wrapper）
-./gradlew -p fabric-26_3-mod/MainMenuRepair build
+./gradlew -p ./fabric-26_3-mod/MainMenuRepair build
 ```
 
-产物：`build/libs/MainMenuRepair-<版本>.jar`
+产物：`./build/libs/MainMenuRepair-<版本>.jar`
 
 ### 关于构建方式（没有用 fabric-loom）
 

@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
-# 从 git 历史重建各版本的构建产物，归档到 release/<项目名>/
-# 用法：bash scripts/rebuild-history.sh
+# 从 git 历史重建各版本的构建产物，归档到 ./release/<项目名>/
+# 用法：bash ./scripts/rebuild-history.sh（在哪个目录执行都行，脚本自己定位仓库根目录）
 set -u
 
-REPO="D:/code/Plugin/mcPlugin"
-RB="/tmp/rebuild"
+# 仓库根目录 = 本脚本所在目录的上一级：靠脚本自身位置推导，不写死盘符 / 绝对路径，
+# 仓库改名、换盘符、换机器都不用改脚本。
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# 临时工作区放系统临时目录（可用 TMPDIR 覆盖），不落在仓库里，同样不写死盘符
+RB="${TMPDIR:-/tmp}/mcplugin-rebuild"
 GRADLE="$REPO/gradlew"
 
 cd "$REPO" || exit 1
-mkdir -p "$RB" release/MainMenu release/MainMenuRepair
+mkdir -p "$RB" ./release/MainMenu ./release/MainMenuRepair
 
 # 提交:版本（MainMenu 插件）
 PLUGIN_VERSIONS="eeef7b7:Beta_0_1_0
@@ -46,13 +49,13 @@ rebuild_plugin() {
     cp -r gradle "$dir/" 2>/dev/null
     cp gradlew gradlew.bat "$dir/" 2>/dev/null
     sed -i "s/^version = .*/version = '$ver'/" "$dir/Minecraft-26_3-plugin/MainMenu/build.gradle"
-    ( cd "$dir" && "$GRADLE" :MainMenu:jar -q --console=plain >/tmp/rebuild-plugin.log 2>&1 )
+    ( cd "$dir" && "$GRADLE" :MainMenu:jar -q --console=plain >"$RB/rebuild-plugin.log" 2>&1 )
     if [ -f "$dir/Minecraft-26_3-plugin/MainMenu/build/libs/$jar" ]; then
-        cp "$dir/Minecraft-26_3-plugin/MainMenu/build/libs/$jar" release/MainMenu/
+        cp "$dir/Minecraft-26_3-plugin/MainMenu/build/libs/$jar" ./release/MainMenu/
         echo "OK   MainMenu $ver  ← $commit"
         ok=$((ok+1))
     else
-        echo "FAIL(build)   MainMenu $ver  ← $commit（见 /tmp/rebuild-plugin.log）"
+        echo "FAIL(build)   MainMenu $ver  ← $commit（见 $RB/rebuild-plugin.log）"
         fail=$((fail+1))
     fi
     git worktree remove --force "$dir" >/dev/null 2>&1
@@ -65,19 +68,19 @@ rebuild_mod() {
     local jar="MainMenuRepair-mc26_3-fabric-$ver.jar"
     rm -rf "$dir"
     git worktree add --detach "$dir" "$commit" >/dev/null 2>&1 || { echo "FAIL(worktree) $commit"; fail=$((fail+1)); return; }
-    cp fabric-26_3-mod/MainMenuRepair/build.gradle fabric-26_3-mod/MainMenuRepair/settings.gradle "$proj/" 2>/dev/null
-    cp fabric-26_3-mod/MainMenuRepair/gradle.properties "$proj/" 2>/dev/null
+    cp ./fabric-26_3-mod/MainMenuRepair/build.gradle ./fabric-26_3-mod/MainMenuRepair/settings.gradle "$proj/" 2>/dev/null
+    cp ./fabric-26_3-mod/MainMenuRepair/gradle.properties "$proj/" 2>/dev/null
     sed -i "s/^version=.*/version=$ver/" "$proj/gradle.properties"
     # 复用已下载的客户端 jar，避免每个 worktree 重新下 41MB
     mkdir -p "$proj/build/minecraft"
-    cp fabric-26_3-mod/MainMenuRepair/build/minecraft/client-26.3.jar "$proj/build/minecraft/" 2>/dev/null
-    ( cd "$proj" && "$GRADLE" build -q --console=plain >/tmp/rebuild-mod.log 2>&1 )
+    cp ./fabric-26_3-mod/MainMenuRepair/build/minecraft/client-26.3.jar "$proj/build/minecraft/" 2>/dev/null
+    ( cd "$proj" && "$GRADLE" build -q --console=plain >"$RB/rebuild-mod.log" 2>&1 )
     if [ -f "$proj/build/libs/$jar" ]; then
-        cp "$proj/build/libs/$jar" release/MainMenuRepair/
+        cp "$proj/build/libs/$jar" ./release/MainMenuRepair/
         echo "OK   MainMenuRepair $ver  ← $commit"
         ok=$((ok+1))
     else
-        echo "FAIL(build)   MainMenuRepair $ver  ← $commit（见 /tmp/rebuild-mod.log）"
+        echo "FAIL(build)   MainMenuRepair $ver  ← $commit（见 $RB/rebuild-mod.log）"
         fail=$((fail+1))
     fi
     git worktree remove --force "$dir" >/dev/null 2>&1

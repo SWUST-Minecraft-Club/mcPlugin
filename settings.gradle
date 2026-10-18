@@ -5,7 +5,7 @@ plugins {
 
 rootProject.name = 'Minecraft-26_3-plugins'
 
-// 插件都放在 Minecraft-26_3-plugin/<插件名>/ 下。
+// 插件都放在 ./Minecraft-26_3-plugin/<插件名>/ 下。
 // 这里自动把该目录里每个含 build.gradle 的子目录注册成 Gradle 子工程，
 // 因此新增插件只需要新建目录（或用 ./gradlew newPlugin -PpluginName=xxx 生成），
 // 不需要回来改这个文件。
@@ -17,7 +17,7 @@ if (pluginsDir.isDirectory()) {
             .each { dir ->
                 if (new File(dir, 'build.gradle').exists()) {
                     include dir.name
-                    // 让工程名等于插件名，目录结构保持 Minecraft-26_3-plugin/<插件名>
+                    // 让工程名等于插件名，目录结构保持 ./Minecraft-26_3-plugin/<插件名>
                     project(":${dir.name}").projectDir = dir
                 } else {
                     logger.lifecycle("[settings] 跳过 ${dir.name}：目录里没有 build.gradle，未注册为插件工程")

@@ -8,7 +8,7 @@ bootstrapper: com.example.mainmenu.MainMenuBootstrap
 api-version: '26.3'
 description: 主菜单：ESC 菜单按钮 / /cd / 手持时钟右键 打开 6×9 功能菜单
 authors: [zhou-BZDDX]
-website: https://github.com/zhou-BZDDX/mcPligin
+website: https://github.com/zhou-BZDDX/mcPlugin
 
 permissions:
   mainmenu.use:

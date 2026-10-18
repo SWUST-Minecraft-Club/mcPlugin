@@ -6,7 +6,7 @@ main: com.example.exampleplugin.ExamplePlugin
 api-version: '26.3'
 description: Minecraft 26.3 (Paper) 插件开发模板
 authors: [zhou-BZDDX]
-website: https://github.com/zhou-BZDDX/mcPligin
+website: https://github.com/zhou-BZDDX/mcPlugin
 
 # 权限声明；default 可取 true / false / op / not_op
 permissions:

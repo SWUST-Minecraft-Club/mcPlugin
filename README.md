@@ -1,13 +1,28 @@
 # Minecraft 26.3 插件集合
 
-[![Build](https://github.com/zhou-BZDDX/mcPligin/actions/workflows/build.yml/badge.svg)](https://github.com/zhou-BZDDX/mcPligin/actions/workflows/build.yml)
+[![Build](https://github.com/zhou-BZDDX/mcPlugin/actions/workflows/build.yml/badge.svg)](https://github.com/zhou-BZDDX/mcPlugin/actions/workflows/build.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Minecraft](https://img.shields.io/badge/Minecraft-26.3-green.svg)
 ![Java](https://img.shields.io/badge/Java-25-orange.svg)
 
-Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `Minecraft-26_3-plugin/<插件名>/`，由仓库根目录的一个 Gradle 工程统一管理：共享构建配置和服务端版本，每个插件又能单独打包、单独启动测试服。
+Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `./Minecraft-26_3-plugin/<插件名>/`，由仓库根目录的一个 Gradle 工程统一管理：共享构建配置和服务端版本，每个插件又能单独打包、单独启动测试服。
 
-目前仓库里有 2 个插件：**[MainMenu](Minecraft-26_3-plugin/MainMenu)**（主菜单框架，其它插件以它为依赖注册功能）和 **[RealTime](Minecraft-26_3-plugin/RealTime)**（在主菜单里显示当前时间）。新增插件用 `./gradlew newPlugin -PpluginName=你的插件名`。
+目前仓库里有 2 个插件：**[MainMenu](./Minecraft-26_3-plugin/MainMenu)**（主菜单框架，其它插件以它为依赖注册功能）和 **[RealTime](./Minecraft-26_3-plugin/RealTime)**（在主菜单里显示当前时间）。新增插件用 `./gradlew newPlugin -PpluginName=你的插件名`。
+
+## 规范索引
+
+仓库里的约定集中在以下几处，动手前先看一眼：
+
+| 规范 | 位置 | 内容 |
+| --- | --- | --- |
+| 目录结构 / 路径约定 | [目录结构](#目录结构)、[路径约定](#路径约定) | 插件放哪、路径一律写成 `./xxx/xxx` 相对形式 |
+| 新增插件 | [新增插件](#新增插件)、[`./templates/plugin-template/`](./templates/plugin-template) | 脚手架、目录名 / 包名 / 类名一致性 |
+| 功能插件接入 | [功能插件接入规范](./Minecraft-26_3-plugin/MainMenu/docs/功能插件接入规范.md) | 依赖声明、注册 API、位置 / 排序 / 冲突规则 |
+| 版本与产物命名 | [版本与产物命名规范](#版本与产物命名规范) | `<项目名>-<游戏版本>-plugin-<版本>`、涨号规则 |
+| 留档与 ChangeLog | [产物留档](#产物留档)、[ChangeLog 规范](#changelog-规范) | `./release/<项目名>/`、ChangeLog 文件名与格式 |
+| 发布流程 | [发布到 GitHub Releases](#发布到-github-releases) | 打 `v*` 标签触发 CI 发布 |
+| 26.3 开发要点 | [26.3 开发要点](#263-开发要点) | 命令写代码里、MiniMessage、`paper-api` 用 `compileOnly` |
+| CI | [`./.github/workflows/`](./.github/workflows) | `build.yml` 构建、`release.yml` 发布 |
 
 ## 环境要求
 
@@ -21,11 +36,13 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `Minecraft-26_
 
 ## 目录结构
 
+树下每一项都相对仓库根目录（也就是 `./xxx/xxx` 那样的相对路径）：
+
 ```
 .
 ├── build.gradle                    # 所有插件共享的构建配置（依赖、工具链、runServer）
 ├── gradle.properties               # 统一版本：Minecraft / Paper API / Java（升级版本改这里）
-├── settings.gradle                 # 自动发现 Minecraft-26_3-plugin/ 下的插件目录
+├── settings.gradle                 # 自动发现 ./Minecraft-26_3-plugin/ 下的插件目录
 ├── templates/
 │   └── plugin-template/            # newPlugin 用的模板（一份可直接编译运行的示例插件）
 │       ├── build.gradle            # 只写版本号与额外依赖，公共配置在根 build.gradle
@@ -38,20 +55,29 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `Minecraft-26_
 └── .github/                        # CI、Release、Issue/PR 模板、Dependabot
 ```
 
+### 路径约定
+
+仓库里所有文件提到路径时**一律写相对路径**（`./xxx/xxx` 形式），不要写 `C:\...`、`D:/...` 这类绝对路径 —— 换机器、换盘符、仓库改名后照样能用：
+
+- 引用仓库内的位置，写成 `./Minecraft-26_3-plugin/MainMenu`、`./templates/plugin-template/`、`./release/<项目名>/`、`./run/` 这样；
+- 脚本自己定位仓库根目录（`./scripts/rebuild-history.sh` 由脚本所在位置往上推，不写死盘符），临时文件放系统临时目录（`${TMPDIR:-/tmp}`），不落在仓库里；
+- Gradle / CI 里的路径写成相对工程根的形式（`rootProject.file('...')`、`./gradlew -p ...`），同样不要改成绝对路径；
+- 例外：插件运行期读写的路径相对**服务端根目录**（例如 `plugins/<插件名>/config.yml`，本仓库测试服里就是 `./run/plugins/<插件名>/`）。
+
 ## 快速开始
 
 ```bash
 # 1. 生成第一个插件（自动建目录、换包名和类名）
 ./gradlew newPlugin -PpluginName=MyPlugin
 
-# 2. 编译打包，产物在 Minecraft-26_3-plugin/MyPlugin/build/libs/
+# 2. 编译打包，产物在 ./Minecraft-26_3-plugin/MyPlugin/build/libs/
 ./gradlew :MyPlugin:build
 
-# 3. 启动测试服（Paper 26.3 + 自动加载刚构建的插件），服务端文件在仓库根目录的 run/
+# 3. 启动测试服（Paper 26.3 + 自动加载刚构建的插件），服务端文件在仓库根目录的 ./run/
 ./gradlew :MyPlugin:runServer
 ```
 
-首次 `runServer` 会自动下载 Paper 服务端并在 `run/` 生成世界；如果服务端提示 `You need to agree to the EULA`，把 `run/eula.txt` 里的 `eula=false` 改成 `eula=true`（表示你同意 [Mojang EULA](https://aka.ms/MinecraftEULA)）后重新执行即可。
+首次 `runServer` 会自动下载 Paper 服务端并在 `./run/` 生成世界；如果服务端提示 `You need to agree to the EULA`，把 `./run/eula.txt` 里的 `eula=false` 改成 `eula=true`（表示你同意 [Mojang EULA](https://aka.ms/MinecraftEULA)）后重新执行即可。
 
 ## 常用命令
 
@@ -78,13 +104,13 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `Minecraft-26_
 ./gradlew listPlugins
 ```
 
-脚手架做的事：把 `templates/plugin-template/` 复制成 `Minecraft-26_3-plugin/Shop/`，并把模板里的 `ExamplePlugin` / `exampleplugin` / `com.example.exampleplugin` 全部替换成新名字，同时搬好 `src/main/java` 下的包目录。之后把 `paper-plugin.yml` 里的 `authors`、`website` 填上就能开工。
+脚手架做的事：把 `./templates/plugin-template/` 复制成 `./Minecraft-26_3-plugin/Shop/`，并把模板里的 `ExamplePlugin` / `exampleplugin` / `com.example.exampleplugin` 全部替换成新名字，同时搬好 `src/main/java` 下的包目录。之后把 `paper-plugin.yml` 里的 `authors`、`website` 填上就能开工。
 
-也可以直接手动复制 `templates/plugin-template/` 到 `Minecraft-26_3-plugin/<插件名>/` 再逐个改名，注意目录名、`paper-plugin.yml` 的 `name`/`main`、Java 包名要一致。
+也可以直接手动复制 `./templates/plugin-template/` 到 `./Minecraft-26_3-plugin/<插件名>/` 再逐个改名，注意目录名、`paper-plugin.yml` 的 `name`/`main`、Java 包名要一致。
 
 ## 模板里有什么
 
-`templates/plugin-template/` 是一份能直接编译运行的完整示例，建议先读一遍再改：
+`./templates/plugin-template/` 是一份能直接编译运行的完整示例，建议先读一遍再改：
 
 | 文件 | 内容 |
 | --- | --- |
@@ -164,7 +190,7 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `Minecraft-26_
 ### 其它插件怎么挂功能
 
 功能插件以 MainMenu 为依赖，调用 `com.example.mainmenu.api` 注册「物品 / 悬停文本 / 点击是否有效 / 点击做什么 / 自定义位置」。
-完整规范见 [功能插件接入规范](Minecraft-26_3-plugin/MainMenu/docs/功能插件接入规范.md)，最简形式：
+完整规范见 [功能插件接入规范](./Minecraft-26_3-plugin/MainMenu/docs/功能插件接入规范.md)，最简形式：
 
 ```java
 MainMenuApi.registry().register(
@@ -200,7 +226,7 @@ ESC 菜单按钮：已就绪：pause_screen_additions 包含 mainmenu:main_menu�
 
 ### 插件：RealTime（当前时间）
 
-`Minecraft-26_3-plugin/RealTime` 是 MainMenu 的一个功能插件，负责**第 1 行第 2 格的"当前时间"显示** ——
+`./Minecraft-26_3-plugin/RealTime` 是 MainMenu 的一个功能插件，负责**第 1 行第 2 格的"当前时间"显示** ——
 这部分原先内置在 MainMenu 里，现在拆成独立插件（MainMenu 只提供菜单框架和功能注册 API）。
 
 | 配置项 | 说明 |
@@ -216,7 +242,7 @@ ESC 菜单按钮：已就绪：pause_screen_additions 包含 mainmenu:main_menu�
 
 ## 客户端模组：MainMenuRepair
 
-`fabric-26_3-mod/MainMenuRepair/` 是一个 **Fabric 客户端模组**，直接改客户端界面，把 ESC 暂停菜单里的这两样东西真正删掉：
+`./fabric-26_3-mod/MainMenuRepair/` 是一个 **Fabric 客户端模组**，直接改客户端界面，把 ESC 暂停菜单里的这两样东西真正删掉：
 
 | 目标 | 做法 |
 | --- | --- |
@@ -228,8 +254,8 @@ ESC 菜单按钮：已就绪：pause_screen_additions 包含 mainmenu:main_menu�
 ### 构建与安装
 
 ```bash
-./gradlew -p fabric-26_3-mod/MainMenuRepair build
-# 产物：fabric-26_3-mod/MainMenuRepair/build/libs/MainMenuRepair-1.0.0.jar
+./gradlew -p ./fabric-26_3-mod/MainMenuRepair build
+# 产物：./fabric-26_3-mod/MainMenuRepair/build/libs/MainMenuRepair-1.0.0.jar
 ```
 
 把 jar 放进客户端该实例的 `mods/` 目录，重启客户端即可。模组是纯客户端的，**不需要 Fabric API，也不需要服务端做任何事**。
@@ -248,11 +274,11 @@ ESC 菜单按钮：已就绪：pause_screen_additions 包含 mainmenu:main_menu�
 
 ## 测试服说明
 
-- 所有插件共用仓库根目录的 `run/`：只下一份服务端、只生成一份世界，插件各自的配置在 `run/plugins/<插件名>/`。
+- 所有插件共用仓库根目录的 `./run/`：只下一份服务端、只生成一份世界，插件各自的配置在 `./run/plugins/<插件名>/`。
 - **不要同时启动两个插件的 `runServer`**，会抢同一个端口。
-- 想让某个插件用独立目录：在它自己的 `build.gradle` 里写 `tasks.named('runServer') { runDirectory(file('run')) }`，就会变成该插件目录下的 `run/`。
+- 想让某个插件用独立目录：在它自己的 `build.gradle` 里写 `tasks.named('runServer') { runDirectory(file('run')) }`，就会变成该插件目录下的 `./run/`。
 - 想固定服务端构建号：在根 `build.gradle` 的 `runServer` 配置里打开 `build(200)`，构建号见 [papermc.io/downloads/paper](https://papermc.io/downloads/paper)。
-- 想额外装别的插件到测试服：把 jar 放进 `run/plugins/` 即可。
+- 想额外装别的插件到测试服：把 jar 放进 `./run/plugins/` 即可。
 
 ## 升级 Minecraft 版本
 
@@ -277,7 +303,7 @@ dependencies {
 ## 发布到 GitHub Releases
 
 ```bash
-# 1. 修改要发布的插件里的 version，例如 Minecraft-26_3-plugin/Shop/build.gradle
+# 1. 修改要发布的插件里的 version，例如 ./Minecraft-26_3-plugin/Shop/build.gradle
 # 2. 提交并打 tag
 git commit -am "chore: release shop 0.2.0"
 git tag v0.2.0
@@ -288,7 +314,7 @@ git push origin main --tags
 
 ## 版本与产物命名规范
 
-所有构建产物按固定格式命名，并**留档在仓库根的 `release/<项目名>/`**（一个项目一个子目录，每次小改版的产物都保留，不覆盖）：
+所有构建产物按固定格式命名，并**留档在仓库根的 `./release/<项目名>/`**（一个项目一个子目录，每次小改版的产物都保留，不覆盖）：
 
 | 类型 | 命名格式 | 示例 |
 | --- | --- | --- |
@@ -312,10 +338,10 @@ git push origin main --tags
 
 ### 产物留档
 
-`./gradlew build` 结束后会自动把 jar 复制到 `release/<项目名>/`（任务 `archiveArtifact`，挂在 `build` 的 `finalizedBy` 上）。
+`./gradlew build` 结束后会自动把 jar 复制到 `./release/<项目名>/`（任务 `archiveArtifact`，挂在 `build` 的 `finalizedBy` 上）。
 文件名自带版本，所以每次构建留下的是独立文件、不会互相覆盖。（如果以后再加测试用插件，命名沿用 `TestPlugin*`：它不参与留档，也不随 Release 发布。）
 
-`release/` 已提交进仓库，所以历史产物能长期保留。要手动补一次留档：`./gradlew archiveArtifact`。
+`./release/` 已提交进仓库，所以历史产物能长期保留。要手动补一次留档：`./gradlew archiveArtifact`。
 
 ### ChangeLog 规范
 
@@ -364,7 +390,7 @@ git push origin main --tags
 
 ### 版本历史
 
-`release/<项目名>/` 里保留了每一版的产物；下面是对应的提交与改动（早期被同名覆盖的版本已用 `scripts/rebuild-history.sh` 从 git 历史重建）。
+`./release/<项目名>/` 里保留了每一版的产物；下面是对应的提交与改动（早期被同名覆盖的版本已用 `./scripts/rebuild-history.sh` 从 git 历史重建）。
 
 **MainMenu（插件）**
 
@@ -435,11 +461,11 @@ pluginManagement {
 }
 ```
 
-**下载 Gradle 失败**：wrapper 默认走华为云镜像（见 `gradle/wrapper/gradle-wrapper.properties`）。想换回官方源，把 `distributionUrl` 改成 `https://services.gradle.org/distributions/gradle-9.8.1-bin.zip` 即可；CI 里已经在构建前自动换回官方源。
+**下载 Gradle 失败**：wrapper 默认走华为云镜像（见 `./gradle/wrapper/gradle-wrapper.properties`）。想换回官方源，把 `distributionUrl` 改成 `https://services.gradle.org/distributions/gradle-9.8.1-bin.zip` 即可；CI 里已经在构建前自动换回官方源。
 
-**`runServer` 启动后立刻退出**：看 `run/eula.txt` 是否还是 `eula=false`，改成 `true` 再启动。
+**`runServer` 启动后立刻退出**：看 `./run/eula.txt` 是否还是 `eula=false`，改成 `true` 再启动。
 
-**改了 `paper-plugin.yml` 或 `config.yml` 不生效**：`paper-plugin.yml` 需要重新 `./gradlew :插件名:build` 再重启服务端；`config.yml` 在 `run/plugins/<插件名>/` 下，改完用插件自带的 reload 命令热重载。注意默认配置只在文件不存在时才会释放，删掉该文件才会重新生成。
+**改了 `paper-plugin.yml` 或 `config.yml` 不生效**：`paper-plugin.yml` 需要重新 `./gradlew :插件名:build` 再重启服务端；`config.yml` 在 `./run/plugins/<插件名>/` 下，改完用插件自带的 reload 命令热重载。注意默认配置只在文件不存在时才会释放，删掉该文件才会重新生成。
 
 **提示 Java 版本不对**：确认 `gradle.properties` 的 `targetJavaVersion` 不低于服务端要求（26.3 为 25），并让本机装有对应 JDK。
 

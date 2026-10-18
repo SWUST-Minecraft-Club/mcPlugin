@@ -1,5 +1,5 @@
 // ============================================================
-// 仓库根构建脚本：所有插件（Minecraft-26_3-plugin/<插件名>/）共用这里的配置。
+// 仓库根构建脚本：所有插件（./Minecraft-26_3-plugin/<插件名>/）共用这里的配置。
 // 单个插件只在自己的 build.gradle 里写差异部分（版本号、额外依赖）。
 // ============================================================
 
@@ -23,12 +23,12 @@ subprojects { pluginProject ->
         archivesName = "${project.name}-${gameTag}-plugin"
     }
 
-    // 每次构建都把产物归档到仓库根的 release/<项目名>/：文件名带版本，不会互相覆盖，
-    // 这样每个小改版的构建产物都能留档（release/ 已提交进仓库）。
+    // 每次构建都把产物归档到仓库根的 ./release/<项目名>/：文件名带版本，不会互相覆盖，
+    // 这样每个小改版的构建产物都能留档（./release/ 已提交进仓库）。
     // 测试插件（TestPlugin*）只是联调用的夹具，不算产品，不归档。
     tasks.register('archiveArtifact') {
         group = 'build'
-        description = '把构建产物复制到 release/<项目名>/ 留档'
+        description = '把构建产物复制到 ./release/<项目名>/ 留档'
         def artifact = tasks.named('jar').flatMap { it.archiveFile }
         inputs.file(artifact)
         doLast {
@@ -39,7 +39,7 @@ subprojects { pluginProject ->
                 from artifact
                 into rootProject.file("release/${project.name}")
             }
-            logger.lifecycle("已归档：${artifact.get().asFile.name} → release/${project.name}/")
+            logger.lifecycle("已归档：${artifact.get().asFile.name} → ./release/${project.name}/")
         }
     }
     tasks.named('build') {
@@ -88,7 +88,7 @@ subprojects { pluginProject ->
     tasks.named('runServer') {
         // 测试服用的服务端版本
         minecraftVersion(project.minecraftVersion)
-        // 所有插件共用仓库根目录下的 run/ 测试服（只下一份服务端、只生成一份世界）。
+        // 所有插件共用仓库根目录下的 ./run/ 测试服（只下一份服务端、只生成一份世界）。
         // 共用目录时不要同时启动两个插件的 runServer（会抢同一个端口）。
         // 想让某个插件用独立目录，在它自己的 build.gradle 里写 runDirectory(file('run'))
         runDirectory(rootProject.file('run'))
@@ -103,7 +103,7 @@ subprojects { pluginProject ->
 
 tasks.register('build') {
     group = 'build'
-    description = '构建 Minecraft-26_3-plugin/ 下的所有插件'
+    description = '构建 ./Minecraft-26_3-plugin/ 下的所有插件'
     dependsOn { subprojects.collect { "${it.path}:build" } }
 }
 
@@ -124,7 +124,7 @@ tasks.register('listPlugins') {
         println '已注册的插件：'
         subprojects.sort { it.name }.each { p ->
             println "  ${p.name}  v${p.version}"
-            println "      目录    Minecraft-26_3-plugin/${p.name}"
+            println "      目录    ./Minecraft-26_3-plugin/${p.name}"
             println "      打包    ./gradlew ${p.path}:build"
             println "      测试服  ./gradlew ${p.path}:runServer"
         }
@@ -136,7 +136,7 @@ tasks.register('newPlugin') {
     group = '插件管理'
     description = '复制模板生成新插件：./gradlew newPlugin -PpluginName=MyPlugin'
     doLast {
-        // 模板放在 templates/plugin-template/，里面的占位符固定为 ExamplePlugin / exampleplugin
+        // 模板放在 ./templates/plugin-template/，里面的占位符固定为 ExamplePlugin / exampleplugin
         def templateDir = rootProject.file('templates/plugin-template')
         def templateName = 'ExamplePlugin'
         def templateLower = 'exampleplugin'
@@ -222,7 +222,7 @@ tasks.register('newPlugin') {
 
         println("""
         |已创建插件 ${pluginName}
-        |  目录    Minecraft-26_3-plugin/${pluginName}
+        |  目录    ./Minecraft-26_3-plugin/${pluginName}
         |  包名    ${packageName}
         |  打包    ./gradlew :${pluginName}:build
         |  测试服  ./gradlew :${pluginName}:runServer
