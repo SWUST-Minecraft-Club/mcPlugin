@@ -57,7 +57,12 @@ public final class FeatureState {
         this.function = function;
     }
 
-    /** 覆盖的位置（固定位置功能插件的槽位）；null 表示用插件声明的 preferredSlot */
+    /**
+     * 覆盖的位置（固定位置功能插件的槽位）；null 表示用插件声明的 preferredSlot。
+     *
+     * <p>改回非固定位置功能插件时<b>不清掉</b>这个值（只靠 {@link #forcedFunction} 忽略它），
+     * 这样再用拉杆改回固定位置时能回到原来的位置。
+     */
     public Integer position() {
         return position;
     }

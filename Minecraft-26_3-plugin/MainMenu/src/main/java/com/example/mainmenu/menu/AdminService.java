@@ -163,9 +163,12 @@ public final class AdminService {
                     plugin.miniRaw("<dark_gray>左键 +1，右键 -1</dark_gray>"),
                     plugin.miniRaw("<dark_gray>按住 Shift 为 ±4</dark_gray>")));
             // 第 3 行第 7 格：转成固定位置功能插件
+            final Integer restore = plugin.features().restorePositionOf(feature.id());
             items[AdminLayout.ATTR_RIGHT] = named("LEVER", "<yellow>设为固定位置</yellow>", List.of(
                     plugin.miniRaw("<gray>把该功能变成固定位置功能插件</gray>"),
-                    plugin.miniRaw("<dark_gray>没设过位置时默认放到第 1 行第 1 格</dark_gray>")));
+                    plugin.miniRaw(restore == null
+                            ? "<dark_gray>没设置过位置，将默认放到第 1 行第 1 格</dark_gray>"
+                            : "<dark_gray>改回原来的位置：" + MenuLayout.describe(restore) + "</dark_gray>")));
         }
 
         // 第 6 行第 5 格：返回管理列表

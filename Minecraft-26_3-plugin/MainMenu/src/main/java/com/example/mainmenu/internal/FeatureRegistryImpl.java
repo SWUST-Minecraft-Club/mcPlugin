@@ -159,6 +159,23 @@ public final class FeatureRegistryImpl implements MenuFeatureRegistry {
         return declared.isPresent() ? declared.getAsInt() : null;
     }
 
+    /**
+     * 用拉杆改回固定位置时会用到的槽位（含"已记录但当前被忽略"的位置）；
+     * 从来没设置过位置时返回 null，此时 {@link #makeFixed} 会默认放到第 1 行第 1 格。
+     */
+    public synchronized Integer restorePositionOf(final String id) {
+        final Optional<MenuFeature> found = featureById(id);
+        if (found.isEmpty()) {
+            return null;
+        }
+        final Integer recorded = states.stateOf(id).position();
+        if (recorded != null) {
+            return recorded;
+        }
+        final OptionalInt declared = found.get().preferredSlot();
+        return declared.isPresent() ? declared.getAsInt() : null;
+    }
+
     /** 功能区排序值（管理界面可用空地图调整） */
     public synchronized int orderOf(final MenuFeature feature) {
         final Integer override = states.stateOf(feature.id()).order();
@@ -204,24 +221,33 @@ public final class FeatureRegistryImpl implements MenuFeatureRegistry {
         states.save();
     }
 
-    /** 转成固定位置功能插件：此前没设置过位置的话，默认放到第 1 行第 1 格 */
+    /**
+     * 转成固定位置功能插件。
+     *
+     * <p>还原原来的固定位置：管理员设过的位置、或功能插件自己声明的 {@code preferredSlot} 都算"设置过"，
+     * 直接沿用；只有从来没设置过位置的才默认放到第 1 行第 1 格。
+     */
     public synchronized void makeFixed(final String id) {
         final FeatureState state = states.stateOf(id);
         state.forcedFixed(true);
         state.forcedFunction(false);
-        if (state.position() == null) {
+        if (state.position() == null && !hasDeclaredPosition(id)) {
             state.position(0);
         }
         rebuild();
         states.save();
     }
 
-    /** 改回非固定位置功能插件（按 order 排进功能区）；插件自己声明的位置也会被忽略 */
+    /**
+     * 改回非固定位置功能插件（按 order 排进功能区）。
+     *
+     * <p>插件自己声明的位置会被忽略；但已经记录的位置<b>保留</b>下来，
+     * 之后再用拉杆改回固定位置时能回到原来的位置，而不是被当成"没设置过"。
+     */
     public synchronized void makeFunction(final String id) {
         final FeatureState state = states.stateOf(id);
         state.forcedFunction(true);
         state.forcedFixed(false);
-        state.position(null);
         rebuild();
         states.save();
     }
@@ -234,6 +260,11 @@ public final class FeatureRegistryImpl implements MenuFeatureRegistry {
     }
 
     // ------------------------------------------------------------------
+
+    /** 功能插件自己是否声明过位置（{@code preferredSlot}） */
+    private boolean hasDeclaredPosition(final String id) {
+        return featureById(id).map(feature -> feature.preferredSlot().isPresent()).orElse(false);
+    }
 
     private void rebuild() {
         placements.clear();
