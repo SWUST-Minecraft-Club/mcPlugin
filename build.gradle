@@ -14,6 +14,38 @@ subprojects { pluginProject ->
 
     group = 'com.example'
 
+    // 产物命名规范：<项目名>-<游戏版本>-plugin-<项目版本>
+    //   游戏版本 26.3 → mc26_3（点换成下划线）
+    //   项目版本形如 Beta_0_1_0（测试期），出正式版后去掉 Beta
+    // 版本号在各自插件的 build.gradle 里设置，这里只定死前半段。
+    def gameTag = "mc${minecraftVersion.replace('.', '_')}"
+    base {
+        archivesName = "${project.name}-${gameTag}-plugin"
+    }
+
+    // 每次构建都把产物归档到仓库根的 release/：文件名带版本，不会互相覆盖，
+    // 这样每个小改版的构建产物都能留档（release/ 已提交进仓库）。
+    // 测试插件（TestPlugin*）只是联调用的夹具，不算产品，不归档。
+    tasks.register('archiveArtifact') {
+        group = 'build'
+        description = '把构建产物复制到 release/ 留档'
+        def artifact = tasks.named('jar').flatMap { it.archiveFile }
+        inputs.file(artifact)
+        doLast {
+            if (project.name.startsWith('TestPlugin')) {
+                return
+            }
+            copy {
+                from artifact
+                into rootProject.file('release')
+            }
+            logger.lifecycle("已归档：${artifact.get().asFile.name} → release/")
+        }
+    }
+    tasks.named('build') {
+        finalizedBy 'archiveArtifact'
+    }
+
     repositories {
         mavenCentral()
         maven {

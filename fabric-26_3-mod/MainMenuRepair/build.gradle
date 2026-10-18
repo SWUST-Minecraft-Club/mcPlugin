@@ -72,3 +72,22 @@ processResources {
 		expand 'version': modVersion
 	}
 }
+
+// 每次构建都把产物归档到仓库根的 release/（文件名带版本，不会互相覆盖）
+tasks.register('archiveArtifact') {
+	group = 'build'
+	description = '把构建产物复制到仓库根 release/ 留档'
+	def artifact = tasks.named('jar').flatMap { it.archiveFile }
+	inputs.file(artifact)
+	doLast {
+		copy {
+			from artifact
+			into file('../../release')
+		}
+		logger.lifecycle("已归档：${artifact.get().asFile.name} → release/")
+	}
+}
+
+tasks.named('build') {
+	finalizedBy 'archiveArtifact'
+}

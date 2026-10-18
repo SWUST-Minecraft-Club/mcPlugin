@@ -271,6 +271,85 @@ git push origin main --tags
 
 推送 `v*` 标签会触发 `.github/workflows/release.yml`，构建所有插件并把 jar 全部附加到该 Release 上。
 
+## 版本与产物命名规范
+
+所有构建产物按固定格式命名，并**留档在仓库根的 `release/`**（每次小改版的产物都保留，不覆盖）：
+
+| 类型 | 命名格式 | 示例 |
+| --- | --- | --- |
+| Paper 插件 | `<项目名>-<游戏版本>-plugin-<项目版本>` | `MainMenu-mc26_3-plugin-Beta_0_6_0.jar` |
+| Fabric 模组 | `<项目名>-<游戏版本>-fabric-<项目版本>` | `MainMenuRepair-mc26_3-fabric-Beta_0_3_1.jar` |
+| NeoForge 模组（后续） | `<项目名>-<游戏版本>-neoforge-<项目版本>` | — |
+| Forge 模组（后续） | `<项目名>-<游戏版本>-forge-<项目版本>` | — |
+
+- **游戏版本**：把点换成下划线，26.3 → `mc26_3`。构建脚本按 `gradle.properties` 的 `minecraftVersion` 自动生成，不用手写。
+- **项目版本**：测试期为 `Beta_x_x_x`；出正式版后去掉 `Beta`（例如 `1_0_0`）。
+
+### 版本号怎么涨
+
+| 改动类型 | 规则 | 示例 |
+| --- | --- | --- |
+| 修 bug | 第 3 位 +1 | `Beta_0_3_1` → `Beta_0_3_2` |
+| 新增功能 | 第 2 位 +1，第 3 位归 0 | `Beta_0_3_2` → `Beta_0_4_0` |
+| 出正式版 | 第 1 位 +1，后两位归 0，去掉 `Beta` | `Beta_0_4_0` → `1_0_0` |
+
+版本号写在各项目的 `build.gradle`（插件）/ `gradle.properties`（模组）里。
+
+### 产物留档
+
+`./gradlew build` 结束后会自动把 jar 复制到 `release/`（任务 `archiveArtifact`，挂在 `build` 的 `finalizedBy` 上）。
+文件名自带版本，所以每次构建留下的是独立文件、不会互相覆盖。测试插件（`TestPlugin*`）是联调夹具，不参与留档，也不随 Release 发布。
+
+`release/` 已提交进仓库，所以历史产物能长期保留。要手动补一次留档：`./gradlew archiveArtifact`。
+
+### 当前版本
+
+| 项目 | 版本 |
+| --- | --- |
+| MainMenu | `Beta_0_6_0` |
+| RealTime | `Beta_0_1_0` |
+| MainMenuRepair（fabric） | `Beta_0_3_1` |
+
+### 版本历史
+
+`release/` 里保留了每一版的产物；下面是对应的提交与改动（早期被同名覆盖的版本已用 `scripts/rebuild-history.sh` 从 git 历史重建）。
+
+**MainMenu（插件）**
+
+| 版本 | 提交 | 改动 |
+| --- | --- | --- |
+| `Beta_0_1_0` | `eeef7b7` | 首个版本：ESC 菜单按钮 / `/cd` / 时钟右键 + 6×9 布局 + 功能插件 API |
+| `Beta_0_2_0` | `6d6cc5c` | 新增 `order` 功能区排序 |
+| `Beta_0_2_1` | `b913340` | 修：dialog 按钮点了没反应（并改为不依赖工具链 fork 构建） |
+| `Beta_0_3_0` | `67e70a6` | 删除在线时长功能；时钟右键支持空气 |
+| `Beta_0_3_1` | `c80a3f6` | 修：ESC 按钮只能点开一次（ClickCallback 默认一次） |
+| `Beta_0_4_0` | `e840d65` | 时钟右键空气改由客户端模组检测（服务端不触发该事件） |
+| `Beta_0_5_0` | `abc1ded` | ESC→主菜单 一步到位；按钮文字改回默认白色 |
+| `Beta_0_6_0` | `9108bca` | 时间显示拆成 RealTime 插件；菜单按秒整页重绘 |
+
+**RealTime（插件）**
+
+| 版本 | 提交 | 改动 |
+| --- | --- | --- |
+| `Beta_0_1_0` | `9108bca` | 首个版本：主菜单第 1 行第 2 格显示当前时间 |
+
+**MainMenuRepair（fabric 模组）**
+
+| 版本 | 提交 | 改动 |
+| --- | --- | --- |
+| `Beta_0_1_0` | `5ee50b8` | 首个版本：去掉 4 个图标按钮 + 第三方内容警告 |
+| `Beta_0_1_1` | `e54c905` | 放宽 Fabric Loader 依赖到 `>=0.19.0` |
+| `Beta_0_1_2` | `3567f41` | 修：注解保留级别（`missing @Mixin annotation`） |
+| `Beta_0_1_3` | `04e0a64` | 注入 + 控件遍历兜底两层方案 |
+| `Beta_0_1_4` | `cbc550b` | 修：`@Invoker` 的 mixin 必须写成类 |
+| `Beta_0_1_5` | `a0c8374` | 注入全部 `remap = false` |
+| `Beta_0_1_6` | `00293c0` | 构造函数排队 + 下一 tick 清理 |
+| `Beta_0_1_7` | `6167758` | 清理逻辑内联（mixin 静态方法与 lambda 不合并） |
+| `Beta_0_1_8` | `2167a30` | 挂到 `Screen#init` / `Gui#setScreen` |
+| `Beta_0_2_0` | `103105d` | 新增 Fabric API 屏幕事件通道（真正生效的那条） |
+| `Beta_0_3_0` | `abc1ded` | 拦下中间 dialog，ESC→主菜单 一步到位 |
+| `Beta_0_3_1` | `a11139f` | 改用 Fabric API 把按钮直接换成"发 /cd" |
+
 ## 常见问题
 
 **新增的插件目录没被识别**：目录里必须有 `build.gradle`，否则 `settings.gradle` 会跳过并打印一行提示。
