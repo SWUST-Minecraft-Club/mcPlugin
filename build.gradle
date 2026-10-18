@@ -23,12 +23,12 @@ subprojects { pluginProject ->
         archivesName = "${project.name}-${gameTag}-plugin"
     }
 
-    // 每次构建都把产物归档到仓库根的 release/：文件名带版本，不会互相覆盖，
+    // 每次构建都把产物归档到仓库根的 release/<项目名>/：文件名带版本，不会互相覆盖，
     // 这样每个小改版的构建产物都能留档（release/ 已提交进仓库）。
     // 测试插件（TestPlugin*）只是联调用的夹具，不算产品，不归档。
     tasks.register('archiveArtifact') {
         group = 'build'
-        description = '把构建产物复制到 release/ 留档'
+        description = '把构建产物复制到 release/<项目名>/ 留档'
         def artifact = tasks.named('jar').flatMap { it.archiveFile }
         inputs.file(artifact)
         doLast {
@@ -37,9 +37,9 @@ subprojects { pluginProject ->
             }
             copy {
                 from artifact
-                into rootProject.file('release')
+                into rootProject.file("release/${project.name}")
             }
-            logger.lifecycle("已归档：${artifact.get().asFile.name} → release/")
+            logger.lifecycle("已归档：${artifact.get().asFile.name} → release/${project.name}/")
         }
     }
     tasks.named('build') {

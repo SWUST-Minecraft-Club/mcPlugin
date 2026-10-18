@@ -288,7 +288,7 @@ git push origin main --tags
 
 ## 版本与产物命名规范
 
-所有构建产物按固定格式命名，并**留档在仓库根的 `release/`**（每次小改版的产物都保留，不覆盖）：
+所有构建产物按固定格式命名，并**留档在仓库根的 `release/<项目名>/`**（一个项目一个子目录，每次小改版的产物都保留，不覆盖）：
 
 | 类型 | 命名格式 | 示例 |
 | --- | --- | --- |
@@ -312,7 +312,7 @@ git push origin main --tags
 
 ### 产物留档
 
-`./gradlew build` 结束后会自动把 jar 复制到 `release/`（任务 `archiveArtifact`，挂在 `build` 的 `finalizedBy` 上）。
+`./gradlew build` 结束后会自动把 jar 复制到 `release/<项目名>/`（任务 `archiveArtifact`，挂在 `build` 的 `finalizedBy` 上）。
 文件名自带版本，所以每次构建留下的是独立文件、不会互相覆盖。（如果以后再加测试用插件，命名沿用 `TestPlugin*`：它不参与留档，也不随 Release 发布。）
 
 `release/` 已提交进仓库，所以历史产物能长期保留。要手动补一次留档：`./gradlew archiveArtifact`。
@@ -364,7 +364,7 @@ git push origin main --tags
 
 ### 版本历史
 
-`release/` 里保留了每一版的产物；下面是对应的提交与改动（早期被同名覆盖的版本已用 `scripts/rebuild-history.sh` 从 git 历史重建）。
+`release/<项目名>/` 里保留了每一版的产物；下面是对应的提交与改动（早期被同名覆盖的版本已用 `scripts/rebuild-history.sh` 从 git 历史重建）。
 
 **MainMenu（插件）**
 

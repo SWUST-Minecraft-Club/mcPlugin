@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 从 git 历史重建各版本的构建产物，归档到 release/
+# 从 git 历史重建各版本的构建产物，归档到 release/<项目名>/
 # 用法：bash scripts/rebuild-history.sh
 set -u
 
@@ -8,7 +8,7 @@ RB="/tmp/rebuild"
 GRADLE="$REPO/gradlew"
 
 cd "$REPO" || exit 1
-mkdir -p "$RB" release
+mkdir -p "$RB" release/MainMenu release/MainMenuRepair
 
 # 提交:版本（MainMenu 插件）
 PLUGIN_VERSIONS="eeef7b7:Beta_0_1_0
@@ -48,7 +48,7 @@ rebuild_plugin() {
     sed -i "s/^version = .*/version = '$ver'/" "$dir/Minecraft-26_3-plugin/MainMenu/build.gradle"
     ( cd "$dir" && "$GRADLE" :MainMenu:jar -q --console=plain >/tmp/rebuild-plugin.log 2>&1 )
     if [ -f "$dir/Minecraft-26_3-plugin/MainMenu/build/libs/$jar" ]; then
-        cp "$dir/Minecraft-26_3-plugin/MainMenu/build/libs/$jar" release/
+        cp "$dir/Minecraft-26_3-plugin/MainMenu/build/libs/$jar" release/MainMenu/
         echo "OK   MainMenu $ver  ← $commit"
         ok=$((ok+1))
     else
@@ -73,7 +73,7 @@ rebuild_mod() {
     cp fabric-26_3-mod/MainMenuRepair/build/minecraft/client-26.3.jar "$proj/build/minecraft/" 2>/dev/null
     ( cd "$proj" && "$GRADLE" build -q --console=plain >/tmp/rebuild-mod.log 2>&1 )
     if [ -f "$proj/build/libs/$jar" ]; then
-        cp "$proj/build/libs/$jar" release/
+        cp "$proj/build/libs/$jar" release/MainMenuRepair/
         echo "OK   MainMenuRepair $ver  ← $commit"
         ok=$((ok+1))
     else
