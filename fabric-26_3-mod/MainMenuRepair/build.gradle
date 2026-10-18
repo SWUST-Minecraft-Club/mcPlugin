@@ -32,14 +32,17 @@ sourceSets {
 }
 
 // 下载官方客户端 jar（26.3）
+// 版本号与地址在配置期取好：执行期访问 project 在 Gradle 9 已弃用、Gradle 10 会直接报错
+def minecraftVersion = project.minecraft_version
+def clientJarUrl = project.client_jar_url
 tasks.register('downloadMinecraftClient') {
 	def target = clientJar.get().asFile
 	outputs.file(target)
 	outputs.upToDateWhen { target.exists() && target.length() > 10_000_000L }
 	doLast {
 		target.parentFile.mkdirs()
-		logger.lifecycle("下载 Minecraft ${project.minecraft_version} 客户端 jar ...")
-		new URL(project.client_jar_url).withInputStream { input ->
+		logger.lifecycle("下载 Minecraft ${minecraftVersion} 客户端 jar ...")
+		java.net.URI.create(clientJarUrl).toURL().withInputStream { input ->
 			target.withOutputStream { output -> output << input }
 		}
 		logger.lifecycle("已下载：${target}（${target.length()} 字节）")
@@ -74,17 +77,23 @@ processResources {
 }
 
 // 每次构建都把产物归档到仓库根的 ./release/<项目名>/（文件名带版本，不会互相覆盖）
+// 目录与项目名在配置期取好：执行期访问 project 在 Gradle 9 已弃用、Gradle 10 会直接报错
+def projectName = project.name
+def releaseDir = file("../../release/${projectName}")
 tasks.register('archiveArtifact') {
 	group = 'build'
 	description = '把构建产物复制到仓库根 ./release/<项目名>/ 留档'
 	def artifact = tasks.named('jar').flatMap { it.archiveFile }
 	inputs.file(artifact)
 	doLast {
-		copy {
-			from artifact
-			into file("../../release/${project.name}")
+		def source = artifact.get().asFile
+		if (!releaseDir.isDirectory() && !releaseDir.mkdirs()) {
+			throw new GradleException("无法创建归档目录：${releaseDir}")
 		}
-		logger.lifecycle("已归档：${artifact.get().asFile.name} → ./release/${project.name}/")
+		java.nio.file.Files.copy(source.toPath(),
+				new File(releaseDir, source.name).toPath(),
+				java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+		logger.lifecycle("已归档：${source.name} → ./release/${projectName}/")
 	}
 }
 
