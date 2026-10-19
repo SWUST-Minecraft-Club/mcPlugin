@@ -111,14 +111,20 @@ public final class MenuRenderer {
         if (slot < 0 || slot >= MenuLayout.SIZE) {
             return;
         }
-        items[slot] = featureItem(feature, placement.get().movedToFunctionArea());
+        try {
+            items[slot] = featureItem(feature, placement.get().movedToFunctionArea());
+        } catch (final RuntimeException exception) {
+            // 单个功能插件出错不影响其它功能，也不影响整页渲染
+            plugin.getLogger().warning("功能 " + feature.id() + " 渲染失败：" + exception);
+        }
     }
 
     /**
      * 功能物品：保留功能插件自己的物品外观，悬停文本 = 功能自带文本 + 点击提示 +（位置冲突提示）。
      */
     private ItemStack featureItem(final MenuFeature feature, final boolean movedToFunctionArea) {
-        final ItemStack item = feature.icon();
+        // 复制一份：功能插件可能复用同一个 ItemStack 实例，直接改 meta 会污染它缓存的那个物品
+        final ItemStack item = feature.icon().clone();
         final ItemMeta meta = item.getItemMeta();
         if (meta == null) {
             return item;

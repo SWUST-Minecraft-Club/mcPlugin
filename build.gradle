@@ -26,20 +26,28 @@ subprojects { pluginProject ->
     // 每次构建都把产物归档到仓库根的 ./release/<项目名>/：文件名带版本，不会互相覆盖，
     // 这样每个小改版的构建产物都能留档（./release/ 已提交进仓库）。
     // 测试插件（TestPlugin*）只是联调用的夹具，不算产品，不归档。
+    // 项目名与归档目录在配置期取好：执行期访问 project / rootProject 在 Gradle 9 已弃用、
+    // Gradle 10 会直接报错。
+    def pluginName = pluginProject.name
+    def releaseDir = rootProject.file("release/${pluginName}")
+    def testPlugin = pluginName.startsWith('TestPlugin')
     tasks.register('archiveArtifact') {
         group = 'build'
         description = '把构建产物复制到 ./release/<项目名>/ 留档'
         def artifact = tasks.named('jar').flatMap { it.archiveFile }
         inputs.file(artifact)
         doLast {
-            if (project.name.startsWith('TestPlugin')) {
+            if (testPlugin) {
                 return
             }
-            copy {
-                from artifact
-                into rootProject.file("release/${project.name}")
+            def source = artifact.get().asFile
+            if (!releaseDir.isDirectory() && !releaseDir.mkdirs()) {
+                throw new GradleException("无法创建归档目录：${releaseDir}")
             }
-            logger.lifecycle("已归档：${artifact.get().asFile.name} → ./release/${project.name}/")
+            java.nio.file.Files.copy(source.toPath(),
+                    new File(releaseDir, source.name).toPath(),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+            logger.lifecycle("已归档：${source.name} → ./release/${pluginName}/")
         }
     }
     tasks.named('build') {
@@ -101,28 +109,33 @@ subprojects { pluginProject ->
 // 根工程上的便捷任务
 // ------------------------------------------------------------
 
+// 配置期取一次子工程路径：dependsOn 闭包在执行期求值时访问 project 会被 Gradle 10 拒绝
+def subprojectPaths = subprojects.collect { it.path }
+
 tasks.register('build') {
     group = 'build'
     description = '构建 ./Minecraft-26_3-plugin/ 下的所有插件'
-    dependsOn { subprojects.collect { "${it.path}:build" } }
+    dependsOn subprojectPaths.collect { "${it}:build" }
 }
 
 tasks.register('clean') {
     group = 'build'
     description = '清理所有插件的构建产物'
-    dependsOn { subprojects.collect { "${it.path}:clean" } }
+    dependsOn subprojectPaths.collect { "${it}:clean" }
 }
 
 tasks.register('listPlugins') {
     group = '插件管理'
     description = '列出所有插件及其打包 / 测试服命令'
+    // 配置期取一次子工程列表：执行期访问 project.subprojects 会被 Gradle 10 拒绝
+    def pluginProjects = subprojects.toList()
     doLast {
-        if (subprojects.isEmpty()) {
+        if (pluginProjects.isEmpty()) {
             println '还没有插件。用 ./gradlew newPlugin -PpluginName=MyPlugin 创建一个。'
             return
         }
         println '已注册的插件：'
-        subprojects.sort { it.name }.each { p ->
+        pluginProjects.sort { it.name }.each { p ->
             println "  ${p.name}  v${p.version}"
             println "      目录    ./Minecraft-26_3-plugin/${p.name}"
             println "      打包    ./gradlew ${p.path}:build"
@@ -135,15 +148,38 @@ tasks.register('listPlugins') {
 tasks.register('newPlugin') {
     group = '插件管理'
     description = '复制模板生成新插件：./gradlew newPlugin -PpluginName=MyPlugin'
+    // 目录、-P 参数与文件操作都在配置期准备好：Gradle 10 不允许执行期访问 project
+    def templateDir = rootProject.file('templates/plugin-template')
+    def pluginsDir = rootProject.file('Minecraft-26_3-plugin')
+    def requestedName = (findProperty('pluginName') ?: '').toString().trim()
+    def requestedPackage = (findProperty('packageName') ?: '').toString().trim()
+    // 递归复制目录（模板很小；这样写不依赖 project.copy 的闭包委托，也不碰执行期 API）
+    def copyTree
+    copyTree = { File source, File target ->
+        if (source.isDirectory()) {
+            if (!target.isDirectory() && !target.mkdirs()) {
+                throw new GradleException("无法创建目录：${target}")
+            }
+            source.listFiles().each { child ->
+                // 与原 exclude 'build/**', 'run/**', '.gradle/**' 一致：跳过顶层这三类目录
+                if (child.name in ['build', 'run', '.gradle']) {
+                    return
+                }
+                copyTree(child, new File(target, child.name))
+            }
+        } else {
+            java.nio.file.Files.copy(source.toPath(), target.toPath(),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING,
+                    java.nio.file.StandardCopyOption.COPY_ATTRIBUTES)
+        }
+    }
     doLast {
         // 模板放在 ./templates/plugin-template/，里面的占位符固定为 ExamplePlugin / exampleplugin
-        def templateDir = rootProject.file('templates/plugin-template')
         def templateName = 'ExamplePlugin'
         def templateLower = 'exampleplugin'
         def templatePackage = 'com.example.exampleplugin'
-        def pluginsDir = rootProject.file('Minecraft-26_3-plugin')
 
-        def pluginName = (findProperty('pluginName') ?: '').toString().trim()
+        def pluginName = requestedName
         if (!pluginName) {
             throw new GradleException('缺少插件名。用法：./gradlew newPlugin -PpluginName=MyPlugin')
         }
@@ -155,7 +191,7 @@ tasks.register('newPlugin') {
         }
 
         def lowerName = pluginName.toLowerCase(Locale.ROOT)
-        def packageName = (findProperty('packageName') ?: "com.example.${lowerName}").toString().trim()
+        def packageName = requestedPackage ?: "com.example.${lowerName}"
         if (!(packageName ==~ /[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+/)) {
             throw new GradleException("包名格式不合法：${packageName}")
         }
@@ -166,11 +202,7 @@ tasks.register('newPlugin') {
         }
 
         // 1) 复制模板，跳过构建产物和测试服目录
-        copy {
-            from templateDir
-            into targetDir
-            exclude 'build/**', 'run/**', '.gradle/**'
-        }
+        copyTree(templateDir, targetDir)
 
         // 2) 替换文件内容（包名要整体先替换，避免被短名替换拆散）
         def replacements = [
@@ -204,18 +236,15 @@ tasks.register('newPlugin') {
         if (oldPkgDir.isDirectory() && oldPkgDir != newPkgDir) {
             newPkgDir.parentFile.mkdirs()
             if (!oldPkgDir.renameTo(newPkgDir)) {
-                copy {
-                    from oldPkgDir
-                    into newPkgDir
-                }
-                delete oldPkgDir
+                copyTree(oldPkgDir, newPkgDir)
+                oldPkgDir.deleteDir()
             }
             // 清掉搬空后的旧包目录（只删空目录，不动其它东西）
             def pkgParts = templatePackage.split('\\.')
             for (int i = pkgParts.length; i > 0; i--) {
                 def d = new File(javaRoot, pkgParts[0..<i].join('/'))
                 if (d.isDirectory() && d.listFiles()?.length == 0) {
-                    delete d
+                    d.deleteDir()
                 }
             }
         }

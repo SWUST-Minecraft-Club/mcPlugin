@@ -7,7 +7,7 @@
 
 Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `./Minecraft-26_3-plugin/<插件名>/`，由仓库根目录的一个 Gradle 工程统一管理：共享构建配置和服务端版本，每个插件又能单独打包、单独启动测试服。
 
-目前仓库里有 2 个插件：**[MainMenu](./Minecraft-26_3-plugin/MainMenu)**（主菜单框架，其它插件以它为依赖注册功能）和 **[RealTime](./Minecraft-26_3-plugin/RealTime)**（在主菜单里显示当前时间）。新增插件用 `./gradlew newPlugin -PpluginName=你的插件名`。
+目前仓库里有 2 个插件和一个客户端模组：**[MainMenu](./Minecraft-26_3-plugin/MainMenu)**（主菜单框架，其它插件以它为依赖注册功能）、**[RealTime](./Minecraft-26_3-plugin/RealTime)**（在主菜单里显示当前时间），以及 **[MainMenuRepair](./fabric-26_3-mod/MainMenuRepair)**（清理 ESC 暂停菜单的客户端模组）。新增插件用 `./gradlew newPlugin -PpluginName=你的插件名`。
 
 ## 规范索引
 
@@ -130,7 +130,7 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `./Minecraft-2
 
 ## 插件：MainMenu（主菜单）
 
-6×9 的功能主菜单，玩家可以通过三种方式打开：**ESC 菜单里的「主菜单」按钮**、**`/cd` 命令**、**手持时钟右键**（对着空气或方块都行）。
+6×9 的功能主菜单，玩家可以通过三种方式打开：**ESC 菜单里的「主菜单」按钮**、**`/cd` 命令**、**手持时钟右键**（对着空气或不可交互的方块；箱子、门等可交互方块不抢，避免同时打开方块交互和主菜单）。
 
 ### 界面布局
 
@@ -229,7 +229,7 @@ ESC 菜单按钮：已就绪：pause_screen_additions 包含 mainmenu:main_menu�
 ```
 
 
-### 插件：RealTime（当前时间）
+## 插件：RealTime（当前时间）
 
 `./Minecraft-26_3-plugin/RealTime` 是 MainMenu 的一个功能插件，负责**第 1 行第 2 格的"当前时间"显示** ——
 这部分原先内置在 MainMenu 里，现在拆成独立插件（MainMenu 只提供菜单框架和功能注册 API）。
@@ -260,10 +260,12 @@ ESC 菜单按钮：已就绪：pause_screen_additions 包含 mainmenu:main_menu�
 
 ```bash
 ./gradlew -p ./fabric-26_3-mod/MainMenuRepair build
-# 产物：./fabric-26_3-mod/MainMenuRepair/build/libs/MainMenuRepair-1.0.0.jar
+# 产物：./fabric-26_3-mod/MainMenuRepair/build/libs/MainMenuRepair-mc26_3-fabric-<项目版本>.jar
 ```
 
-把 jar 放进客户端该实例的 `mods/` 目录，重启客户端即可。模组是纯客户端的，**不需要 Fabric API，也不需要服务端做任何事**。
+把 jar 放进客户端该实例的 `mods/` 目录，重启客户端即可。模组是纯客户端的，服务端不需要做任何事；
+界面清理（Mixin 层）不依赖 Fabric API，但「时钟右键空气」和「ESC 按钮一步到位」用的是 Fabric API 事件，
+所以建议一并装 Fabric API（`fabric.mod.json` 已声明为 `recommends`，缺失时这两项静默失效）。
 
 > 26.3 客户端不再混淆，Fabric 也没有 26.3 的 yarn/intermediary，所以编译不需要 mappings、构建不需要 remap。
 > 本工程因此不依赖 fabric-loom（`maven.fabricmc.net` 在部分网络下被限速到 KB 级，loom 会卡在下载上），
@@ -321,9 +323,9 @@ dependencies {
 
 | 项目 | 正式版 | 测试版（进行中） |
 | --- | --- | --- |
-| MainMenu | `1_0_1`（2026.10.18） | `Beta_1_0_2`（修 jar 元数据里的仓库地址） |
+| MainMenu | `1_0_1`（2026.10.18） | `Beta_1_0_4`（修禁用时菜单未关闭、补权限声明、时钟开关热重载、管理页刷新等） |
 | RealTime | `1_0_0`（2026.10.18） | `Beta_1_0_1`（修 jar 元数据里的仓库地址） |
-| MainMenuRepair（fabric） | `1_0_0`（2026.10.18） | `Beta_1_0_1`（修 jar 元数据里的仓库地址） |
+| MainMenuRepair（fabric） | `1_0_0`（2026.10.18） | `Beta_1_0_2`（Fabric API 改为推荐依赖、文档与产物名对齐） |
 
 > 涨号规则（正式版之后再改动先回到测试版 `Beta_1_x_x`，转正时第 1 位 +1、后两位归 0）见
 > [`./docs/dev/版本与产物规范.md`](./docs/dev/版本与产物规范.md) §2；
@@ -352,6 +354,8 @@ dependencies {
 | `1_0_0` | `f4d7a65` | 出正式版：测试期功能汇总（主菜单框架 + 功能插件 API + 管理员管理界面 + 位置规则）；产物已留档 |
 | `1_0_1` | `f4d7a65` | 修：`preferredSlot` 写在功能区或越界时被误判为位置冲突 |
 | `Beta_1_0_2` | `da87b2c` | 正式版后重回测试版：修 jar 元数据里的仓库地址（`mcPligin` → `mcPlugin`）；仓库路径统一为相对路径；产物已留档 |
+| `Beta_1_0_3` | `57d69d4` | 修：禁用/重载时已打开的菜单未关闭、时钟开关无法靠 `/cd reload` 重新启用；补 `mainmenu.admin` 权限声明；`icon()` 复制后再写悬停文本、单个功能渲染失败不再中断整页；清理死代码；配置注释与接入规范对齐；产物已留档 |
+| `Beta_1_0_4` | `521cbf1` | 修：管理界面（管理页 / 功能属性页 / 位置选择页）不随 `menu.refresh-seconds` 重绘，功能插件的动态文本现在与主菜单一致；产物已留档 |
 
 **RealTime（插件）**
 
@@ -379,6 +383,7 @@ dependencies {
 | `Beta_0_3_1` | `a11139f` | 改用 Fabric API 把按钮直接换成"发 /cd" |
 | `1_0_0` | `0c83099` | 出正式版：清理 ESC 暂停菜单（去掉 4 个图标按钮 + 第三方内容警告，ESC→主菜单一步到位）；产物已留档 |
 | `Beta_1_0_1` | `da87b2c` | 正式版后重回测试版：修 `fabric.mod.json` 里的仓库地址（`mcPligin` → `mcPlugin`）；产物已留档 |
+| `Beta_1_0_2` | `54b7f2d` | 调整：Fabric API 声明为推荐依赖（`recommends`），README 说明不装时「时钟右键空气」与「ESC 一步到位」失效；产物名 / Loader 版本对齐实际构建；构建脚本兼容 Gradle 10；产物已留档 |
 
 ## 常见问题
 

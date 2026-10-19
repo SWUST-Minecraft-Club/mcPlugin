@@ -48,7 +48,6 @@ public final class FeatureStateStore {
             }
             final FeatureState state = new FeatureState();
             state.hidden(section.getBoolean("hidden", false));
-            state.forcedFixed(section.getBoolean("fixed", false));
             state.forcedFunction(section.getBoolean("function", false));
             if (section.isInt("order")) {
                 state.order(section.getInt("order"));
@@ -70,9 +69,6 @@ public final class FeatureStateStore {
             final String path = ROOT + "." + id;
             if (state.hidden()) {
                 yaml.set(path + ".hidden", true);
-            }
-            if (state.forcedFixed()) {
-                yaml.set(path + ".fixed", true);
             }
             if (state.forcedFunction()) {
                 yaml.set(path + ".function", true);

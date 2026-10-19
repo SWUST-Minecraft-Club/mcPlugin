@@ -34,3 +34,12 @@
 - **规避/解决**：状态单独写到游戏目录下的 `mainmenu-repair-status.txt`（`com.example.mainmenurepair.util.StatusLog`），
   记录各条钩子是否生效，并带上时间与工作目录。
 - **来源**：MainMenuRepair `Beta` 排查期；`src/main/java/com/example/mainmenurepair/util/StatusLog.java`。
+
+## 模组能启动 ≠ 功能生效：Fabric API 是"推荐依赖"而不是零依赖
+
+- **现象**：不装 Fabric API 时模组照常加载，但「时钟右键空气」和「ESC 按钮一步到位」静默失效，只剩 Mixin 层清理。
+- **根因**：这两项功能走的是 Fabric API 的 `ClientTickEvents` / `ScreenEvents`；注册代码用 try/catch 包住，
+  缺类时被静默跳过，加载层面看不出问题。
+- **规避/解决**：`fabric.mod.json` 里把 Fabric API 声明为 `recommends`（不是 `depends`，保留「不装也能启动」的降级），
+  并在 README 写清不装时哪些功能失效。见 `./fabric-26_3-mod/MainMenuRepair/README.md`。
+- **来源**：2026.10.18，MainMenuRepair `Beta_1_0_2`（ChangeLog-Beta「Fabric API 改为推荐依赖」）。

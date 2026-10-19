@@ -23,7 +23,7 @@ Paper 插件侧没有对应 API；资源包也只能改文案/贴图（图标会
 ./gradlew -p ./fabric-26_3-mod/MainMenuRepair build
 ```
 
-产物：`./build/libs/MainMenuRepair-<版本>.jar`
+产物：`./build/libs/MainMenuRepair-mc26_3-fabric-<版本>.jar`（例如 `MainMenuRepair-mc26_3-fabric-Beta_1_0_2.jar`）
 
 ### 关于构建方式（没有用 fabric-loom）
 
@@ -46,11 +46,14 @@ dependencies {
 
 ## 安装
 
-1. 客户端装好 Fabric Loader（26.3，本模组要求 `>=0.20.0`）；
-2. 把 `MainMenuRepair-<版本>.jar` 放进该实例的 `mods/` 目录；
-3. 重启客户端。
+1. 客户端装好 Fabric Loader（26.3，本模组要求 `>=0.19.0`）；
+2. 装好 **Fabric API**（推荐，见下）；
+3. 把 `MainMenuRepair-mc26_3-fabric-<版本>.jar` 放进该实例的 `mods/` 目录；
+4. 重启客户端。
 
-不需要 Fabric API，也不需要服务端做任何事（纯客户端模组，`fabric.mod.json` 里 `environment: client`）。
+Fabric API 是**推荐**依赖（已写进 `fabric.mod.json` 的 `recommends`）：不装也能启动，
+但「时钟右键空气」和「ESC 按钮一步到位」走的是 Fabric API 的事件，缺失时这两项会静默失效，
+只剩 Mixin 层的暂停菜单清理。服务端不需要装任何东西（纯客户端模组，`environment: client`）。
 生效时游戏日志会打印一行：`[MainMenuRepair] 已接管 ESC 暂停菜单：...`（第一次打开暂停菜单时）。
 
 ## 注意

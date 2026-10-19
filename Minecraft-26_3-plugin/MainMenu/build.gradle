@@ -4,7 +4,7 @@
 //   - 手持时钟右键
 // 其它插件通过 com.example.mainmenu.api 注册自己的功能，规范见 ./docs/dev/功能插件接入规范.md
 
-version = 'Beta_1_0_2'
+version = 'Beta_1_0_4'
 
 dependencies {
     // 其它插件以 compileOnly project(':MainMenu') 依赖本插件来使用 API；

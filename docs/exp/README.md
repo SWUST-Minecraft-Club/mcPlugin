@@ -27,6 +27,7 @@
 
 ## 条目
 
-- [paper-plugin.md](./paper-plugin.md) — Paper 插件侧：ESC 按钮点击回调、材质兜底、时钟右键空气、位置冲突判定
-- [fabric-mod.md](./fabric-mod.md) — Fabric 模组侧：Mixin 不生效的排查与替代通道、注解桩手工编译
-- [build-and-repo.md](./build-and-repo.md) — 构建与仓库环境：工具链 fork、下载镜像、绝对路径、产物可复现
+- [paper-plugin.md](./paper-plugin.md) — Paper 插件侧：ESC 按钮点击回调、材质兜底、时钟右键空气、位置冲突判定、
+  禁用时关闭菜单、权限声明、热重载、`icon()` 复制
+- [fabric-mod.md](./fabric-mod.md) — Fabric 模组侧：Mixin 不生效的排查与替代通道、注解桩手工编译、Fabric API 推荐依赖
+- [build-and-repo.md](./build-and-repo.md) — 构建与仓库环境：工具链 fork、下载镜像、绝对路径、产物可复现、Gradle 10 执行期 project

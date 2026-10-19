@@ -8,19 +8,26 @@ import com.example.mainmenu.internal.FeatureRegistryImpl;
 import com.example.mainmenu.internal.FeatureStateStore;
 import com.example.mainmenu.listener.ClockInteractListener;
 import com.example.mainmenu.listener.CustomClickListener;
+import com.example.mainmenu.menu.AdminHolder;
 import com.example.mainmenu.menu.AdminListener;
 import com.example.mainmenu.menu.AdminService;
+import com.example.mainmenu.menu.MenuHolder;
 import com.example.mainmenu.menu.MenuListener;
 import com.example.mainmenu.menu.MenuService;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.ServicePriority;
@@ -44,6 +51,8 @@ public final class MainMenuPlugin extends JavaPlugin {
     private MenuService menus;
     private AdminService admin;
     private DebugReporter debug;
+    /** 已经警告过的无效材质配置，避免菜单每次重绘都刷同一行日志 */
+    private final Set<String> warnedMaterials = new HashSet<>();
 
     /** 供引导阶段注册的点击回调使用（那时插件实例还不存在） */
     public static MainMenuPlugin instance() {
@@ -69,9 +78,9 @@ public final class MainMenuPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new MenuListener(this), this);
         getServer().getPluginManager().registerEvents(new AdminListener(this), this);
         getServer().getPluginManager().registerEvents(new CustomClickListener(this), this);
-        if (getConfig().getBoolean("menu.open.clock-right-click", true)) {
-            getServer().getPluginManager().registerEvents(new ClockInteractListener(this), this);
-        }
+        // 时钟监听器始终注册：menu.open.clock-right-click 在每次事件里现读，
+        // 这样 /cd reload 把开关从 false 改成 true 后不需要重启服务端。
+        getServer().getPluginManager().registerEvents(new ClockInteractListener(this), this);
 
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event ->
                 event.registrar().register(CdCommand.create(this), "打开主菜单", List.of()));
@@ -83,11 +92,32 @@ public final class MainMenuPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        // 先关掉玩家已打开的界面：监听器马上会被注销，界面留着的话里面的物品会被当成普通物品拿走
+        closeOpenMenus();
         if (menus != null) {
             menus.shutdown();
         }
+        if (admin != null) {
+            admin.shutdown();
+        }
         MainMenuApi.uninstall();
         instance = null;
+    }
+
+    /** 关闭所有由本插件打开的界面（主菜单与管理界面） */
+    private void closeOpenMenus() {
+        for (final Player player : Bukkit.getOnlinePlayers()) {
+            final Inventory top = player.getOpenInventory().getTopInventory();
+            if (top.getHolder() instanceof MenuHolder || top.getHolder() instanceof AdminHolder) {
+                player.closeInventory();
+            }
+        }
+    }
+
+    @Override
+    public void reloadConfig() {
+        super.reloadConfig();
+        warnedMaterials.clear();
     }
 
     // ------------------------------------------------------------------ 内部访问
@@ -147,7 +177,9 @@ public final class MainMenuPlugin extends JavaPlugin {
         final String materialName = string(path + ".material", "STONE");
         Material material = Material.matchMaterial(materialName);
         if (material == null || material.isAir()) {
-            getLogger().warning("配置 " + path + ".material 无效：" + materialName + "，已回退为 STONE");
+            if (warnedMaterials.add(path)) {
+                getLogger().warning("配置 " + path + ".material 无效：" + materialName + "，已回退为 STONE");
+            }
             material = Material.STONE;
         }
         final ItemStack item = new ItemStack(material);

@@ -140,11 +140,6 @@ public final class FeatureRegistryImpl implements MenuFeatureRegistry {
         return states.stateOf(id).hidden();
     }
 
-    /** 是否固定位置功能插件（声明了位置，或被管理员用拉杆改过） */
-    public synchronized boolean isFixed(final MenuFeature feature) {
-        return fixedPositionOf(feature) != null;
-    }
-
     /** 固定位置功能插件的槽位；非固定位置功能插件返回 null */
     public synchronized Integer fixedPositionOf(final MenuFeature feature) {
         final FeatureState state = states.stateOf(feature.id());
@@ -227,7 +222,6 @@ public final class FeatureRegistryImpl implements MenuFeatureRegistry {
      */
     public synchronized void makeFixed(final String id) {
         final FeatureState state = states.stateOf(id);
-        state.forcedFixed(true);
         state.forcedFunction(false);
         if (state.position() == null && !hasDeclaredPosition(id)) {
             state.position(0);
@@ -245,7 +239,6 @@ public final class FeatureRegistryImpl implements MenuFeatureRegistry {
     public synchronized void makeFunction(final String id) {
         final FeatureState state = states.stateOf(id);
         state.forcedFunction(true);
-        state.forcedFixed(false);
         rebuild();
         states.save();
     }

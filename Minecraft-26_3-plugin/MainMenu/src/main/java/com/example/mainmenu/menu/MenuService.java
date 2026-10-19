@@ -33,6 +33,10 @@ public final class MenuService {
 
     /** 打开主菜单（必须主线程） */
     public void open(final Player player) {
+        if (!player.isOnline()) {
+            // 命令与 dialog 回调都会延迟 1 tick，玩家可能在这期间断线
+            return;
+        }
         final long now = System.currentTimeMillis();
         final Long last = lastOpen.get(player.getUniqueId());
         if (last != null && now - last < OPEN_COOLDOWN_MILLIS) {
@@ -84,6 +88,12 @@ public final class MenuService {
         if (task != null) {
             task.cancel();
         }
+    }
+
+    /** 玩家退出：清掉冷却记录与刷新任务（界面由玩家断开连接时一并结束） */
+    public void forget(final UUID uuid) {
+        lastOpen.remove(uuid);
+        stopRefresh(uuid);
     }
 
     public void shutdown() {
