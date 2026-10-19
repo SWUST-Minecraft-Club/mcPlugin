@@ -54,9 +54,15 @@ subprojects { pluginProject ->
         }
     }
 
-    dependencies {
-        // 运行期由服务端提供 Paper API，必须 compileOnly，否则会打进去造成类冲突
-        compileOnly "io.papermc.paper:paper-api:${paperApiVersion}"
+    // 运行期由服务端提供 Paper API，必须 compileOnly，否则会打进去造成类冲突。
+    // 面向旧版服务端的项目要自备 API（例如 yudream-minecraft-server 编译目标是 spigot-api 1.13.2）：
+    // 在它自己的 build.gradle 里写 ext.bringsOwnBukkitApi = true 即可跳过这里的默认依赖。
+    afterEvaluate {
+        if (!pluginProject.hasProperty('bringsOwnBukkitApi')) {
+            pluginProject.dependencies {
+                compileOnly "io.papermc.paper:paper-api:${paperApiVersion}"
+            }
+        }
     }
 
     // 本机 JDK 不低于目标版本时直接用当前 JDK 编译（避免 Gradle fork 工具链 worker 进程，

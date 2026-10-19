@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.OptionalInt;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -25,6 +26,8 @@ public final class MenuFeatureBuilder implements MenuFeature.Builder {
     private final String id;
     private String owner;
     private ItemStack icon = new ItemStack(Material.STONE);
+    private Function<Player, ItemStack> iconProvider;
+    private Function<Player, List<Component>> linesProvider;
     private Component name;
     private final List<Component> lines = new ArrayList<>();
     private boolean clickable;
@@ -88,6 +91,18 @@ public final class MenuFeatureBuilder implements MenuFeature.Builder {
     }
 
     @Override
+    public MenuFeature.Builder iconForViewer(final Function<Player, ItemStack> provider) {
+        this.iconProvider = Objects.requireNonNull(provider, "provider");
+        return this;
+    }
+
+    @Override
+    public MenuFeature.Builder linesForViewer(final Function<Player, List<Component>> provider) {
+        this.linesProvider = Objects.requireNonNull(provider, "provider");
+        return this;
+    }
+
+    @Override
     public MenuFeature.Builder clickable(final boolean clickable) {
         this.clickable = clickable;
         return this;
@@ -136,6 +151,8 @@ public final class MenuFeatureBuilder implements MenuFeature.Builder {
                 owner != null ? owner : defaultOwner(id),
                 built,
                 description,
+                iconProvider,
+                linesProvider,
                 clickable,
                 handler,
                 preferredSlot != null ? OptionalInt.of(preferredSlot) : OptionalInt.empty(),

@@ -1,0 +1,14 @@
+# YudreamPlaytime（主菜单里的「我的在线时长」）
+#
+# 数据来自本机跑的 yudream-minecraft-server 桥接插件写的本地台账
+# （口径与 YuDream Admin 后端一致：在线时长含当前未结算区间，AFK 单独统计）。
+# 后端不可用时桥接插件照常记账，所以这里显示的数字不依赖后端是否在线。
+
+# 台账文件位置；留空 = 自动用 <服务端目录>/plugins/YudreamMinecraftServer/playtime.yml
+stats-file: ""
+
+# 台账文件缓存时间（秒）：文件在这个时间内被读过就不再重新解析。
+cache-seconds: 3
+
+# 功能项在主菜单功能区里的排序值（越小越靠前）。
+order: 10

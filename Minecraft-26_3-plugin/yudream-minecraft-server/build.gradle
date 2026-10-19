@@ -1,0 +1,45 @@
+// yudream-minecraft-server：把本服玩家动态（进服 / 退服 / AFK / 聊天 / 死亡 / 成就）上报给 YuDream Admin
+// 的 Bukkit 桥接插件，可独立运行（standalone），也可作为代理后端传感器（downstream）。
+//
+// 源码基线：官方 1.6.2 产物的反编译代码；本次改造只做加法：
+//   1. 本地在线时长统计（口径与后端逐字段一致，后端不可用时照常统计）
+//   2. 待发事件落盘 + 后端恢复后按序补发（进程重启也不丢）
+//
+// 产物命名沿用产品线：yudream-minecraft-server-bukkit-<版本>.jar（跨游戏版本，不带 mc 标签，
+// 这条是本仓「版本与产物规范」的登记例外）。
+version = 'Beta_1_7_0'
+
+base {
+    archivesName = 'yudream-minecraft-server-bukkit'
+}
+
+// 这个插件要跑在 1.8.8+ 的服务端上（plugin.yml 声明 api-version 1.13），
+// 因此保持 Java 8 字节码，而不是根工程默认的 Java 25。
+ext.bringsOwnBukkitApi = true
+
+repositories {
+    // spigot-api 只在 Spigot 官方仓库有（PaperMC 仓库已下架 1.13.2）
+    maven {
+        name = 'spigot'
+        url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+    }
+}
+
+dependencies {
+    // 编译目标锁定插件真正支持的最低档 API：1.13.2（Java 8 字节码）
+    compileOnly('org.spigotmc:spigot-api:1.13.2-R0.1-SNAPSHOT') {
+        transitive = false
+    }
+    compileOnly 'org.yaml:snakeyaml:1.23'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 8
+}
+
+// plugin.yml 里的 ${version} 需要替换（根脚本只处理 paper-plugin.yml）
+tasks.named('processResources') {
+    filesMatching('plugin.yml') {
+        expand(version: project.version.toString())
+    }
+}

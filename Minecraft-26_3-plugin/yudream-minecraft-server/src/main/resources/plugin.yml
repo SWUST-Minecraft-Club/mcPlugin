@@ -1,0 +1,18 @@
+name: YudreamMinecraftServer
+main: online.yudream.minecraft.bukkit.YudreamMinecraftPlugin
+version: '${version}'
+api-version: 1.13
+author: YuDream
+description: Reports player join, quit and AFK activity to YuDream Admin, standalone or as a proxy backend sensor.
+
+commands:
+  yudreammc:
+    description: Manage YuDream Minecraft server bridge.
+    usage: /<command> <mode|reload|status|sync|queue|playtime|help>
+    aliases: [ymc]
+    permission: yudreammc.admin
+
+permissions:
+  yudreammc.admin:
+    description: Allows managing the YuDream Minecraft bridge.
+    default: op

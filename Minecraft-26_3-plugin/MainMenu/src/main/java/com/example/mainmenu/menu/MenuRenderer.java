@@ -49,11 +49,11 @@ public final class MenuRenderer {
 
         // 自定义位置的功能（每页都显示）
         for (final MenuFeature feature : plugin.features().customPositionFeatures()) {
-            place(items, feature);
+            place(items, feature, viewer);
         }
         // 功能区本页的功能
         for (final MenuFeature feature : plugin.features().featuresOnPage(page)) {
-            place(items, feature);
+            place(items, feature, viewer);
         }
         return items;
     }
@@ -102,7 +102,7 @@ public final class MenuRenderer {
 
     // ------------------------------------------------------------------ 功能物品
 
-    private void place(final ItemStack[] items, final MenuFeature feature) {
+    private void place(final ItemStack[] items, final MenuFeature feature, final Player viewer) {
         final Optional<FeaturePlacement> placement = plugin.features().placement(feature.id());
         if (placement.isEmpty()) {
             return;
@@ -111,20 +111,23 @@ public final class MenuRenderer {
         if (slot < 0 || slot >= MenuLayout.SIZE) {
             return;
         }
-        items[slot] = featureItem(feature, placement.get().movedToFunctionArea());
+        items[slot] = featureItem(feature, viewer, placement.get().movedToFunctionArea());
     }
 
     /**
      * 功能物品：保留功能插件自己的物品外观，悬停文本 = 功能自带文本 + 点击提示 +（位置冲突提示）。
+     *
+     * <p>图标与悬停文本都按查看者渲染：功能插件覆写 {@code icon(viewer)} / {@code description(viewer)}
+     * 就能做到「每个玩家看到自己的数据」。
      */
-    private ItemStack featureItem(final MenuFeature feature, final boolean movedToFunctionArea) {
-        final ItemStack item = feature.icon();
+    private ItemStack featureItem(final MenuFeature feature, final Player viewer, final boolean movedToFunctionArea) {
+        final ItemStack item = feature.icon(viewer);
         final ItemMeta meta = item.getItemMeta();
         if (meta == null) {
             return item;
         }
         final List<Component> lore = new ArrayList<>();
-        final List<Component> own = feature.description();
+        final List<Component> own = feature.description(viewer);
         if (own != null && !own.isEmpty()) {
             own.forEach(line -> lore.add(noItalic(line)));
         } else if (meta.lore() != null) {

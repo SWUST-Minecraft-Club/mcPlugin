@@ -1,0 +1,14 @@
+name: YudreamPlaytime
+version: '${version}'
+main: com.example.yudreamplaytime.YudreamPlaytimePlugin
+api-version: '26.3'
+description: 在主菜单里显示查看者自己的在线时长与 AFK 时长（数据来自本机 YuDream 桥接插件的本地台账）
+authors: [zhou-BZDDX]
+website: https://github.com/zhou-BZDDX/mcPlugin
+
+# 软依赖：没有 MainMenu 时不注册功能（插件仍能正常加载，只是什么都不做）
+dependencies:
+  server:
+    MainMenu:
+      load: BEFORE
+      required: false

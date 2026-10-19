@@ -94,7 +94,7 @@ public final class AdminService {
                 break;
             }
             final MenuFeature feature = functionFeatures.get(featureIndex);
-            items[AdminLayout.LEFT_SLOTS.get(index)] = entryItem(feature,
+            items[AdminLayout.LEFT_SLOTS.get(index)] = entryItem(player, feature,
                     "排序值 " + plugin.features().orderOf(feature));
         }
         items[AdminLayout.LEFT_PREVIOUS] = pageArrow(true, holder.leftPage(), leftPages);
@@ -111,7 +111,7 @@ public final class AdminService {
             }
             final MenuFeature feature = fixedFeatures.get(featureIndex);
             final Integer position = plugin.features().fixedPositionOf(feature);
-            items[AdminLayout.RIGHT_SLOTS.get(index)] = entryItem(feature,
+            items[AdminLayout.RIGHT_SLOTS.get(index)] = entryItem(player, feature,
                     position == null ? "未设置位置" : "位置 " + MenuLayout.describe(position));
         }
         items[AdminLayout.RIGHT_PREVIOUS] = pageArrow(true, holder.rightPage(), rightPages);
@@ -329,11 +329,12 @@ public final class AdminService {
 
     // ------------------------------------------------------------------ 物品构建
 
-    private ItemStack entryItem(final MenuFeature feature, final String stateLine) {
-        final ItemStack item = feature.icon();
+    private ItemStack entryItem(final Player viewer, final MenuFeature feature, final String stateLine) {
+        final ItemStack item = feature.icon(viewer);
         final ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            final List<Component> lore = new ArrayList<>(feature.description());
+            final List<Component> own = feature.description(viewer);
+            final List<Component> lore = own == null ? new ArrayList<>() : new ArrayList<>(own);
             lore.add(plugin.miniRaw("<dark_gray>插件：<gray>" + feature.owner() + "</gray></dark_gray>"));
             lore.add(plugin.miniRaw("<dark_gray>id：<gray>" + feature.id() + "</gray></dark_gray>"));
             lore.add(plugin.miniRaw("<gray>" + stateLine + "</gray>"));

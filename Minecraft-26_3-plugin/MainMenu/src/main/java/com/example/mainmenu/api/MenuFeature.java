@@ -38,6 +38,24 @@ public interface MenuFeature {
     /** 鼠标悬停显示的文本行 */
     List<Component> description();
 
+    /**
+     * 按查看者渲染的图标：菜单是为某个玩家打开的，需要「每个玩家看到的不一样」时覆写它
+     * （例如显示查看者自己的头像）。默认返回 {@link #icon()}。
+     */
+    default ItemStack icon(final Player viewer) {
+        return icon();
+    }
+
+    /**
+     * 按查看者渲染的悬停文本：需要显示「查看者自己的数据」时覆写它，默认返回 {@link #description()}。
+     *
+     * <p>{@code viewer} 是当前正在看菜单的玩家（功能管理界面里是管理员），每次渲染都会调用，可以现算；
+     * 返回值按原样写入物品，位置冲突提示仍由主菜单追加在最后。
+     */
+    default List<Component> description(final Player viewer) {
+        return description();
+    }
+
     /** 点击是否有效 */
     boolean clickable();
 
@@ -95,6 +113,17 @@ public interface MenuFeature {
 
         /** 设置全部悬停文本 */
         Builder lines(List<Component> lines);
+
+        /**
+         * 按查看者渲染的图标：菜单为某个玩家打开时调用它（可用于显示该玩家自己的头像）。
+         * 不设置时用 {@link #icon(ItemStack)} / {@link #icon(Material)} 的静态图标。
+         */
+        Builder iconForViewer(java.util.function.Function<Player, ItemStack> provider);
+
+        /**
+         * 按查看者渲染的悬停文本：不设置时用 {@link #name(Component)} / {@link #line(Component)} 那套静态文本。
+         */
+        Builder linesForViewer(java.util.function.Function<Player, List<Component>> provider);
 
         /** 点击是否有效，默认 false */
         Builder clickable(boolean clickable);

@@ -1,0 +1,80 @@
+package online.yudream.minecraft.bukkit.util;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
+
+public final class YamlPatcher {
+   private static final Charset UTF_8 = Charset.forName("UTF-8");
+
+   private YamlPatcher() {
+   }
+
+   public static boolean setTopLevelValue(File file, String key, String value) throws IOException {
+      List<String> lines = readLines(file);
+      String rendered = key + ": " + value;
+
+      for(int i = 0; i < lines.size(); ++i) {
+         String line = (String)lines.get(i);
+         if (!line.isEmpty() && !Character.isWhitespace(line.charAt(0)) && line.charAt(0) != '#') {
+            int separator = line.indexOf(58);
+            if (separator > 0 && line.substring(0, separator).trim().equals(key)) {
+               lines.set(i, rendered);
+               writeLines(file, lines);
+               return true;
+            }
+         }
+      }
+
+      lines.add(rendered);
+      writeLines(file, lines);
+      return true;
+   }
+
+   private static List<String> readLines(File file) throws IOException {
+      List<String> lines = new ArrayList();
+      if (!file.isFile()) {
+         return lines;
+      } else {
+         BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), UTF_8));
+
+         String line;
+         try {
+            while((line = reader.readLine()) != null) {
+               lines.add(line);
+            }
+         } finally {
+            reader.close();
+         }
+
+         return lines;
+      }
+   }
+
+   private static void writeLines(File file, List<String> lines) throws IOException {
+      File parent = file.getParentFile();
+      if (parent != null && !parent.isDirectory() && !parent.mkdirs()) {
+         throw new IOException("Could not create " + parent);
+      } else {
+         Writer writer = new OutputStreamWriter(new FileOutputStream(file), UTF_8);
+
+         try {
+            for(String line : lines) {
+               writer.write(line);
+               writer.write(System.getProperty("line.separator", "\n"));
+            }
+         } finally {
+            writer.close();
+         }
+
+      }
+   }
+}

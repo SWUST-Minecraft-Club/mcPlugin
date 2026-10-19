@@ -7,7 +7,11 @@
 
 Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `./Minecraft-26_3-plugin/<插件名>/`，由仓库根目录的一个 Gradle 工程统一管理：共享构建配置和服务端版本，每个插件又能单独打包、单独启动测试服。
 
-目前仓库里有 2 个插件：**[MainMenu](./Minecraft-26_3-plugin/MainMenu)**（主菜单框架，其它插件以它为依赖注册功能）和 **[RealTime](./Minecraft-26_3-plugin/RealTime)**（在主菜单里显示当前时间）。新增插件用 `./gradlew newPlugin -PpluginName=你的插件名`。
+目前仓库里有 4 个插件：**[MainMenu](./Minecraft-26_3-plugin/MainMenu)**（主菜单框架，其它插件以它为依赖注册功能）、
+**[RealTime](./Minecraft-26_3-plugin/RealTime)**（在主菜单里显示当前时间）、
+**[YudreamPlaytime](./Minecraft-26_3-plugin/YudreamPlaytime)**（主菜单里显示查看者自己的在线时长，MainMenu 的伴侣插件）、
+**[yudream-minecraft-server](./Minecraft-26_3-plugin/yudream-minecraft-server)**（把玩家动态上报给 YuDream Admin 的 Bukkit 桥接插件，
+自带本地时长统计与断线补发）。新增插件用 `./gradlew newPlugin -PpluginName=你的插件名`。
 
 ## 规范索引
 
@@ -57,7 +61,9 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `./Minecraft-2
 │       └── src/main/{java,resources}
 ├── Minecraft-26_3-plugin/          # 插件都放这里，一个目录一个插件
 │   ├── MainMenu/                   # 主菜单框架 + 功能插件注册 API
-│   └── RealTime/                   # 在主菜单里显示当前时间（功能插件参考实现）
+│   ├── RealTime/                   # 在主菜单里显示当前时间（功能插件参考实现）
+│   ├── YudreamPlaytime/            # 主菜单里显示查看者自己的在线时长（MainMenu 伴侣插件）
+│   └── yudream-minecraft-server/   # YuDream Admin 桥接插件：上报 + 本地时长统计 + 断线补发（Java 8 / Bukkit 1.13.2 目标）
 ├── fabric-26_3-mod/                # Fabric 客户端模组（独立 Gradle 工程，不参与上面的插件构建）
 │   └── MainMenuRepair/             # 清理 ESC 暂停菜单的界面修复模组
 ├── release/                        # 各版本的构建产物留档（提交进仓库）
@@ -321,9 +327,11 @@ dependencies {
 
 | 项目 | 正式版 | 测试版（进行中） |
 | --- | --- | --- |
-| MainMenu | `1_0_1`（2026.10.18） | `Beta_1_0_2`（修 jar 元数据里的仓库地址） |
+| MainMenu | `1_0_1`（2026.10.18） | `Beta_1_1_0`（功能项支持按查看者渲染） |
 | RealTime | `1_0_0`（2026.10.18） | `Beta_1_0_1`（修 jar 元数据里的仓库地址） |
 | MainMenuRepair（fabric） | `1_0_0`（2026.10.18） | `Beta_1_0_1`（修 jar 元数据里的仓库地址） |
+| YudreamPlaytime | —（还在测试版阶段） | `Beta_0_1_0`（首个版本：菜单里显示自己的在线时长） |
+| yudream-minecraft-server | `1_6_2`（上游正式版） | `Beta_1_7_0`（本地时长统计 + 待发事件落盘补发） |
 
 > 涨号规则（正式版之后再改动先回到测试版 `Beta_1_x_x`，转正时第 1 位 +1、后两位归 0）见
 > [`./docs/dev/版本与产物规范.md`](./docs/dev/版本与产物规范.md) §2；

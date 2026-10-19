@@ -1,0 +1,111 @@
+# How this server reports player activity.
+#
+#   standalone - this server talks to YuDream Admin itself. Nothing else is needed.
+#   downstream - this server sits behind a Velocity/BungeeCord proxy. The plugin becomes a sensor:
+#                it forwards player activity to the proxy over the "yudream:bridge" plugin message
+#                channel and uploads nothing to YuDream Admin itself, exactly like the Fabric sensor
+#                does for Fabric backends. The proxy plugin owns presence, AFK and every HTTP call,
+#                and picks the reported downstream server with its own target.server setting.
+#
+# Switch at runtime with /yudreammc mode <standalone|downstream>; the new value is written back here.
+mode: standalone
+
+# YuDream Admin base URL. Do not include a trailing slash.
+# Only used in standalone mode, or by the downstream fallback below.
+base-url: "http://127.0.0.1:8080"
+
+# Server id created in YuDream Admin minecraft-server plugin.
+server-id: ""
+
+# API key with plugin:minecraft-server:report permission.
+# The status command also needs plugin:minecraft-server:manage.
+# Leave empty in downstream mode: the proxy holds the credentials.
+api-key: ""
+
+enabled: true
+
+# Settings that only apply when mode is downstream.
+downstream:
+  # Off by default: the proxy is meant to be the only uploader. When enabled, this server reports to
+  # YuDream Admin itself for as long as the proxy has not acknowledged, which needs base-url,
+  # server-id and api-key to be filled in above. While the fallback is active the sensor keeps
+  # talking to the proxy as well, so a proxy that comes back during the overlap can double-report.
+  fallback-to-api: false
+  # How long the proxy may stay silent before the fallback takes over.
+  ack-timeout-seconds: 90
+  # How often the sensor re-announces itself to the proxy while players are online. The proxy needs
+  # this to survive a restart while players were already connected to this backend.
+  heartbeat-seconds: 20
+  # Shortest gap between two forwarded activity signals for the same player. Activity only resets an
+  # AFK timer measured in minutes, so forwarding every chat line or step would be packet spam.
+  activity-min-interval-seconds: 10
+
+http:
+  connect-timeout-ms: 5000
+  read-timeout-ms: 8000
+  retry-attempts: 3
+  retry-delay-ms: 1500
+  queue-capacity: 1000
+  # Logs every event accepted into the async report queue.
+  log-queued: false
+  # Logs every HTTP attempt, including retries.
+  log-attempts: false
+  # Logs successful reports.
+  log-success: true
+  # Logs final failures after all retry attempts.
+  log-failures: true
+  # Include playerId and eventAt in report logs. API key is never logged.
+  log-payload: false
+
+afk:
+  enabled: true
+  timeout-seconds: 300
+  check-interval-seconds: 30
+  reset-on-move: true
+  reset-on-chat: true
+  reset-on-command: true
+  reset-on-interact: true
+
+startup:
+  # Useful after /reload: players already online are reported again.
+  # In downstream mode this asks the proxy to re-announce them instead.
+  sync-online-on-enable: true
+
+shutdown:
+  # Keep false for plugin reloads. Enable only if you need forced quit reports on disable.
+  report-quit-on-disable: false
+  flush-timeout-ms: 5000
+
+# 群服互联（Group-server bridge）。
+# 转发哪些消息、发到哪个 QQ 群，在 YuDream Admin 的「MC 服务器 → 编辑服务器 → 群服互联」里逐服务器配置；
+# 这里的开关只决定本机是否参与上报与广播。
+chat-bridge:
+  # 本机群服互联总开关。
+  enabled: true
+  # 上报聊天、死亡、成就事件（进退服通知由 Admin 侧基于已有的进退服上报直接生成，无需这里上报）。
+  report-events: true
+  # 拉取群聊消息并广播进游戏。下游（代理）模式下由代理统一拉取，本机此开关不生效。
+  poll-inbound: true
+  # 群消息拉取间隔（秒），最小 2。
+  poll-interval-seconds: 3
+  # 入站链路调试日志：开启后逐条打印 SSE 连接、每个事件帧、游标决策与广播。
+  debug: false
+  # 广播格式；{sender} 是发送者 QQ 标识，{content} 是消息内容。
+  inbound-format: "§8[§a群§8] §f{sender} §7» §f{content}"
+
+# 本地在线时长统计：口径与 YuDream Admin 后端逐条对齐（在线时长 = 已结算区间 + 当前未结算区间，
+# AFK 时长单独累计、不从在线时长里扣）。后端不可用或还没配好时，本地照常记账；
+# 数据落在插件数据目录的 playtime.yml，伴侣插件（YudreamPlaytime）读它显示在主菜单里。
+local-playtime:
+  enabled: true
+  # 落盘间隔（秒）；停服与 /yudreammc playtime 查询时也会立即落盘。
+  save-interval-seconds: 30
+
+# 待发上报落盘：进服 / 退服 / AFK 起止这类会影响在线时长的事件先写本地日志，
+# 后端不可用 / 未配置 / 网络失败时都不丢，后端恢复后按原始时间戳按序补发（join / quit 幂等，不会重复计时）。
+# 聊天 / 死亡 / 成就这类消息型事件不落盘：补发过期消息没有意义，保持原来的尽力而为语义。
+durable-queue:
+  enabled: true
+  # 最多缓存多少条待发事件；超出后丢弃最老的并打警告。
+  max-pending: 5000
+

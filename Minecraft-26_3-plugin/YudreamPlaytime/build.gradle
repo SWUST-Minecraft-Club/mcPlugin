@@ -1,0 +1,9 @@
+// YudreamPlaytime：主菜单里的「我的在线时长」功能项（MainMenu 的伴侣插件）
+//   - 数据源：本机 yudream-minecraft-server 插件写的本地时长台账（plugins/YudreamMinecraftServer/playtime.yml）
+//   - 图标：查看者自己的头；悬停显示 玩家名 / 在线时长 / AFK 时长（hh小时mm分钟）；点击无效
+version = 'Beta_0_1_0'
+
+dependencies {
+    // 运行期由服务端提供 MainMenu 的类；只用 compileOnly，避免打进自己的 jar 造成类冲突
+    compileOnly project(':MainMenu')
+}
