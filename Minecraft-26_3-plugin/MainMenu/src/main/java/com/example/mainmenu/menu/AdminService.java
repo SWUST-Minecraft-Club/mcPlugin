@@ -4,8 +4,11 @@ import com.example.mainmenu.MainMenuPlugin;
 import com.example.mainmenu.api.FeaturePlacement;
 import com.example.mainmenu.api.MenuFeature;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
@@ -15,6 +18,7 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.scheduler.BukkitTask;
 
 /**
  * 功能插件管理界面：管理列表 → 属性页 → 位置选择界面。
@@ -30,6 +34,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 public final class AdminService {
 
     private final MainMenuPlugin plugin;
+    /** 管理界面打开期间的刷新任务（key：查看者） */
+    private final Map<UUID, BukkitTask> refreshTasks = new HashMap<>();
 
     public AdminService(final MainMenuPlugin plugin) {
         this.plugin = plugin;
@@ -50,6 +56,7 @@ public final class AdminService {
         holder.rightPage(rightPage);
         fillManage(holder);
         player.openInventory(inventory);
+        startRefresh(player, holder);
     }
 
     private void openAttribute(final Player player, final String featureId, final boolean fixed) {
@@ -62,6 +69,7 @@ public final class AdminService {
         holder.attach(inventory);
         fillAttribute(player, holder);
         player.openInventory(inventory);
+        startRefresh(player, holder);
     }
 
     private void openPositionPicker(final Player player, final String featureId) {
@@ -72,6 +80,54 @@ public final class AdminService {
         holder.attach(inventory);
         fillPositionPicker(holder);
         player.openInventory(inventory);
+        startRefresh(player, holder);
+    }
+
+    // ------------------------------------------------------------------ 刷新
+
+    /**
+     * 管理界面打开期间按 {@code menu.refresh-seconds} 周期性重绘。
+     *
+     * <p>功能插件的 {@code icon()} / {@code description()} 每次渲染都会重新调用，
+     * 所以动态文本（例如 RealTime 的当前时间）在管理页里也会跟着刷新，与主菜单保持一致。
+     */
+    private void startRefresh(final Player player, final AdminHolder holder) {
+        stopRefresh(player.getUniqueId());
+        final UUID uuid = player.getUniqueId();
+        final long periodTicks = Math.max(1L, plugin.getConfig().getLong("menu.refresh-seconds", 1L)) * 20L;
+        final BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            final Player online = Bukkit.getPlayer(uuid);
+            if (online == null
+                    || !(online.getOpenInventory().getTopInventory().getHolder() instanceof AdminHolder open)
+                    || open != holder) {
+                stopRefresh(uuid);
+                return;
+            }
+            redraw(online, holder);
+        }, periodTicks, periodTicks);
+        refreshTasks.put(uuid, task);
+    }
+
+    private void redraw(final Player player, final AdminHolder holder) {
+        switch (holder.mode()) {
+            case MANAGE -> fillManage(holder);
+            case ATTRIBUTE_FUNCTION, ATTRIBUTE_FIXED -> fillAttribute(player, holder);
+            case POSITION_PICKER -> fillPositionPicker(holder);
+        }
+    }
+
+    /** 玩家关闭管理界面时停止刷新 */
+    public void stopRefresh(final UUID uuid) {
+        final BukkitTask task = refreshTasks.remove(uuid);
+        if (task != null) {
+            task.cancel();
+        }
+    }
+
+    /** 插件禁用时停止所有刷新任务 */
+    public void shutdown() {
+        refreshTasks.values().forEach(BukkitTask::cancel);
+        refreshTasks.clear();
     }
 
     // ------------------------------------------------------------------ 构建界面

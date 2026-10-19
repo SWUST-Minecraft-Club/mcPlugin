@@ -97,6 +97,9 @@ public final class MainMenuPlugin extends JavaPlugin {
         if (menus != null) {
             menus.shutdown();
         }
+        if (admin != null) {
+            admin.shutdown();
+        }
         MainMenuApi.uninstall();
         instance = null;
     }
