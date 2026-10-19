@@ -100,6 +100,12 @@ local-playtime:
   enabled: true
   # 落盘间隔（秒）；停服与 /yudreammc playtime 查询时也会立即落盘。
   save-interval-seconds: 30
+  # 定期把后端的每玩家累计拉下来对齐本地（"服务器同步后端数据"）：本地台账只从插件开始记账那一刻算起，
+  # 后端可能有更早的历史，不对齐的话两边会差一个历史量。已结算累计取两边较大值，当前区间只认"玩家确实在线"
+  # 的那一侧，所以只会补齐历史、不会把离线时间算成在线。
+  # 需要 API key 带 plugin:minecraft-server:manage 权限（列表接口在管理端路径下）。
+  sync-from-backend: true
+  sync-interval-seconds: 300
 
 # 待发上报落盘：进服 / 退服 / AFK 起止这类会影响在线时长的事件先写本地日志，
 # 后端不可用 / 未配置 / 网络失败时都不丢，后端恢复后按原始时间戳按序补发（join / quit 幂等，不会重复计时）。

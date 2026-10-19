@@ -165,6 +165,102 @@ public final class PlaytimeLedger {
       return null;
    }
 
+   /**
+    * 用后端的记录对齐本地台账（服务器同步后端数据，见 {@link PlaytimeSync}）。
+    *
+    * <p>合并规则：
+    * <ul>
+    *     <li>已结算累计取两边**较大值** —— 本地可能有还没补发出去的事件，后端可能有更早的历史；</li>
+    *     <li>当前在线 / 挂机区间只在 {@code actuallyOnline} 为真时采用（起点取更早的那个），
+    *         玩家此刻不在线就忽略后端的开区间，避免把离线时间算成在线；</li>
+    *     <li>名字以非空为准；最近上线取更早、最近下线取更晚。</li>
+    * </ul>
+    *
+    * @return 本地记录是否发生变化
+    */
+   public synchronized boolean mergeFromBackend(String playerId, String playerName,
+                                                long backendOnlineMillis, long backendAfkMillis,
+                                                Long backendOnlineSince, Long backendAfkSince,
+                                                Long backendLastJoinedAt, Long backendLastQuitAt,
+                                                boolean actuallyOnline, long now) {
+      if (playerId == null || playerId.isEmpty()) {
+         return false;
+      }
+
+      Entry entry = this.entries.get(playerId);
+      boolean created = false;
+      if (entry == null) {
+         entry = new Entry(playerId);
+         this.entries.put(playerId, entry);
+         created = true;
+      }
+
+      boolean changed = created;
+      if (backendOnlineMillis > entry.onlineMillis) {
+         entry.onlineMillis = backendOnlineMillis;
+         changed = true;
+      }
+
+      if (backendAfkMillis > entry.afkMillis) {
+         entry.afkMillis = backendAfkMillis;
+         changed = true;
+      }
+
+      if (actuallyOnline) {
+         Long onlineSince = earliest(entry.currentOnlineSince, backendOnlineSince, now);
+         if (onlineSince != null && !onlineSince.equals(entry.currentOnlineSince)) {
+            entry.currentOnlineSince = onlineSince;
+            changed = true;
+         }
+
+         if (backendAfkSince != null) {
+            Long afkSince = earliest(entry.currentAfkSince, backendAfkSince, now);
+            if (afkSince != null && !afkSince.equals(entry.currentAfkSince)) {
+               entry.currentAfkSince = afkSince;
+               changed = true;
+            }
+         }
+      }
+
+      String merged = name(playerName, entry.playerName);
+      if (!merged.equals(entry.playerName)) {
+         entry.playerName = merged;
+         changed = true;
+      }
+
+      if (backendLastJoinedAt != null
+              && (entry.lastJoinedAt == null || backendLastJoinedAt.longValue() < entry.lastJoinedAt.longValue())) {
+         entry.lastJoinedAt = backendLastJoinedAt;
+         changed = true;
+      }
+
+      if (backendLastQuitAt != null
+              && (entry.lastQuitAt == null || backendLastQuitAt.longValue() > entry.lastQuitAt.longValue())) {
+         entry.lastQuitAt = backendLastQuitAt;
+         changed = true;
+      }
+
+      if (changed) {
+         entry.updatedAt = now;
+         this.dirty = true;
+      }
+
+      return changed;
+   }
+
+   /** 取两个起点里更早的那个；都没有时用 {@code fallback}（玩家确实在线但两边都没记到起点）。 */
+   private static Long earliest(Long left, Long right, long fallback) {
+      if (left == null) {
+         return right == null ? Long.valueOf(fallback) : right;
+      }
+
+      if (right == null) {
+         return left;
+      }
+
+      return left.longValue() <= right.longValue() ? left : right;
+   }
+
    /** 有变化才落盘；由插件按 {@code local-playtime.save-interval-seconds} 周期调用。 */
    public synchronized void saveIfDirty() {
       if (!this.dirty) {

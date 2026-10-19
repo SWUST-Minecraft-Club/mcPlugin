@@ -4,7 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Level;
 import online.yudream.minecraft.bukkit.afk.AfkTracker;
 import online.yudream.minecraft.bukkit.api.YudreamApiClient;
@@ -19,6 +22,7 @@ import online.yudream.minecraft.bukkit.config.YudreamConfig;
 import online.yudream.minecraft.bukkit.event.GameEventListener;
 import online.yudream.minecraft.bukkit.event.PlayerActivityListener;
 import online.yudream.minecraft.bukkit.playtime.PlaytimeLedger;
+import online.yudream.minecraft.bukkit.playtime.PlaytimeSync;
 import online.yudream.minecraft.bukkit.report.PendingReportJournal;
 import online.yudream.minecraft.bukkit.report.PlayerEventPayload;
 import online.yudream.minecraft.bukkit.report.PlayerEventType;
@@ -35,17 +39,20 @@ public final class YudreamMinecraftPlugin extends JavaPlugin {
    private ReportQueue reportQueue;
    private AfkTracker afkTracker;
    private PlaytimeLedger playtimeLedger;
+   private PlaytimeSync playtimeSync;
    private PendingReportJournal reportJournal;
    private DownstreamSensor sensor;
    private InboundChatPoller inboundPoller;
    private int snapshotTaskId = -1;
    private int inboundPollTaskId = -1;
    private int playtimeSaveTaskId = -1;
+   private int playtimeSyncTaskId = -1;
 
    public void onEnable() {
       this.saveDefaultConfig();
       this.getLogger().info(ServerCompatibility.describe());
       this.playtimeLedger = new PlaytimeLedger(this);
+      this.playtimeSync = new PlaytimeSync(this);
       this.reloadBridge();
       this.getServer().getPluginManager().registerEvents(new PlayerActivityListener(this), this);
       this.getServer().getPluginManager().registerEvents(new GameEventListener(this), this);
@@ -74,6 +81,7 @@ public final class YudreamMinecraftPlugin extends JavaPlugin {
          }
       }, 20L, 1200L);
       this.startPlaytimeSaveTask();
+      this.startPlaytimeSyncTask();
    }
 
    public void onDisable() {
@@ -82,11 +90,11 @@ public final class YudreamMinecraftPlugin extends JavaPlugin {
          this.snapshotTaskId = -1;
       }
 
+      this.stopPlaytimeSyncTask();
       this.stopPlaytimeSaveTask();
       if (this.playtimeLedger != null) {
          this.playtimeLedger.saveNow();
       }
-
       this.stopInboundPoller();
       if (this.sensor != null) {
          this.sensor.stop();
@@ -144,6 +152,8 @@ public final class YudreamMinecraftPlugin extends JavaPlugin {
       this.afkTracker.start();
       this.stopPlaytimeSaveTask();
       this.startPlaytimeSaveTask();
+      this.stopPlaytimeSyncTask();
+      this.startPlaytimeSyncTask();
       if (this.sensor != null) {
          this.sensor.stop();
          this.sensor = null;
@@ -320,6 +330,42 @@ public final class YudreamMinecraftPlugin extends JavaPlugin {
       if (this.playtimeSaveTaskId >= 0) {
          this.getServer().getScheduler().cancelTask(this.playtimeSaveTaskId);
          this.playtimeSaveTaskId = -1;
+      }
+   }
+
+   /**
+    * 定期把后端的每玩家累计拉下来对齐本地台账（"服务器同步后端数据"）。
+    *
+    * <p>在线玩家集合在主线程采集后交给异步任务，避免在异步线程里读服务端状态。
+    */
+   private void startPlaytimeSyncTask() {
+      if (this.playtimeSync == null || this.settings == null || !this.settings.getLocalPlaytime().isSyncFromBackend()) {
+         return;
+      }
+
+      long interval = this.settings.getLocalPlaytime().getSyncIntervalTicks();
+      this.playtimeSyncTaskId = this.getServer().getScheduler().runTaskTimer(this, new Runnable() {
+         public void run() {
+            final Set<UUID> online = new HashSet<>();
+            for (Player player : YudreamMinecraftPlugin.this.getServer().getOnlinePlayers()) {
+               online.add(player.getUniqueId());
+            }
+
+            YudreamMinecraftPlugin.this.getServer().getScheduler().runTaskAsynchronously(YudreamMinecraftPlugin.this, new Runnable() {
+               public void run() {
+                  if (YudreamMinecraftPlugin.this.playtimeSync != null) {
+                     YudreamMinecraftPlugin.this.playtimeSync.pullFromBackend(online);
+                  }
+               }
+            });
+         }
+      }, 200L, interval).getTaskId();
+   }
+
+   private void stopPlaytimeSyncTask() {
+      if (this.playtimeSyncTaskId >= 0) {
+         this.getServer().getScheduler().cancelTask(this.playtimeSyncTaskId);
+         this.playtimeSyncTaskId = -1;
       }
    }
 

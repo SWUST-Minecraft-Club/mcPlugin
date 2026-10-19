@@ -31,9 +31,20 @@ public final class YudreamApiClient {
       return this.request("POST", this.serverUrl("/players/snapshot"), JsonObjects.playerSnapshot(players, observedAt));
    }
 
+   /**
+    * 玩家活动列表（服务端侧用来把本地时长台账与后端对齐，见 {@code playtime.PlaytimeSync}）。
+    *
+    * <p>新后端的列表接口挂在**管理端**路径下，需要 API key 带 {@code plugin:minecraft-server:manage} 权限；
+    * 旧后端没有该路径，会退回用户端路径（旧后端支持时才有效）。
+    */
    public HttpResult players(int page, int size) throws IOException {
-      String path = "/players?page=" + Math.max(page, 1) + "&size=" + Math.max(Math.min(size, 100), 1);
-      return this.request("GET", this.serverUrl(path), (String)null);
+      String query = "?page=" + Math.max(page, 1) + "&size=" + Math.max(Math.min(size, 100), 1);
+      HttpResult result = this.request("GET", this.adminServerUrl("/players" + query), (String)null);
+      if (result.getStatusCode() == 403 || result.getStatusCode() == 404) {
+         result = this.request("GET", this.serverUrl("/players" + query), (String)null);
+      }
+
+      return result;
    }
 
    public HttpResult inboundChat(long after) throws IOException {
@@ -56,6 +67,11 @@ public final class YudreamApiClient {
 
    String serverUrl(String serverRelativePath) {
       return this.config.getBaseUrl() + "/api/plugins/minecraft-server/servers/" + encodePathSegment(this.config.getServerId()) + serverRelativePath;
+   }
+
+   /** 管理端路径（前缀里多一段 admin）。 */
+   String adminServerUrl(String serverRelativePath) {
+      return this.config.getBaseUrl() + "/api/plugins/minecraft-server/admin/servers/" + encodePathSegment(this.config.getServerId()) + serverRelativePath;
    }
 
    private HttpResult request(String method, String url, String body) throws IOException {
