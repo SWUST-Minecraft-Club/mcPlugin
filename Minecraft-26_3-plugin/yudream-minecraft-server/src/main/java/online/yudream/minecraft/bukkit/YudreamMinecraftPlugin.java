@@ -250,7 +250,14 @@ public final class YudreamMinecraftPlugin extends JavaPlugin {
       }
 
       if (this.localPlaytimeEnabled()) {
-         this.playtimeLedger.join(player.getUniqueId(), player.getName(), System.currentTimeMillis());
+         long now = System.currentTimeMillis();
+         // AFK 状态机不跨重启保留：重新进服时先把上一段没结束的挂机区间就地结算，
+         // 否则这段挂着的时间会一直按"正在挂机"累加下去（后端在快照校正时早已结清）。
+         if (this.playtimeLedger.isAfk(player.getUniqueId())) {
+            this.playtimeLedger.endAfk(player.getUniqueId(), player.getName(), now);
+         }
+
+         this.playtimeLedger.join(player.getUniqueId(), player.getName(), now);
       }
 
       // AFK 计时不再依赖后端是否可用：后端挂着的时候本地也要能统计在线 / 挂机时长。

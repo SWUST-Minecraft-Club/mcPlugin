@@ -168,11 +168,13 @@ public final class PlaytimeLedger {
    /**
     * 用后端的记录对齐本地台账（服务器同步后端数据，见 {@link PlaytimeSync}）。
     *
-    * <p>合并规则：
+    * <p>合并规则（后端能给出记录时，它就是这个玩家的权威值）：
     * <ul>
-    *     <li>已结算累计取两边**较大值** —— 本地可能有还没补发出去的事件，后端可能有更早的历史；</li>
-    *     <li>当前在线 / 挂机区间只在 {@code actuallyOnline} 为真时采用（起点取更早的那个），
-    *         玩家此刻不在线就忽略后端的开区间，避免把离线时间算成在线；</li>
+    *     <li>已结算累计与当前在线 / 挂机区间都**以后端为准**，同步那一刻两边数字完全一致；
+    *         历史上被算重/算多的本地数字也会因此被修正回来；</li>
+    *     <li>例外：玩家确实在线、但后端还没有开区间 / 挂机区间（我们的上报还没到）——本地领先，
+    *         保留本地这一段，等补发完成后端追上来；</li>
+    *     <li>玩家此刻不在线时同样采用后端的（不含开区间的）累计，避免把离线时间算成在线；</li>
     *     <li>名字以非空为准；最近上线取更早、最近下线取更晚。</li>
     * </ul>
     *
@@ -196,30 +198,54 @@ public final class PlaytimeLedger {
       }
 
       boolean changed = created;
-      if (backendOnlineMillis > entry.onlineMillis) {
-         entry.onlineMillis = backendOnlineMillis;
+      long localSettledOnline = entry.onlineMillis;
+      long localSettledAfk = entry.afkMillis;
+      boolean backendSaysOnline = backendOnlineSince != null;
+      boolean backendSaysAfk = backendAfkSince != null;
+
+      // 已结算累计与当前区间都**以后端为准**（"服务器同步后端数据"）：
+      // 后端可用时它就是权威值，两边在同步那一刻数字完全一致，历史上被算重/算多的本地数字也会被修正回来。
+      long nextOnlineMillis = backendOnlineMillis;
+      long nextAfkMillis = backendAfkMillis;
+      Long nextOnlineSince = backendOnlineSince;
+      Long nextAfkSince = backendAfkSince;
+
+      // 例外一：玩家确实在线、但后端还没有开区间（我们的进服上报还没到）——本地领先，保留本地会话。
+      if (actuallyOnline && !backendSaysOnline) {
+         nextOnlineMillis = Math.max(backendOnlineMillis, localSettledOnline);
+         nextOnlineSince = entry.currentOnlineSince;
+      }
+
+      // 例外二：本地判定在挂机、后端还没收到挂机上报时，同样保留本地的挂机区间。
+      if (actuallyOnline && !backendSaysAfk && entry.currentAfkSince != null) {
+         nextAfkMillis = Math.max(backendAfkMillis, localSettledAfk);
+         nextAfkSince = entry.currentAfkSince;
+      }
+
+      if (nextOnlineMillis != entry.onlineMillis) {
+         entry.onlineMillis = nextOnlineMillis;
          changed = true;
       }
 
-      if (backendAfkMillis > entry.afkMillis) {
-         entry.afkMillis = backendAfkMillis;
+      if (!same(nextOnlineSince, entry.currentOnlineSince)) {
+         entry.currentOnlineSince = nextOnlineSince;
          changed = true;
       }
 
-      if (actuallyOnline) {
-         Long onlineSince = earliest(entry.currentOnlineSince, backendOnlineSince, now);
-         if (onlineSince != null && !onlineSince.equals(entry.currentOnlineSince)) {
-            entry.currentOnlineSince = onlineSince;
-            changed = true;
-         }
+      if (nextAfkMillis != entry.afkMillis) {
+         entry.afkMillis = nextAfkMillis;
+         changed = true;
+      }
 
-         if (backendAfkSince != null) {
-            Long afkSince = earliest(entry.currentAfkSince, backendAfkSince, now);
-            if (afkSince != null && !afkSince.equals(entry.currentAfkSince)) {
-               entry.currentAfkSince = afkSince;
-               changed = true;
-            }
-         }
+      if (!same(nextAfkSince, entry.currentAfkSince)) {
+         entry.currentAfkSince = nextAfkSince;
+         changed = true;
+      }
+
+      // 与后端活动桶的不变量一致：不在线时挂机区间必为空
+      if (entry.currentOnlineSince == null && entry.currentAfkSince != null) {
+         entry.currentAfkSince = null;
+         changed = true;
       }
 
       String merged = name(playerName, entry.playerName);
@@ -248,17 +274,12 @@ public final class PlaytimeLedger {
       return changed;
    }
 
-   /** 取两个起点里更早的那个；都没有时用 {@code fallback}（玩家确实在线但两边都没记到起点）。 */
-   private static Long earliest(Long left, Long right, long fallback) {
+   private static boolean same(Long left, Long right) {
       if (left == null) {
-         return right == null ? Long.valueOf(fallback) : right;
+         return right == null;
       }
 
-      if (right == null) {
-         return left;
-      }
-
-      return left.longValue() <= right.longValue() ? left : right;
+      return right != null && left.longValue() == right.longValue();
    }
 
    /** 有变化才落盘；由插件按 {@code local-playtime.save-interval-seconds} 周期调用。 */
