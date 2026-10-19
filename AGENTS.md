@@ -53,7 +53,8 @@
 插件 MainMenu（正式版 `1_0_1` / 测试中 `Beta_1_0_2`）· RealTime（`1_0_0` / `Beta_1_0_1`）· MainMenuRepair Fabric 模组（`1_0_0` / `Beta_1_0_1`）；
 结构 `./Minecraft-26_3-plugin/<插件名>/`（Paper 插件，MainMenu 提供功能注册 API）· `./fabric-26_3-mod/MainMenuRepair/`（独立 Gradle 工程）·
 `./templates/plugin-template/`（newPlugin 模板）· `./release/<项目名>/`（产物留档）· `./run/`（共用测试服）· `./docs/dev|exp|plan/`（规范 / 经验 / 计划）；
-构建 `./gradlew build`（全部插件）· `./gradlew -p ./fabric-26_3-mod/MainMenuRepair build`（模组）· `./gradlew :插件名:runServer`（测试服，端口 25566）。
+构建 `./gradlew build`（全部插件）· `./gradlew -p ./fabric-26_3-mod/MainMenuRepair build`（模组）· `./gradlew :插件名:runServer`（测试服，端口 25566）；
+远端 `origin`（主仓 `zhou-BZDDX/mcPlugin`，双 push 地址，一次推送同步社团镜像 `SWUST-Minecraft-Club/mcPlugin`）· `swust`（镜像远端，仅用于核对）。
 
 ## 敏感信息
 

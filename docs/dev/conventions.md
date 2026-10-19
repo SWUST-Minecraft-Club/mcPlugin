@@ -82,6 +82,9 @@
 ## 6. Git 规范
 
 - 分支：`main` 保持可构建；较大改动可用 `feat/xxx`、`fix/xxx`。
+- **远端与镜像**：`origin` 指向主仓 `zhou-BZDDX/mcPlugin`，并**配置了两个 push 地址**（主仓 + 社团镜像
+  `SWUST-Minecraft-Club/mcPlugin`），所以直接 `git push` 会一次推到两边；`swust` 是镜像的独立远端，只用于核对镜像是否同步。
+  推送后确认两边都在同一提交：`git ls-remote origin main`、`git ls-remote swust main`。
 - 提交信息用中文，格式 `类型: 描述`，类型取 `feat` / `fix` / `docs` / `refactor` / `chore` / `release`。
 - 不提交：`./run/`、`./build/`、IDE 目录、`docs/plan/`、`docs/local.md`、真实凭证。
 - 例外：`./release/**/*.jar` 必须提交（产物留档）；`gradle/wrapper/gradle-wrapper.jar` 必须提交。
