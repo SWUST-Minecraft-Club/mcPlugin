@@ -12,3 +12,9 @@
    按文件修改时间缓存；没有记录时显示 `0分钟`，不依赖后端是否在线
 3.新增：`config.yml` 支持 `stats-file`（自定义台账路径）、`cache-seconds`（缓存秒数）、`order`（功能区排序）
 4.说明：依赖 MainMenu 的「按查看者渲染」（MainMenu `Beta_1_1_0` 起支持）；MainMenu 缺失时插件正常加载但不注册功能
+
+---
+
+[Beta_0_1_0 -> 正式版1_0_0] 2026.10.19
+测试期结束，整理为正式版 `1_0_0`（第一位 +1、后两位归 0、去掉 `Beta`），
+正式版改动汇总见同目录的 `YudreamPlaytime-mc26_3-plugin-ChangeLog.md`。

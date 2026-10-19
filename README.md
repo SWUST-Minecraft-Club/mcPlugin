@@ -330,8 +330,8 @@ dependencies {
 | MainMenu | `1_0_1`（2026.10.18） | `Beta_1_1_0`（功能项支持按查看者渲染） |
 | RealTime | `1_0_0`（2026.10.18） | `Beta_1_0_1`（修 jar 元数据里的仓库地址） |
 | MainMenuRepair（fabric） | `1_0_0`（2026.10.18） | `Beta_1_0_1`（修 jar 元数据里的仓库地址） |
-| YudreamPlaytime | —（还在测试版阶段） | `Beta_0_1_0`（首个版本：菜单里显示自己的在线时长） |
-| yudream-minecraft-server | `1_6_2`（上游正式版） | `Beta_1_8_4`（本地时长统计 + 断线补发 + 与后端对齐） |
+| YudreamPlaytime | `1_0_0`（2026.10.19） | —（已转正） |
+| yudream-minecraft-server | `2_0_0`（2026.10.19） | —（已转正，源自上游 `1_6_2`） |
 
 > 涨号规则（正式版之后再改动先回到测试版 `Beta_1_x_x`，转正时第 1 位 +1、后两位归 0）见
 > [`./docs/dev/版本与产物规范.md`](./docs/dev/版本与产物规范.md) §2；
