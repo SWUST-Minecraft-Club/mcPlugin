@@ -7,7 +7,7 @@
 //
 // 产物命名沿用产品线：yudream-minecraft-server-bukkit-<版本>.jar（跨游戏版本，不带 mc 标签，
 // 这条是本仓「版本与产物规范」的登记例外）。
-version = 'Beta_1_8_1'
+version = 'Beta_1_8_2'
 
 base {
     archivesName = 'yudream-minecraft-server-bukkit'

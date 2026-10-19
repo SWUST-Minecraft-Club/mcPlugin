@@ -19,12 +19,19 @@ import online.yudream.minecraft.bukkit.bridge.MiniJson;
  * <ul>
  *     <li>已结算累计取**两边较大值**：本地可能有还没补发出去的事件，后端也可能有更早的历史。</li>
  *     <li>当前区间只有在"玩家此刻确实在线"时才采用后端的起点，并取**更早**的那个（会话真正开始的时间）；
- *         玩家不在线时忽略后端的开区间 —— 那通常是后端还没收到退服事件的残留，
- *         照抄会把离线时间也算成在线。</li>
+ *         玩家不在线时忽略后端的开区间 —— 那通常是后端还没收到退服的残留，照抄会把离线时间也算成在线。</li>
  * </ul>
  *
  * <p>反向的补齐由 {@code report.PendingReportJournal} 负责（本地事件按原始时间戳补发），
  * 两边最终会收敛到同一个数字。
+ *
+ * <p>接口细节（容易踩的两处，都按"能读到就认"处理）：
+ * <ul>
+ *     <li>响应可能被平台包一层 {@code {"code":..,"message":..,"data":{...}}}（{@code PluginHttpResponse.ok} 默认 wrapped），
+ *         所以取 {@code data}；没有包就直接用顶层。</li>
+ *     <li>平台把长整型序列化成**字符串**（信封里的 timestamp 就是字符串），
+ *         所以毫秒字段要同时接受数字与字符串两种写法。</li>
+ * </ul>
  */
 public final class PlaytimeSync {
 
@@ -34,6 +41,8 @@ public final class PlaytimeSync {
    private final YudreamMinecraftPlugin plugin;
    private volatile long lastAttemptAt;
    private volatile String lastResult = "尚未尝试";
+   /** 上次成功的路径：管理端优先，失败过就记住另一条，避免每次都白撞一次 5xx。 */
+   private volatile boolean preferAdminPath = true;
 
    public PlaytimeSync(YudreamMinecraftPlugin plugin) {
       this.plugin = plugin;
@@ -71,11 +80,12 @@ public final class PlaytimeSync {
       int rows = 0;
       int updated = 0;
       long now = System.currentTimeMillis();
+      String sample = null;
 
       while (page <= MAX_PAGES) {
          HttpResult result;
          try {
-            result = this.plugin.getApiClient().players(page, PAGE_SIZE);
+            result = this.fetchPlayersPage(page);
          } catch (IOException e) {
             this.lastResult = "失败：第 " + page + " 页请求异常（" + e.getMessage() + "）";
             this.plugin.getLogger().warning("与后端对齐本地时长失败（第 " + page + " 页）：" + e.getMessage());
@@ -84,34 +94,38 @@ public final class PlaytimeSync {
 
          if (!result.isSuccess()) {
             this.lastResult = "失败：HTTP " + result.getStatusCode()
-                    + "（列表接口需要 API key 带 plugin:minecraft-server:manage 权限）";
+                    + "（管理端列表接口需要 API key 带 plugin:minecraft-server:manage 权限）"
+                    + "，响应=" + shorten(result.getBody());
             this.plugin.getLogger().warning("与后端对齐本地时长失败：HTTP " + result.getStatusCode()
-                    + "，body=" + shorten(result.getBody())
-                    + "（玩家活动列表在管理端路径下，需要 API key 带 plugin:minecraft-server:manage 权限）");
+                    + "，body=" + shorten(result.getBody()));
             return false;
          }
 
          Map<String, Object> payload = payloadOf(MiniJson.parseObject(result.getBody()));
-         Object rawRecords = payload == null ? null : payload.get("records");
-         if (!(rawRecords instanceof List)) {
-            this.lastResult = "失败：响应里没有 records 数组（body 开头：" + shorten(result.getBody()) + "）";
-            this.plugin.getLogger().warning("与后端对齐本地时长失败：响应里没有 records 数组，body 开头=" + shorten(result.getBody()));
+         List<?> records = listOf(payload, "records", "list", "items");
+         if (records == null) {
+            this.lastResult = "失败：响应里找不到玩家数组，响应=" + shorten(result.getBody());
+            this.plugin.getLogger().warning("与后端对齐本地时长失败：响应里找不到玩家数组，body=" + shorten(result.getBody()));
             return false;
          }
 
-         List<?> records = (List<?>)rawRecords;
          for (Object item : records) {
             if (!(item instanceof Map)) {
                continue;
             }
 
             rows++;
-            if (this.merge(ledger, asMap(item), onlineNow, now)) {
+            Map<String, Object> row = asMap(item);
+            if (sample == null) {
+               sample = shorten(row.toString());
+            }
+
+            if (this.merge(ledger, row, onlineNow, now)) {
                updated++;
             }
          }
 
-         long total = MiniJson.longValue(payload, "total", records.size());
+         long total = longOf(payload, records.size(), "total", "count");
          if (records.isEmpty() || (long)page * (long)PAGE_SIZE >= total) {
             break;
          }
@@ -120,9 +134,80 @@ public final class PlaytimeSync {
       }
 
       ledger.saveIfDirty();
-      this.lastResult = "成功：后端记录 " + rows + " 条，更新本地 " + updated + " 条，本地共 " + ledger.size() + " 名玩家";
+      this.lastResult = "成功：后端记录 " + rows + " 条，更新本地 " + updated + " 条，本地共 " + ledger.size() + " 名玩家"
+              + (rows > 0 && updated == 0 ? "；没有任何字段被采纳，记录样例=" + sample : "");
       this.plugin.getLogger().info("本地时长台账已与后端对齐：" + this.lastResult);
       return true;
+   }
+
+   /**
+    * 取一页玩家记录：优先上次成功的路径，失败（含 5xx）就换另一条路径再试一次。
+    *
+    * <p>管理端路径在部分部署上会返回 500，用户端路径在旧后端上可能不存在，所以两边都要能兜。
+    */
+   private HttpResult fetchPlayersPage(int page) throws IOException {
+      HttpResult result = this.plugin.getApiClient().playersAt(this.preferAdminPath, page, PAGE_SIZE);
+      if (result.isSuccess()) {
+         return result;
+      }
+
+      HttpResult alternative = this.plugin.getApiClient().playersAt(!this.preferAdminPath, page, PAGE_SIZE);
+      if (alternative.isSuccess()) {
+         this.preferAdminPath = !this.preferAdminPath;
+         this.plugin.getLogger().info("玩家列表接口改用" + (this.preferAdminPath ? "管理端" : "用户端")
+                 + "路径（另一条返回 HTTP " + result.getStatusCode() + "）。");
+         return alternative;
+      }
+
+      return result;
+   }
+
+   private boolean merge(PlaytimeLedger ledger, Map<String, Object> row, Set<UUID> onlineNow, long now) {
+      String playerId = stringOf(row, "", "playerId", "id", "uuid");
+      if (playerId.isEmpty()) {
+         return false;
+      }
+
+      boolean actuallyOnline = false;
+      try {
+         actuallyOnline = onlineNow.contains(UUID.fromString(playerId));
+      } catch (IllegalArgumentException ignored) {
+         // 非 UUID 的玩家标识（理论上不会出现）：按不在线处理，只合并已结算累计
+      }
+
+      long backendOnlineMillis = longOf(row, 0L, "totalOnlineMillis", "onlineMillis", "totalOnline", "onlineMillisTotal");
+      long backendAfkMillis = longOf(row, 0L, "totalAfkMillis", "afkMillis", "totalAfk", "afkMillisTotal");
+
+      // 顶层没有累计时退一步：按子服明细求和（同一份数据的另一种形状）
+      if (backendOnlineMillis <= 0L || backendAfkMillis <= 0L) {
+         List<?> subServers = listOf(row, "subServers", "subservers");
+         if (subServers != null) {
+            long online = 0L;
+            long afk = 0L;
+            for (Object sub : subServers) {
+               if (sub instanceof Map) {
+                  online += longOf(asMap(sub), 0L, "onlineMillis", "totalOnlineMillis");
+                  afk += longOf(asMap(sub), 0L, "afkMillis", "totalAfkMillis");
+               }
+            }
+
+            backendOnlineMillis = Math.max(backendOnlineMillis, online);
+            backendAfkMillis = Math.max(backendAfkMillis, afk);
+         }
+      }
+
+      return ledger.mergeFromBackend(
+              playerId,
+              stringOf(row, "", "playerName", "name"),
+              backendOnlineMillis,
+              backendAfkMillis,
+              optionalLongOf(row, "currentOnlineSince", "onlineSince"),
+              optionalLongOf(row, "currentAfkSince", "afkSince"),
+              optionalLongOf(row, "lastJoinedAt", "joinedAt"),
+              optionalLongOf(row, "lastQuitAt", "quitAt"),
+              actuallyOnline,
+              now
+      );
    }
 
    /**
@@ -138,40 +223,69 @@ public final class PlaytimeSync {
       return data instanceof Map ? asMap(data) : body;
    }
 
-   private static String shorten(String body) {
-      if (body == null) {
-         return "";
-      }
-
-      String text = body.replace('\n', ' ').trim();
-      return text.length() <= 200 ? text : text.substring(0, 200) + "...";
+   /** 按键取列表，支持多个别名与大小写不敏感。 */
+   private static List<?> listOf(Map<String, Object> map, String... keys) {
+      Object value = valueOf(map, keys);
+      return value instanceof List ? (List<?>) value : null;
    }
 
-   private boolean merge(PlaytimeLedger ledger, Map<String, Object> row, Set<UUID> onlineNow, long now) {
-      String playerId = MiniJson.string(row, "playerId", "");
-      if (playerId.isEmpty()) {
-         return false;
+   private static long longOf(Map<String, Object> map, long fallback, String... keys) {
+      Object value = valueOf(map, keys);
+      if (value instanceof Number) {
+         return ((Number)value).longValue();
       }
 
-      boolean actuallyOnline = false;
-      try {
-         actuallyOnline = onlineNow.contains(UUID.fromString(playerId));
-      } catch (IllegalArgumentException ignored) {
-         // 非 UUID 的玩家标识（理论上不会出现）：按不在线处理，只合并已结算累计
+      if (value instanceof String) {
+         try {
+            return Long.parseLong(((String)value).trim());
+         } catch (NumberFormatException ignored) {
+            return fallback;
+         }
       }
 
-      return ledger.mergeFromBackend(
-              playerId,
-              MiniJson.string(row, "playerName", ""),
-              MiniJson.longValue(row, "totalOnlineMillis", 0L),
-              MiniJson.longValue(row, "totalAfkMillis", 0L),
-              optional(MiniJson.longValue(row, "currentOnlineSince", 0L)),
-              optional(MiniJson.longValue(row, "currentAfkSince", 0L)),
-              optional(MiniJson.longValue(row, "lastJoinedAt", 0L)),
-              optional(MiniJson.longValue(row, "lastQuitAt", 0L)),
-              actuallyOnline,
-              now
-      );
+      return fallback;
+   }
+
+   private static Long optionalLongOf(Map<String, Object> map, String... keys) {
+      long value = longOf(map, 0L, keys);
+      return value <= 0L ? null : Long.valueOf(value);
+   }
+
+   private static String stringOf(Map<String, Object> map, String fallback, String... keys) {
+      Object value = valueOf(map, keys);
+      if (value == null) {
+         return fallback;
+      }
+
+      return value instanceof String ? (String)value : String.valueOf(value);
+   }
+
+   /** 按键取值：先精确匹配，再忽略大小写匹配（部署版本字段大小写不一致时不至于全空）。 */
+   private static Object valueOf(Map<String, Object> map, String... keys) {
+      if (map == null) {
+         return null;
+      }
+
+      for (String key : keys) {
+         if (map.containsKey(key)) {
+            return map.get(key);
+         }
+      }
+
+      for (Map.Entry<String, Object> entry : map.entrySet()) {
+         String existing = entry.getKey();
+         if (existing == null) {
+            continue;
+         }
+
+         for (String key : keys) {
+            if (existing.equalsIgnoreCase(key)) {
+               return entry.getValue();
+            }
+         }
+      }
+
+      return null;
    }
 
    @SuppressWarnings("unchecked")
@@ -179,7 +293,12 @@ public final class PlaytimeSync {
       return (Map<String, Object>)(Map<?, ?>)value;
    }
 
-   private static Long optional(long value) {
-      return value <= 0L ? null : Long.valueOf(value);
+   private static String shorten(String text) {
+      if (text == null) {
+         return "";
+      }
+
+      String flattened = text.replace('\n', ' ').trim();
+      return flattened.length() <= 400 ? flattened : flattened.substring(0, 400) + "...";
    }
 }

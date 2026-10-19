@@ -34,17 +34,19 @@ public final class YudreamApiClient {
    /**
     * 玩家活动列表（服务端侧用来把本地时长台账与后端对齐，见 {@code playtime.PlaytimeSync}）。
     *
-    * <p>新后端的列表接口挂在**管理端**路径下，需要 API key 带 {@code plugin:minecraft-server:manage} 权限；
-    * 旧后端没有该路径，会退回用户端路径（旧后端支持时才有效）。
+    * <p>管理端路径 {@code /admin/servers/{id}/players} 是新后端的正式位置（前端也用它），
+    * 需要 API key 带 {@code plugin:minecraft-server:manage} 权限；部分部署上它可能返回 5xx，
+    * 调用方（{@code PlaytimeSync}）会在失败时换另一条路径，所以这里把两条路径都开放出来。
     */
    public HttpResult players(int page, int size) throws IOException {
-      String query = "?page=" + Math.max(page, 1) + "&size=" + Math.max(Math.min(size, 100), 1);
-      HttpResult result = this.request("GET", this.adminServerUrl("/players" + query), (String)null);
-      if (result.getStatusCode() == 403 || result.getStatusCode() == 404) {
-         result = this.request("GET", this.serverUrl("/players" + query), (String)null);
-      }
+      return this.playersAt(true, page, size);
+   }
 
-      return result;
+   /** 取指定路径的玩家活动列表：{@code adminPath} 为 true 走管理端，false 走用户端旧路径。 */
+   public HttpResult playersAt(boolean adminPath, int page, int size) throws IOException {
+      String query = "/players?page=" + Math.max(page, 1) + "&size=" + Math.max(Math.min(size, 100), 1);
+      String url = adminPath ? this.adminServerUrl(query) : this.serverUrl(query);
+      return this.request("GET", url, (String)null);
    }
 
    public HttpResult inboundChat(long after) throws IOException {
