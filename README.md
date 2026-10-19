@@ -15,14 +15,16 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `./Minecraft-2
 
 | 规范 | 位置 | 内容 |
 | --- | --- | --- |
-| 目录结构 / 路径约定 | [目录结构](#目录结构)、[路径约定](#路径约定) | 插件放哪、路径一律写成 `./xxx/xxx` 相对形式 |
+| AI 协作入口 | [`./AGENTS.md`](./AGENTS.md) | 硬规则、开工必读、沟通字典、现状快照 |
+| 开发规范总纲 | [`./docs/dev/conventions.md`](./docs/dev/conventions.md) | 技术栈、仓库结构与**路径约定**、编码约定、模组约定、Git、文档纪律 |
+| 版本与产物规范 | [`./docs/dev/版本与产物规范.md`](./docs/dev/版本与产物规范.md) | 涨号规则、产物命名、留档、ChangeLog、发布流程、历史产物重建 |
+| 功能插件接入 | [`./docs/dev/功能插件接入规范.md`](./docs/dev/功能插件接入规范.md) | 依赖声明、注册 API、位置 / 排序 / 冲突规则 |
+| 经验与坑 | [`./docs/exp/`](./docs/exp/) | Paper 插件 / Fabric 模组 / 构建环境三份坑库，遇到问题先查 |
+| 计划（不提交） | `./docs/plan/` | 阶段计划与任务拆解；长期结论沉淀回 `docs/dev` 或 `docs/exp` |
 | 新增插件 | [新增插件](#新增插件)、[`./templates/plugin-template/`](./templates/plugin-template) | 脚手架、目录名 / 包名 / 类名一致性 |
-| 功能插件接入 | [功能插件接入规范](./Minecraft-26_3-plugin/MainMenu/docs/功能插件接入规范.md) | 依赖声明、注册 API、位置 / 排序 / 冲突规则 |
-| 版本与产物命名 | [版本与产物命名规范](#版本与产物命名规范) | `<项目名>-<游戏版本>-plugin-<版本>`、涨号规则 |
-| 留档与 ChangeLog | [产物留档](#产物留档)、[ChangeLog 规范](#changelog-规范) | `./release/<项目名>/`、ChangeLog 文件名与格式 |
-| 发布流程 | [发布到 GitHub Releases](#发布到-github-releases) | 打 `v*` 标签触发 CI 发布 |
-| 26.3 开发要点 | [26.3 开发要点](#263-开发要点) | 命令写代码里、MiniMessage、`paper-api` 用 `compileOnly` |
 | CI | [`./.github/workflows/`](./.github/workflows) | `build.yml` 构建、`release.yml` 发布 |
+
+> 一条规则只定义一次：规范写在 `./docs/dev/`，经验写在 `./docs/exp/`，README 只描述「这是什么、怎么用」。
 
 ## 环境要求
 
@@ -40,29 +42,32 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `./Minecraft-2
 
 ```
 .
+├── AGENTS.md                       # AI 协作入口：硬规则 / 必读清单 / 沟通字典 / 现状快照
 ├── build.gradle                    # 所有插件共享的构建配置（依赖、工具链、runServer）
 ├── gradle.properties               # 统一版本：Minecraft / Paper API / Java（升级版本改这里）
 ├── settings.gradle                 # 自动发现 ./Minecraft-26_3-plugin/ 下的插件目录
+├── docs/
+│   ├── dev/                        # 规范层（提交）：总纲 + 版本与产物 + 功能插件接入
+│   ├── exp/                        # 经验层（提交）：坑与经验库
+│   ├── plan/                       # 计划层（不提交）：阶段计划与任务拆解
+│   └── local.md                    # 本机机密（不提交）：路径 / 账密 / 代理 / token
 ├── templates/
 │   └── plugin-template/            # newPlugin 用的模板（一份可直接编译运行的示例插件）
 │       ├── build.gradle            # 只写版本号与额外依赖，公共配置在根 build.gradle
 │       └── src/main/{java,resources}
 ├── Minecraft-26_3-plugin/          # 插件都放这里，一个目录一个插件
-│   └── MainMenu/                   # 主菜单插件（功能插件接入规范见其 docs/）
+│   ├── MainMenu/                   # 主菜单框架 + 功能插件注册 API
+│   └── RealTime/                   # 在主菜单里显示当前时间（功能插件参考实现）
 ├── fabric-26_3-mod/                # Fabric 客户端模组（独立 Gradle 工程，不参与上面的插件构建）
 │   └── MainMenuRepair/             # 清理 ESC 暂停菜单的界面修复模组
+├── release/                        # 各版本的构建产物留档（提交进仓库）
+├── scripts/                        # 仓库维护脚本（如 rebuild-history.sh）
 ├── run/                            # 共用的测试服目录（服务端、世界、插件配置都在这里，已 gitignore）
 └── .github/                        # CI、Release、Issue/PR 模板、Dependabot
 ```
 
-### 路径约定
-
-仓库里所有文件提到路径时**一律写相对路径**（`./xxx/xxx` 形式），不要写 `C:\...`、`D:/...` 这类绝对路径 —— 换机器、换盘符、仓库改名后照样能用：
-
-- 引用仓库内的位置，写成 `./Minecraft-26_3-plugin/MainMenu`、`./templates/plugin-template/`、`./release/<项目名>/`、`./run/` 这样；
-- 脚本自己定位仓库根目录（`./scripts/rebuild-history.sh` 由脚本所在位置往上推，不写死盘符），临时文件放系统临时目录（`${TMPDIR:-/tmp}`），不落在仓库里；
-- Gradle / CI 里的路径写成相对工程根的形式（`rootProject.file('...')`、`./gradlew -p ...`），同样不要改成绝对路径；
-- 例外：插件运行期读写的路径相对**服务端根目录**（例如 `plugins/<插件名>/config.yml`，本仓库测试服里就是 `./run/plugins/<插件名>/`）。
+> 路径约定（一律 `./xxx/xxx` 相对形式、脚本自定位仓库根目录、禁止盘符路径）见
+> [`./docs/dev/conventions.md`](./docs/dev/conventions.md) §2。
 
 ## 快速开始
 
@@ -190,7 +195,7 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `./Minecraft-2
 ### 其它插件怎么挂功能
 
 功能插件以 MainMenu 为依赖，调用 `com.example.mainmenu.api` 注册「物品 / 悬停文本 / 点击是否有效 / 点击做什么 / 自定义位置」。
-完整规范见 [功能插件接入规范](./Minecraft-26_3-plugin/MainMenu/docs/功能插件接入规范.md)，最简形式：
+完整规范见 [功能插件接入规范](./docs/dev/功能插件接入规范.md)，最简形式：
 
 ```java
 MainMenuApi.registry().register(
@@ -266,13 +271,11 @@ ESC 菜单按钮：已就绪：pause_screen_additions 包含 mainmenu:main_menu�
 > 本工程因此不依赖 fabric-loom（`maven.fabricmc.net` 在部分网络下被限速到 KB 级，loom 会卡在下载上），
 > 只下载官方客户端 jar + 用 `src/mixin-stubs/java` 里的 Mixin 注解桩编译，细节见模组自己的 README。
 
-## 26.3 开发要点
+## 开发约定
 
-1. **命令写在代码里**。Paper 插件不使用 `plugin.yml` 的 `commands:` 字段，而是在 `onEnable` 里监听 `LifecycleEvents.COMMANDS` 注册 Brigadier 命令。
-2. **文本用 MiniMessage**。Adventure 的 `MiniMessage` 随 Paper 内置，配置里的 `<yellow>` 会被渲染成颜色；旧版 `&a` 写法需要自己用 `LegacyComponentSerializer` 转换。
-3. **`paper-api` 必须是 `compileOnly`**。运行期由服务端提供这些类，用 `implementation` 打包进去会造成类冲突。这条已在根 `build.gradle` 配好。
-4. **`api-version` 填 `26.3`**，与 `gradle.properties` 的 `minecraftVersion` 保持一致。
-5. **优先用 Paper API 而非 NMS**。需要读写方块、实体、数据包时先查 [Paper 文档](https://docs.papermc.io/paper/dev/)，只有官方 API 覆盖不到时才考虑 paperweight-userdev。
+编码约定（命令写在代码里、MiniMessage、`paper-api` 用 `compileOnly`、`api-version` 跟随游戏版本、Paper API 优先于 NMS、
+插件间依赖只用 `compileOnly`、配置与持久化、测试插件命名）全部收敛在
+[`./docs/dev/conventions.md`](./docs/dev/conventions.md) §3、§4、§5；踩过的坑与规避方式见 [`./docs/exp/`](./docs/exp/)。
 
 ## 测试服说明
 
@@ -304,93 +307,19 @@ dependencies {
 
 ## 发布到 GitHub Releases
 
-```bash
-# 1. 修改要发布的插件里的 version，例如 ./Minecraft-26_3-plugin/Shop/build.gradle
-# 2. 提交并打 tag
-git commit -am "chore: release shop 0.2.0"
-git tag v0.2.0
-git push origin main --tags
-```
+改好版本号、补完 ChangeLog、确认 `./release/<项目名>/` 里有对应产物之后，打个 `v*` 标签推送即可 ——
+`.github/workflows/release.yml` 会构建全部工程并把 jar 挂到该 Release 上。
+完整的前置检查与命令见 [`./docs/dev/版本与产物规范.md`](./docs/dev/版本与产物规范.md) §5。
 
-推送 `v*` 标签会触发 `.github/workflows/release.yml`，构建所有插件并把 jar 全部附加到该 Release 上。
+## 版本与产物规范
 
-## 版本与产物命名规范
+产物命名格式、涨号规则（含「正式版之后再改动先回到测试版」）、留档、ChangeLog 规范、发布流程、
+以及用 `./scripts/rebuild-history.sh` 从 git 历史重建产物，全部收敛在
+[`./docs/dev/版本与产物规范.md`](./docs/dev/版本与产物规范.md) —— 一条规则只在那里定义一次。
 
-所有构建产物按固定格式命名，并**留档在仓库根的 `./release/<项目名>/`**（一个项目一个子目录，每次小改版的产物都保留，不覆盖）：
+下面两张表是**事实**：当前版本，以及每个版本对应的提交与改动。
 
-| 类型 | 命名格式 | 示例 |
-| --- | --- | --- |
-| Paper 插件 | `<项目名>-<游戏版本>-plugin-<项目版本>` | `MainMenu-mc26_3-plugin-Beta_0_6_0.jar` |
-| Fabric 模组 | `<项目名>-<游戏版本>-fabric-<项目版本>` | `MainMenuRepair-mc26_3-fabric-Beta_0_3_1.jar` |
-| NeoForge 模组（后续） | `<项目名>-<游戏版本>-neoforge-<项目版本>` | — |
-| Forge 模组（后续） | `<项目名>-<游戏版本>-forge-<项目版本>` | — |
-
-- **游戏版本**：把点换成下划线，26.3 → `mc26_3`。构建脚本按 `gradle.properties` 的 `minecraftVersion` 自动生成，不用手写。
-- **项目版本**：测试版为 `Beta_x_x_x`（例如 `Beta_1_0_2`），正式版去掉 `Beta` 且第 1 位 +1、后两位归 0（例如 `2_0_0`）；
-  **出正式版之后如果还要改，先回到测试版**（见下节「版本号怎么涨」），测好再转正。
-
-### 版本号怎么涨
-
-| 改动类型 | 规则 | 示例 |
-| --- | --- | --- |
-| 测试期修 bug | 第 3 位 +1 | `Beta_0_3_1` → `Beta_0_3_2` |
-| 测试期新增功能 | 第 2 位 +1，第 3 位归 0 | `Beta_0_3_2` → `Beta_0_4_0` |
-| **正式版之后再改动** | **先回到测试版**：保留第 1 位并加回 `Beta`，修 bug 第 3 位 +1、新增功能第 2 位 +1（第 3 位归 0） | `1_0_1` → `Beta_1_0_2`（修 bug）、`Beta_1_1_0`（新增功能） |
-| **转正（出正式版）** | **第 1 位 +1，后两位归 0，去掉 `Beta`** | `Beta_0_4_0` → `1_0_0`；`Beta_1_0_2` / `Beta_1_1_0` → `2_0_0` |
-
-- **正式版不是终点**：只要正式版之后还要修 bug 或加功能，就先把版本改成 `Beta_1_x_x` 这种带第 1 位的测试版，
-  在测试版上验证完再转正；**不要直接往正式版号上接着涨**（例如不要 `1_0_1` → `1_0_2`，而是 `1_0_1` → `Beta_1_0_2`）。
-- **转正每次都按同一套算法**（首次和之后的转正一样）：第 1 位 +1、后两位归 0、去掉 `Beta`，所以第 1 位相当于「第几个正式版」——
-  `Beta_0_x_x` 转正成 `1_0_0`，`Beta_1_x_x` 转正成 `2_0_0`，依此类推（测试版里涨到第 2 位的功能改动，转正时也一起归零）。
-- 版本号写在各项目的 `build.gradle`（插件）/ `gradle.properties`（模组）里。
-
-### 产物留档
-
-`./gradlew build` 结束后会自动把 jar 复制到 `./release/<项目名>/`（任务 `archiveArtifact`，挂在 `build` 的 `finalizedBy` 上）。
-文件名自带版本，所以每次构建留下的是独立文件、不会互相覆盖。（如果以后再加测试用插件，命名沿用 `TestPlugin*`：它不参与留档，也不随 Release 发布。）
-
-`./release/` 已提交进仓库，所以历史产物能长期保留。要手动补一次留档：`./gradlew archiveArtifact`。
-
-### ChangeLog 规范
-
-每个项目在**版本号变化时**都要追加一段 ChangeLog，文件放在各自项目目录下，文件名固定：
-
-| 文件 | 记录范围 |
-| --- | --- |
-| `<项目名>-<游戏版本>-<类型>-ChangeLog-Beta.md` | 所有 `Beta_x_x_x` 版本的改动（含正式版之后重回测试版的版本） |
-| `<项目名>-<游戏版本>-<类型>-ChangeLog.md` | 正式版（去掉 `Beta` 之后）的改动 |
-
-格式（时间取该版本的提交时间；正式版只写日期）：
-
-```
-[Beta_0_1_0] 2026.10.17 12:54:26
-1.新增……功能
-2.修复了……
-
-[Beta_0_1_1 -> Beta_0_2_0] 2026.10.17 20:33:12
-1.新增……功能
-2.修复了……
-
-[正式版1_0_1 -> Beta_1_0_2] 2026.10.18 15:10:00
-1.正式版之后重回测试版的版本：上一版本写正式版号，写清这次是修 bug 还是加功能
-```
-
-```
-[正式版1_0_0] 2026.11.01
-1.新增……功能
-
-[正式版1_0_0 -> 2_0_0] 2026.12.05
-1.新增……功能
-2.修复……
-
-（转正后的版本号 = 第 1 位 +1、后两位归 0：Beta 期间测的改动都算进这一版）
-```
-
-- 首个版本写 `[版本号]`，之后每次写 `[上一版本 -> 新版本]`
-- 每条用 新增 / 修复 / 调整 措辞并顺序编号
-- 现有项目的历史记录已按 git 提交时间补齐，见各项目目录下的 ChangeLog 文件
-
-### 当前版本
+## 当前版本
 
 | 项目 | 正式版 | 测试版（进行中） |
 | --- | --- | --- |
@@ -398,11 +327,11 @@ git push origin main --tags
 | RealTime | `1_0_0`（2026.10.18） | `Beta_1_0_1`（修 jar 元数据里的仓库地址） |
 | MainMenuRepair（fabric） | `1_0_0`（2026.10.18） | `Beta_1_0_2`（Fabric API 改为推荐依赖、文档与产物名对齐） |
 
-> 三个项目都已出正式版，之后的改动**先回到测试版**（`Beta_1_x_x`）：修 bug 第 3 位 +1、新增功能第 2 位 +1，
-> 测好转正时第 1 位 +1、后两位归 0、去掉 `Beta`（例：`1_0_1` → `Beta_1_0_2` → `2_0_0`），不直接往正式版号上接着涨。
+> 涨号规则（正式版之后再改动先回到测试版 `Beta_1_x_x`，转正时第 1 位 +1、后两位归 0）见
+> [`./docs/dev/版本与产物规范.md`](./docs/dev/版本与产物规范.md) §2；
 > 逐版本改动见各项目目录下的 ChangeLog：`…-ChangeLog-Beta.md` 记所有测试版，`…-ChangeLog.md` 记正式版。
 
-### 版本历史
+## 版本历史
 
 `./release/<项目名>/` 里保留了每一版的产物；下面是对应的提交与改动（早期被同名覆盖的版本已用 `./scripts/rebuild-history.sh` 从 git 历史重建）。
 

@@ -28,6 +28,10 @@ bin/
 # 构建产物留档目录：每次小改版的产物都要保留，所以这里例外放行
 !release/**/*.jar
 
+### 文档体系（docs/dev 与 docs/exp 提交，计划与机密不提交）###
+docs/plan/
+docs/local.md
+
 ### 系统文件 ###
 .DS_Store
 Thumbs.db
