@@ -175,10 +175,18 @@ public final class PlaytimeSync {
          // 非 UUID 的玩家标识（理论上不会出现）：按不在线处理，只合并已结算累计
       }
 
+      // 后端返回的累计是 totalOnlineMillisAt(now) / totalAfkMillisAt(now)：**已经含当前未结算区间**
+      // （见后端 assembler.toDTO）。直接当"已结算值"存进本地，会和本地自己那段开区间重复计时，
+      // 所以这里先按各自的起点把开区间减掉，还原成真正的已结算值。
+      Long backendOnlineSince = optionalLongOf(row, "currentOnlineSince", "onlineSince");
+      Long backendAfkSince = optionalLongOf(row, "currentAfkSince", "afkSince");
+
       long backendOnlineMillis = longOf(row, 0L, "totalOnlineMillis", "onlineMillis", "totalOnline", "onlineMillisTotal");
       long backendAfkMillis = longOf(row, 0L, "totalAfkMillis", "afkMillis", "totalAfk", "afkMillisTotal");
+      backendOnlineMillis = settled(backendOnlineMillis, backendOnlineSince, now);
+      backendAfkMillis = settled(backendAfkMillis, backendAfkSince, now);
 
-      // 顶层没有累计时退一步：按子服明细求和（同一份数据的另一种形状）
+      // 顶层没有累计时退一步：按子服明细求和（每个子服的时长同样是"含未结算区间"的口径）
       if (backendOnlineMillis <= 0L || backendAfkMillis <= 0L) {
          List<?> subServers = listOf(row, "subServers", "subservers");
          if (subServers != null) {
@@ -186,8 +194,11 @@ public final class PlaytimeSync {
             long afk = 0L;
             for (Object sub : subServers) {
                if (sub instanceof Map) {
-                  online += longOf(asMap(sub), 0L, "onlineMillis", "totalOnlineMillis");
-                  afk += longOf(asMap(sub), 0L, "afkMillis", "totalAfkMillis");
+                  Map<String, Object> bucket = asMap(sub);
+                  online += settled(longOf(bucket, 0L, "onlineMillis", "totalOnlineMillis"),
+                          optionalLongOf(bucket, "currentOnlineSince", "onlineSince"), now);
+                  afk += settled(longOf(bucket, 0L, "afkMillis", "totalAfkMillis"),
+                          optionalLongOf(bucket, "currentAfkSince", "afkSince"), now);
                }
             }
 
@@ -260,7 +271,109 @@ public final class PlaytimeSync {
       return value instanceof String ? (String)value : String.valueOf(value);
    }
 
-   /** 按键取值：先精确匹配，再忽略大小写匹配（部署版本字段大小写不一致时不至于全空）。 */
+   /** 把"含未结算区间"的累计还原成已结算值（后端返回的是前者）。 */
+   private static long settled(long totalWithOpenInterval, Long openSince, long now) {
+      long open = openSince == null || now <= openSince.longValue() ? 0L : now - openSince.longValue();
+      return Math.max(totalWithOpenInterval - open, 0L);
+   }
+
+   /**
+    * 后端侧看到的某个玩家的数字（口径与后端界面完全一致：含当前未结算区间）。
+    *
+    * <p>给 {@code /yudreammc playtime} 做"本地 vs 后端"对照用；找不到返回 {@code null}。
+    */
+   public BackendNumbers fetchPlayerFromBackend(String playerId) {
+      if (playerId == null || playerId.isEmpty() || !this.plugin.canReport()) {
+         return null;
+      }
+
+      long now = System.currentTimeMillis();
+      for (int page = 1; page <= MAX_PAGES; page++) {
+         HttpResult result;
+         try {
+            result = this.fetchPlayersPage(page);
+         } catch (IOException e) {
+            this.plugin.getLogger().warning("查询后端玩家记录失败：" + e.getMessage());
+            return null;
+         }
+
+         if (!result.isSuccess()) {
+            this.plugin.getLogger().warning("查询后端玩家记录失败：HTTP " + result.getStatusCode());
+            return null;
+         }
+
+         List<?> records = listOf(payloadOf(MiniJson.parseObject(result.getBody())), "records", "list", "items");
+         if (records == null) {
+            return null;
+         }
+
+         for (Object item : records) {
+            if (!(item instanceof Map)) {
+               continue;
+            }
+
+            Map<String, Object> row = asMap(item);
+            if (!playerId.equalsIgnoreCase(stringOf(row, "", "playerId", "id", "uuid"))) {
+               continue;
+            }
+
+            return new BackendNumbers(
+                    stringOf(row, "", "playerName", "name"),
+                    longOf(row, 0L, "totalOnlineMillis", "onlineMillis", "totalOnline"),
+                    longOf(row, 0L, "totalAfkMillis", "afkMillis", "totalAfk"),
+                    boolOf(row, "online")
+            );
+         }
+
+         if (records.isEmpty()) {
+            return null;
+         }
+      }
+
+      return null;
+   }
+
+   private static boolean boolOf(Map<String, Object> map, String... keys) {
+      Object value = valueOf(map, keys);
+      if (value instanceof Boolean) {
+         return (Boolean)value;
+      }
+
+      return value instanceof String && Boolean.parseBoolean((String)value);
+   }
+
+   /** 后端侧的玩家数字（含未结算区间，与后端界面口径一致）。 */
+   public static final class BackendNumbers {
+      private final String playerName;
+      private final long onlineMillis;
+      private final long afkMillis;
+      private final boolean online;
+
+      private BackendNumbers(String playerName, long onlineMillis, long afkMillis, boolean online) {
+         this.playerName = playerName;
+         this.onlineMillis = onlineMillis;
+         this.afkMillis = afkMillis;
+         this.online = online;
+      }
+
+      public String getPlayerName() {
+         return this.playerName;
+      }
+
+      public long getOnlineMillis() {
+         return this.onlineMillis;
+      }
+
+      public long getAfkMillis() {
+         return this.afkMillis;
+      }
+
+      public boolean isOnline() {
+         return this.online;
+      }
+   }
+
+   /** 键取值：先精确匹配，再忽略大小写匹配（部署版本字段大小写不一致时不至于全空）。 */
    private static Object valueOf(Map<String, Object> map, String... keys) {
       if (map == null) {
          return null;

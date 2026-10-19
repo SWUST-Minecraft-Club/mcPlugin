@@ -12,6 +12,7 @@ import online.yudream.minecraft.bukkit.bridge.BridgeMode;
 import online.yudream.minecraft.bukkit.bridge.DownstreamSensor;
 import online.yudream.minecraft.bukkit.config.YudreamConfig;
 import online.yudream.minecraft.bukkit.playtime.PlaytimeLedger;
+import online.yudream.minecraft.bukkit.playtime.PlaytimeSync;
 import online.yudream.minecraft.bukkit.util.PlayerSummaryParser;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -238,6 +239,32 @@ public final class YudreamCommand implements CommandExecutor, TabCompleter {
       sender.sendMessage(prefix() + ChatColor.GRAY + "  afk: " + ChatColor.WHITE + formatDuration(ledger.afkMillisAt(targetId, now)));
       sender.sendMessage(prefix() + ChatColor.GRAY + "  ledger: " + ledger.getFile().getName() + " (players=" + ledger.size() + ")"
               + (this.plugin.getReportJournal() == null ? "" : ", pending reports=" + this.plugin.getReportJournal().size()));
+
+      // 顺手把后端侧的数字也打出来做对照（口径与后端界面一致：含当前这次在线）
+      final PlaytimeSync sync = this.plugin.getPlaytimeSync();
+      if (sync == null || !this.plugin.canReport()) {
+         return;
+      }
+
+      final UUID backendTarget = targetId;
+      this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, new Runnable() {
+         public void run() {
+            final PlaytimeSync.BackendNumbers backend = sync.fetchPlayerFromBackend(backendTarget.toString());
+            YudreamCommand.this.plugin.getServer().getScheduler().runTask(YudreamCommand.this.plugin, new Runnable() {
+               public void run() {
+                  if (backend == null) {
+                     sender.sendMessage(prefix() + ChatColor.GRAY + "  backend: 查不到该玩家（或列表接口不可用）");
+                     return;
+                  }
+
+                  sender.sendMessage(prefix() + ChatColor.GRAY + "  backend: online " + ChatColor.WHITE
+                          + formatDuration(backend.getOnlineMillis()) + ChatColor.GRAY + ", afk " + ChatColor.WHITE
+                          + formatDuration(backend.getAfkMillis()) + ChatColor.GRAY
+                          + (backend.isOnline() ? " (online now)" : ""));
+               }
+            });
+         }
+      });
    }
 
    /** 时长显示：hh 小时 mm 分钟（不足 1 小时只显示分钟，0 显示 0分钟）。 */
