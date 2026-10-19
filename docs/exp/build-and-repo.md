@@ -41,3 +41,13 @@
 - **规避/解决**：构建前记下 `git status`，构建后确认仍为空即可；重建脚本（`./scripts/rebuild-history.sh`）补档同样安全。
   2026.10.18 实测：脚本重建出的历史 jar 与仓库里已提交的同名 jar 字节一致。
 - **来源**：2026.10.18 环境验证；`./scripts/rebuild-history.sh`、`./build.gradle` 的 `archiveArtifact`。
+
+## Gradle 10 起，执行期访问 Task.project 会直接报错
+
+- **现象**：`./gradlew build --warning-mode all` 报 `Invocation of Task.project at execution time has been deprecated`，
+  出现在 `archiveArtifact`、`newPlugin` 以及模组的下载 / 归档任务里；Gradle 10 会从弃用升级成报错。
+- **根因**：任务动作（`doLast`、`dependsOn` 闭包）在执行期通过 `Task.project` / `rootProject` 访问项目对象；
+  该 API 与配置缓存不兼容。
+- **规避/解决**：凡是执行期要用的值（项目名、归档目录、下载地址、子工程路径、`-P` 参数）都在**配置期**取好存进局部变量；
+  复制 / 删除文件改用 `java.nio.file.Files` / `File` 方法；`newPlugin` 的模板复制改为自包含的递归复制。
+- **来源**：2026.10.18 构建脚本清理；`./build.gradle`、`./fabric-26_3-mod/MainMenuRepair/build.gradle`。
