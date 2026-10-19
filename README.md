@@ -360,6 +360,7 @@ dependencies {
 | `1_0_0` | `f4d7a65` | 出正式版：测试期功能汇总（主菜单框架 + 功能插件 API + 管理员管理界面 + 位置规则）；产物已留档 |
 | `1_0_1` | `f4d7a65` | 修：`preferredSlot` 写在功能区或越界时被误判为位置冲突 |
 | `Beta_1_0_2` | `da87b2c` | 正式版后重回测试版：修 jar 元数据里的仓库地址（`mcPligin` → `mcPlugin`）；仓库路径统一为相对路径；产物已留档 |
+| `Beta_1_1_0` | `bfa2fe6` | 新增：功能项支持按查看者渲染（`icon(viewer)` / `description(viewer)` + 构建器 `iconForViewer` / `linesForViewer`），管理界面同步；产物已留档 |
 
 **RealTime（插件）**
 
@@ -387,6 +388,19 @@ dependencies {
 | `Beta_0_3_1` | `a11139f` | 改用 Fabric API 把按钮直接换成"发 /cd" |
 | `1_0_0` | `0c83099` | 出正式版：清理 ESC 暂停菜单（去掉 4 个图标按钮 + 第三方内容警告，ESC→主菜单一步到位）；产物已留档 |
 | `Beta_1_0_1` | `da87b2c` | 正式版后重回测试版：修 `fabric.mod.json` 里的仓库地址（`mcPligin` → `mcPlugin`）；产物已留档 |
+
+**YudreamPlaytime（插件，MainMenu 伴侣）**
+
+| 版本 | 提交 | 改动 |
+| --- | --- | --- |
+| `Beta_0_1_0` | `bfa2fe6` | 首个版本：主菜单里显示查看者自己的在线时长与 AFK 时长（玩家头图标、点击无效）；数据读本机 yudream 桥接插件的本地台账 |
+
+**yudream-minecraft-server（Bukkit 桥接插件）**
+
+| 版本 | 提交 | 改动 |
+| --- | --- | --- |
+| `1_6_2` | 上游产物 | 官方正式版（反编译基线，未入库；产物见产品线自己的发布渠道） |
+| `Beta_1_7_0` | `bfa2fe6` | 基线纳入本仓（Gradle 工程，spigot-api 1.13.2 + Java 8）；新增本地在线时长统计、待发事件落盘与恢复补发、`/yudreammc playtime`；产物已留档 |
 
 ## 常见问题
 
