@@ -450,6 +450,11 @@ public final class YudreamMinecraftPlugin extends JavaPlugin {
       return this.reportJournal;
    }
 
+   /** 本地台账与后端对齐的进度（命令里显示最近一次结果）。 */
+   public PlaytimeSync getPlaytimeSync() {
+      return this.playtimeSync;
+   }
+
    public DownstreamSensor getSensor() {
       return this.sensor;
    }

@@ -51,7 +51,7 @@
 ## 现状快照（2026-10-18，调整后更新本行）
 
 插件 MainMenu（正式版 `1_0_1` / 测试中 `Beta_1_1_0`）· RealTime（`1_0_0` / `Beta_1_0_1`）· MainMenuRepair Fabric 模组（`1_0_0` / `Beta_1_0_1`）·
-YudreamPlaytime（`Beta_0_1_0`，MainMenu 伴侣插件：菜单里显示查看者自己的在线时长）· yudream-minecraft-server（上游正式版 `1_6_2` / 测试中 `Beta_1_8_0`，
+YudreamPlaytime（`Beta_0_1_0`，MainMenu 伴侣插件：菜单里显示查看者自己的在线时长）· yudream-minecraft-server（上游正式版 `1_6_2` / 测试中 `Beta_1_8_1`，
 反编译基线纳入本仓的 Bukkit 桥接插件，编译目标 spigot-api 1.13.2 + Java 8，新增本地时长统计、断线补发与后端对齐）；
 结构 `./Minecraft-26_3-plugin/<插件名>/`（Paper 插件，MainMenu 提供功能注册 API）· `./fabric-26_3-mod/MainMenuRepair/`（独立 Gradle 工程）·
 `./templates/plugin-template/`（newPlugin 模板）· `./release/<项目名>/`（产物留档）· `./run/`（共用测试服）· `./docs/dev|exp|plan/`（规范 / 经验 / 计划）；

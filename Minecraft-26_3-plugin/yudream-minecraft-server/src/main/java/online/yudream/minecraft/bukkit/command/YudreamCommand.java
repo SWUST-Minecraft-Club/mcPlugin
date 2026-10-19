@@ -2,7 +2,9 @@ package online.yudream.minecraft.bukkit.command;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import online.yudream.minecraft.bukkit.YudreamMinecraftPlugin;
 import online.yudream.minecraft.bukkit.api.HttpResult;
@@ -19,7 +21,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 public final class YudreamCommand implements CommandExecutor, TabCompleter {
-   private static final List<String> SUBCOMMANDS = Arrays.asList("reload", "status", "sync", "queue", "playtime", "mode", "help");
+   private static final List<String> SUBCOMMANDS = Arrays.asList("reload", "status", "sync", "queue", "playtime", "syncplaytime", "mode", "help");
    private final YudreamMinecraftPlugin plugin;
 
    public YudreamCommand(YudreamMinecraftPlugin plugin) {
@@ -44,6 +46,9 @@ public final class YudreamCommand implements CommandExecutor, TabCompleter {
          return true;
       } else if ("playtime".equals(subcommand)) {
          this.playtime(sender, args);
+         return true;
+      } else if ("syncplaytime".equals(subcommand)) {
+         this.syncPlaytime(sender);
          return true;
       } else if ("mode".equals(subcommand)) {
          this.mode(sender, label, args);
@@ -117,7 +122,12 @@ public final class YudreamCommand implements CommandExecutor, TabCompleter {
 
    private void status(final CommandSender sender) {
       YudreamConfig settings = this.plugin.getSettings();
+      sender.sendMessage(prefix() + "Plugin: " + ChatColor.WHITE + "yudream-minecraft-server "
+              + this.plugin.getDescription().getVersion() + ChatColor.RESET + " (api-version " + this.plugin.getDescription().getAPIVersion() + ")");
       sender.sendMessage(prefix() + "Mode: " + ChatColor.WHITE + settings.getDownstream().getMode().getId() + ChatColor.RESET + " (" + (settings.isEnabled() ? "enabled" : "disabled") + ")");
+      sender.sendMessage(prefix() + "Local playtime: " + ChatColor.GRAY + (settings.getLocalPlaytime().isEnabled() ? "enabled" : "disabled")
+              + ", backend sync " + (settings.getLocalPlaytime().isSyncFromBackend() ? "every " + settings.getLocalPlaytime().getSyncIntervalTicks() / 20L + "s" : "off")
+              + ", last=" + (this.plugin.getPlaytimeSync() == null ? "n/a" : this.plugin.getPlaytimeSync().describeLastResult()));
       if (settings.isDownstream()) {
          DownstreamSensor sensor = this.plugin.getSensor();
          sender.sendMessage(prefix() + "Proxy link: " + ChatColor.GRAY + (sensor == null ? "sensor not started" : sensor.describeLink()));
@@ -161,6 +171,38 @@ public final class YudreamCommand implements CommandExecutor, TabCompleter {
       } else {
          return this.plugin.canReport() ? "active, proxy unreachable" : "armed, proxy reachable";
       }
+   }
+
+   /** 立即把本地台账与后端对齐一次，结果直接回给执行者（不用去翻日志）。 */
+   private void syncPlaytime(final CommandSender sender) {
+      if (this.plugin.getPlaytimeSync() == null) {
+         sender.sendMessage(prefix() + ChatColor.RED + "本地时长同步不可用。");
+         return;
+      }
+
+      if (!this.plugin.getSettings().getLocalPlaytime().isSyncFromBackend()) {
+         sender.sendMessage(prefix() + ChatColor.RED + "local-playtime.sync-from-backend 已在配置里关闭。");
+         return;
+      }
+
+      final Set<UUID> online = new HashSet<>();
+      for (Player player : this.plugin.getServer().getOnlinePlayers()) {
+         online.add(player.getUniqueId());
+      }
+
+      sender.sendMessage(prefix() + "正在与后端对齐本地时长…");
+      this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, new Runnable() {
+         public void run() {
+            final boolean ok = YudreamCommand.this.plugin.getPlaytimeSync().pullFromBackend(online);
+            final String result = YudreamCommand.this.plugin.getPlaytimeSync().describeLastResult();
+            YudreamCommand.this.plugin.getServer().getScheduler().runTask(YudreamCommand.this.plugin, new Runnable() {
+               public void run() {
+                  sender.sendMessage(prefix() + (ok ? ChatColor.GREEN + "对齐完成：" : ChatColor.RED + "对齐未完成：")
+                          + ChatColor.GRAY + result);
+               }
+            });
+         }
+      });
    }
 
    /** 本地在线时长（与后端同口径），方便核对本地统计与后端数字是否一致。 */
@@ -217,6 +259,7 @@ public final class YudreamCommand implements CommandExecutor, TabCompleter {
       sender.sendMessage(prefix() + "/" + label + " sync");
       sender.sendMessage(prefix() + "/" + label + " queue");
       sender.sendMessage(prefix() + "/" + label + " playtime [玩家]");
+      sender.sendMessage(prefix() + "/" + label + " syncplaytime");
    }
 
    private static String prefix() {

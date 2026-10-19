@@ -49,7 +49,10 @@ durable-queue:
 
 - 本地台账文件格式与服务端之间是**稳定接口**：伴侣插件
   [`./Minecraft-26_3-plugin/YudreamPlaytime/`](../YudreamPlaytime) 直接读 `playtime.yml`，改格式要同步那一侧。
-- `/yudreammc playtime [玩家]` 可以就地核对本地数字（在线时长 / AFK 时长 / 待发条数）。
+- 命令：`/yudreammc playtime [玩家]` 看本地在线 / AFK 时长；`/yudreammc syncplaytime` 立即与后端对齐一次
+  （结果直接回在聊天框，不用翻日志）；`/yudreammc status` 会显示插件版本、本地统计开关、对齐间隔与最近一次对齐结果。
+- 排查口诀：菜单数字补不上后端的历史 → 先看 `/yudreammc syncplaytime` 的回执。若提示 HTTP 403/401，
+  说明该 API key 没有 `plugin:minecraft-server:manage` 权限（列表接口在管理端路径下）。
 - 反编译基线里 `online.yudream.minecraft.bridge.core` 包是产物自带的一份共享核心副本（部分类仍在用），
   其中两处无法编译的地方做了最小修正：`JsonValue.writeTo` 的重复局部变量名、`BridgeProtocol.decode`
   默认分支引用了不存在的变量；另外 `YudreamCommand` 里一处 `final` 局部变量在分支与 catch 里重复赋值。

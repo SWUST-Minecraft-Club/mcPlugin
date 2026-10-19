@@ -28,3 +28,12 @@
    （原路径 `/servers/{id}/players` 在现版本后端不存在，`/yudreammc status` 的远端统计一直拿不到数据）；
    需要 API key 带 `plugin:minecraft-server:manage` 权限，旧后端仍会回退到原路径
 3.说明：下游（代理）模式不加对齐 —— 那种部署下凭证在代理侧，本机拉不到列表，本地数字仅代表本机观测
+
+[Beta_1_8_0 -> Beta_1_8_1] 2026.10.19 15:20:00
+1.修复了"本地时长与后端对不上"：平台给插件的响应默认带一层信封（`PluginHttpResponse.ok` 的 `wrapped=true`），
+   玩家列表实际在 `{"code":..,"message":..,"data":{"records":[...],"total":N}}` 的 `data` 里，
+   而解析器原来只在顶层找 `records`，于是每次对齐都被判定成"响应里没有 records 数组"而静默跳过
+   （表现为本地数字永远补不上后端的历史）。现在 `data` 与顶层两种形状都认。
+2.新增：`/yudreammc syncplaytime` —— 立即对齐一次，成功条数与失败原因（含 HTTP 状态码）直接回在聊天框里；
+   `/yudreammc status` 也增加插件版本、本地统计开关、对齐间隔与最近一次对齐结果，
+   排查不必再翻服务端日志（玩家列表在管理端路径下，需要 API key 带 `plugin:minecraft-server:manage` 权限）。

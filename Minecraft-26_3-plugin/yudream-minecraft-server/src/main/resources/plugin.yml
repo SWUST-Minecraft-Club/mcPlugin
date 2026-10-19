@@ -8,7 +8,7 @@ description: Reports player join, quit and AFK activity to YuDream Admin, standa
 commands:
   yudreammc:
     description: Manage YuDream Minecraft server bridge.
-    usage: /<command> <mode|reload|status|sync|queue|playtime|help>
+    usage: /<command> <mode|reload|status|sync|queue|playtime|syncplaytime|help>
     aliases: [ymc]
     permission: yudreammc.admin
 

@@ -32,9 +32,20 @@ public final class PlaytimeSync {
    private static final int MAX_PAGES = 50;
 
    private final YudreamMinecraftPlugin plugin;
+   private volatile long lastAttemptAt;
+   private volatile String lastResult = "尚未尝试";
 
    public PlaytimeSync(YudreamMinecraftPlugin plugin) {
       this.plugin = plugin;
+   }
+
+   /** 最近一次对齐的结果（给 /yudreammc status 与 syncplaytime 用，省得翻日志）。 */
+   public String describeLastResult() {
+      return this.lastResult;
+   }
+
+   public long getLastAttemptAt() {
+      return this.lastAttemptAt;
    }
 
    /**
@@ -45,7 +56,14 @@ public final class PlaytimeSync {
     */
    public boolean pullFromBackend(Set<UUID> onlineNow) {
       PlaytimeLedger ledger = this.plugin.getPlaytimeLedger();
-      if (ledger == null || !this.plugin.canReport()) {
+      this.lastAttemptAt = System.currentTimeMillis();
+      if (ledger == null) {
+         this.lastResult = "失败：本地台账不可用";
+         return false;
+      }
+
+      if (!this.plugin.canReport()) {
+         this.lastResult = "跳过：当前模式不直连后端（下游模式 / 未配置 / 总开关关闭）";
          return false;
       }
 
@@ -59,20 +77,25 @@ public final class PlaytimeSync {
          try {
             result = this.plugin.getApiClient().players(page, PAGE_SIZE);
          } catch (IOException e) {
+            this.lastResult = "失败：第 " + page + " 页请求异常（" + e.getMessage() + "）";
             this.plugin.getLogger().warning("与后端对齐本地时长失败（第 " + page + " 页）：" + e.getMessage());
             return false;
          }
 
          if (!result.isSuccess()) {
+            this.lastResult = "失败：HTTP " + result.getStatusCode()
+                    + "（列表接口需要 API key 带 plugin:minecraft-server:manage 权限）";
             this.plugin.getLogger().warning("与后端对齐本地时长失败：HTTP " + result.getStatusCode()
-                    + "（列表接口需要 API key 带 plugin:minecraft-server:manage 权限）");
+                    + "，body=" + shorten(result.getBody())
+                    + "（玩家活动列表在管理端路径下，需要 API key 带 plugin:minecraft-server:manage 权限）");
             return false;
          }
 
-         Map<String, Object> body = MiniJson.parseObject(result.getBody());
-         Object rawRecords = body == null ? null : body.get("records");
+         Map<String, Object> payload = payloadOf(MiniJson.parseObject(result.getBody()));
+         Object rawRecords = payload == null ? null : payload.get("records");
          if (!(rawRecords instanceof List)) {
-            this.plugin.getLogger().warning("与后端对齐本地时长失败：响应里没有 records 数组。");
+            this.lastResult = "失败：响应里没有 records 数组（body 开头：" + shorten(result.getBody()) + "）";
+            this.plugin.getLogger().warning("与后端对齐本地时长失败：响应里没有 records 数组，body 开头=" + shorten(result.getBody()));
             return false;
          }
 
@@ -88,7 +111,7 @@ public final class PlaytimeSync {
             }
          }
 
-         long total = MiniJson.longValue(body, "total", records.size());
+         long total = MiniJson.longValue(payload, "total", records.size());
          if (records.isEmpty() || (long)page * (long)PAGE_SIZE >= total) {
             break;
          }
@@ -97,9 +120,31 @@ public final class PlaytimeSync {
       }
 
       ledger.saveIfDirty();
-      this.plugin.getLogger().info("本地时长台账已与后端对齐：后端记录 " + rows + " 条，更新本地 " + updated
-              + " 条，本地共 " + ledger.size() + " 名玩家。");
+      this.lastResult = "成功：后端记录 " + rows + " 条，更新本地 " + updated + " 条，本地共 " + ledger.size() + " 名玩家";
+      this.plugin.getLogger().info("本地时长台账已与后端对齐：" + this.lastResult);
       return true;
+   }
+
+   /**
+    * 取数据载荷：平台默认把响应包成 {@code {"code":..,"message":..,"data":..}}（{@code PluginHttpResponse.ok} 的
+    * {@code wrapped=true}），真正的 records / total 在 {@code data} 里；没包一层时直接用顶层。
+    */
+   private static Map<String, Object> payloadOf(Map<String, Object> body) {
+      if (body == null) {
+         return null;
+      }
+
+      Object data = body.get("data");
+      return data instanceof Map ? asMap(data) : body;
+   }
+
+   private static String shorten(String body) {
+      if (body == null) {
+         return "";
+      }
+
+      String text = body.replace('\n', ' ').trim();
+      return text.length() <= 200 ? text : text.substring(0, 200) + "...";
    }
 
    private boolean merge(PlaytimeLedger ledger, Map<String, Object> row, Set<UUID> onlineNow, long now) {
