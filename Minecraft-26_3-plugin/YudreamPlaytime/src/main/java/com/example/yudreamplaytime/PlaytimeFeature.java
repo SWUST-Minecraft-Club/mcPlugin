@@ -17,7 +17,7 @@ import org.bukkit.inventory.meta.SkullMeta;
  * 主菜单里的「我的在线时长」功能项。
  *
  * <p>按查看者渲染（覆写 {@code icon(viewer)} / {@code description(viewer)}）：
- * 图标是查看者自己的头，悬停显示玩家名、在线时长、AFK 时长；点击无效（{@code clickable()} 为 false）。
+ * 图标是查看者自己的头，悬停显示玩家名、在线时长、挂机时长；点击无效（{@code clickable()} 为 false）。
  *
  * <p>数字取自本地时长台账，口径与 YuDream Admin 后端一致（含当前未结算区间；AFK 单独统计），
  * 所以后端挂了这里照样显示。
@@ -56,7 +56,7 @@ public final class PlaytimeFeature implements MenuFeature {
     @Override
     public List<Component> description() {
         final List<Component> lines = new ArrayList<>(1);
-        lines.add(plain("查看你自己的在线时长与 AFK 时长", NamedTextColor.GRAY));
+        lines.add(plain("查看你自己的在线时长与挂机时长", NamedTextColor.GRAY));
         return lines;
     }
 
@@ -68,10 +68,10 @@ public final class PlaytimeFeature implements MenuFeature {
         lines.add(label("玩家：", viewer.getName()));
         if (record == null) {
             lines.add(label("在线时长：", DurationFormat.format(0L)));
-            lines.add(label("AFK 时长：", DurationFormat.format(0L)));
+            lines.add(label("挂机时长：", DurationFormat.format(0L)));
         } else {
             lines.add(label("在线时长：", DurationFormat.format(record.onlineMillisAt(now))));
-            lines.add(label("AFK 时长：", DurationFormat.format(record.afkMillisAt(now))));
+            lines.add(label("挂机时长：", DurationFormat.format(record.afkMillisAt(now))));
         }
         return lines;
     }
