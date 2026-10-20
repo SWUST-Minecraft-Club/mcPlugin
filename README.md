@@ -246,7 +246,6 @@ ESC 菜单按钮：已就绪：pause_screen_additions 包含 mainmenu:main_menu�
 | `time.material` / `time.name` | 显示用的物品与名称 |
 | `time.line` | 悬停文本，`{time}` 替换成格式化时间 |
 | `time.format` / `time.zone-offset-hours` | 时间格式与时区偏移（默认 `yyyy-MM-dd HH:mm:ss` / 东 8 区） |
-| `time.hint` | 固定位置提示，留空不显示 |
 
 它直接实现 `MenuFeature` 接口（而不是用 builder），因为 `description()` 每次渲染都会被调用 ——
 配合 MainMenu 的周期性重绘，显示的时间会自动跟着走。这也是给功能插件的参考写法：
@@ -328,8 +327,8 @@ dependencies {
 
 | 项目 | 正式版 | 测试版（进行中） |
 | --- | --- | --- |
-| MainMenu | `1_0_1`（2026.10.18） | `Beta_1_2_0`（功能项按查看者渲染 + `MainMenuApi.open`） |
-| RealTime | `1_0_0`（2026.10.18） | `Beta_1_0_1`（修 jar 元数据里的仓库地址） |
+| MainMenu | `1_0_1`（2026.10.18） | `Beta_1_2_1`（按查看者渲染 + `MainMenuApi.open`；去掉开发者提示） |
+| RealTime | `1_0_0`（2026.10.18） | `Beta_1_0_2`（去掉固定位提示） |
 | MainMenuRepair（fabric） | `1_0_0`（2026.10.18） | `Beta_1_0_1`（修 jar 元数据里的仓库地址） |
 | YudreamPlaytime | `1_0_0`（2026.10.19） | —（已转正） |
 | yudream-minecraft-server | `2_0_0`（2026.10.19） | `Beta_2_0_1`（修：列表接口 500 时不再刷 WARN，路径探测一次并持久化） |

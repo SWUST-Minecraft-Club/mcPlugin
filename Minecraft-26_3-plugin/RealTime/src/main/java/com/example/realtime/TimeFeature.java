@@ -66,13 +66,9 @@ public final class TimeFeature implements MenuFeature {
     /** 每次渲染都会调用，所以显示的是"此刻"的时间 */
     @Override
     public List<Component> description() {
-        final List<Component> lore = new ArrayList<>(2);
+        final List<Component> lore = new ArrayList<>(1);
         lore.add(plugin.miniRaw(plugin.string("time.line", "<gray>当前时间：<white>{time}</white></gray>")
                 .replace("{time}", formatter.format(Instant.now()))));
-        final String hint = plugin.string("time.hint", "");
-        if (!hint.isBlank()) {
-            lore.add(plugin.miniRaw(hint));
-        }
         return lore;
     }
 

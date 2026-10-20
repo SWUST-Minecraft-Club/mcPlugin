@@ -50,8 +50,6 @@ menu:
 
   # 功能物品的附加提示
   feature:
-    clickable-hint: "<dark_gray>点击使用</dark_gray>"
-    not-clickable-hint: "<dark_gray>点击无效</dark_gray>"
     # 自定义位置冲突时追加在悬停文本最后一行
     conflict-hint: "<red>该功能插件位置不可用，已自动归到功能区</red>"
 

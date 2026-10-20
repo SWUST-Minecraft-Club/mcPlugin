@@ -134,7 +134,6 @@ public final class MenuRenderer {
             // 功能插件直接把文本写在物品里时，保留它
             meta.lore().forEach(line -> lore.add(noItalic(line)));
         }
-        addHint(lore, feature.clickable() ? "menu.feature.clickable-hint" : "menu.feature.not-clickable-hint");
         if (movedToFunctionArea) {
             // 规范要求：位置不可用时，在悬停文本最后追加提示
             addHint(lore, "menu.feature.conflict-hint");

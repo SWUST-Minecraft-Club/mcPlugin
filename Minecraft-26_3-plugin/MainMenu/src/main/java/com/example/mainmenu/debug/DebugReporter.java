@@ -33,7 +33,7 @@ public final class DebugReporter {
             "menu.filler.name",
             "menu.paging.previous-name", "menu.paging.next-name", "menu.paging.page-line",
             "menu.paging.first-page", "menu.paging.last-page",
-            "menu.feature.clickable-hint", "menu.feature.not-clickable-hint", "menu.feature.conflict-hint",
+            "menu.feature.conflict-hint",
             "messages.no-permission", "messages.players-only", "messages.reloaded");
 
     private final MainMenuPlugin plugin;

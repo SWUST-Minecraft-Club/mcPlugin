@@ -104,3 +104,8 @@
    可以直接替玩家重新打开主菜单（此前只能靠命令，插件拿不到打开入口）；MainMenu 启动时把
    `MenuService.open(player)` 注册进去，未加载时 `open` 抛异常、`openOrNull` 返回 false
 2.配套：《功能插件接入规范》补「打开主菜单」的用法说明
+
+[Beta_1_2_0 -> Beta_1_2_1] 2026.10.20 15:00:00
+1.调整：不再给功能物品的悬停文本追加「点击使用 / 点击无效」提示 —— 这两行只是给开发者看的说明，
+   玩家侧不需要；`menu.feature.clickable-hint` / `not-clickable-hint` 两个配置项一并移除
+   （旧配置文件里留着也不再生效），位置冲突提示 `conflict-hint` 保持不变

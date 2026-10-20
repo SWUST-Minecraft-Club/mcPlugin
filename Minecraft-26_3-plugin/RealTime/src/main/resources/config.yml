@@ -10,5 +10,3 @@ time:
   # 时间格式与时区偏移（东 8 区 = 8）
   format: "yyyy-MM-dd HH:mm:ss"
   zone-offset-hours: 8
-  # 固定位置提示（留空则不显示）
-  hint: "<dark_gray>固定功能位 · 点击无效</dark_gray>"
