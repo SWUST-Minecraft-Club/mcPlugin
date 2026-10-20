@@ -50,8 +50,16 @@ public interface WalletService {
         return debit(playerId, playerName, assetCode, amount, UUID.randomUUID().toString(), remark);
     }
 
-    /** 玩家流水（按时间倒序）。 */
+    /** 玩家流水（按时间倒序，全部币种）。 */
     CompletableFuture<WalletTransactionPage> transactions(UUID playerId, String playerName, int page, int size);
+
+    /**
+     * 玩家流水（按时间倒序，只取指定币种）。
+     *
+     * @param assetCodes 要看的币种 code 列表；{@code null} = 全部币种，空列表 = 一条都没有
+     */
+    CompletableFuture<WalletTransactionPage> transactions(UUID playerId, String playerName,
+                                                          List<String> assetCodes, int page, int size);
 
     /** 只读缓存：官网货币列表（没有缓存时返回空列表，不触发网络）。 */
     List<WalletAsset> cachedAssets();

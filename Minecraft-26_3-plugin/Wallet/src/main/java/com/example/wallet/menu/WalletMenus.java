@@ -60,7 +60,7 @@ public final class WalletMenus {
 
     /** 本服启用且官网启用的货币（初始列表来自 config 的 assets，管理员游戏内切换后以 assets.yml 为准）。 */
     public List<WalletAsset> enabledAssets() {
-        final List<String> codes = this.switches.effective(this.service.cachedAssets());
+        final List<String> codes = enabledCodes();
         final List<WalletAsset> result = new ArrayList<>();
         for (final WalletAsset asset : this.service.cachedAssets()) {
             if (codes.contains(asset.code())) {
@@ -68,6 +68,11 @@ public final class WalletMenus {
             }
         }
         return result;
+    }
+
+    /** 本服启用的货币 code（流水页按它过滤：停用的币种不显示流水）。 */
+    public List<String> enabledCodes() {
+        return this.switches.effective(this.service.cachedAssets());
     }
 
     /** 从当前界面返回上一级：下一 tick 重新打开主菜单（旧版 MainMenu 没有 open API 时退回执行 /cd）。 */
@@ -129,7 +134,8 @@ public final class WalletMenus {
         drawControls(inventory, holder, 1);
         player.openInventory(inventory);
 
-        this.service.transactions(player.getUniqueId(), player.getName(), holder.page(), this.config.historyPageSize())
+        this.service.transactions(player.getUniqueId(), player.getName(), enabledCodes(), holder.page(),
+                        this.config.historyPageSize())
                 .whenComplete((result, error) -> runSync(() -> {
                     if (viewing(player, holder)) {
                         drawHistory(holder, result, error);

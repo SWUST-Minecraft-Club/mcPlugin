@@ -28,7 +28,9 @@ import org.bukkit.plugin.Plugin;
  */
 public final class WalletServiceImpl implements WalletService {
 
-    private static final String STATUS_UNBOUND = "未绑定";
+    /** 官网流水单页条数（按币种分别取数时用）。 */
+    private static final int SITE_PAGE_SIZE = 100;
+    private static final int MAX_SITE_PAGES = 50;
 
     private final Plugin plugin;
     private final WalletConfig config;
@@ -128,27 +130,82 @@ public final class WalletServiceImpl implements WalletService {
     @Override
     public CompletableFuture<WalletTransactionPage> transactions(final UUID playerId, final String playerName,
                                                                  final int page, final int size) {
-        return supply(() -> {
-            final String userId = resolveUserId(playerId, playerName);
-            final Map<String, String> query = new LinkedHashMap<>();
-            query.put("userId", userId);
-            query.put("page", String.valueOf(Math.max(page, 1)));
-            query.put("size", String.valueOf(Math.max(1, Math.min(size, 200))));
+        return transactions(playerId, playerName, null, page, size);
+    }
 
-            final JsonObject payload = this.http.get("/admin/transactions", query);
-            final JsonArray records = WalletHttp.array(payload, "records");
-            final List<WalletTransaction> list = new ArrayList<>();
-            if (records != null) {
-                for (final JsonElement element : records) {
-                    if (element.isJsonObject()) {
-                        list.add(toTransaction(element.getAsJsonObject()));
+    @Override
+    public CompletableFuture<WalletTransactionPage> transactions(final UUID playerId, final String playerName,
+                                                                 final List<String> assetCodes,
+                                                                 final int page, final int size) {
+        return supply(() -> {
+            final int safePage = Math.max(page, 1);
+            final int safeSize = Math.max(1, Math.min(size, 200));
+
+            // 本服一个币种都没启用：直接空页，不去解析用户
+            if (assetCodes != null && assetCodes.isEmpty()) {
+                return new WalletTransactionPage(List.of(), 0L);
+            }
+
+            final String userId = resolveUserId(playerId, playerName);
+
+            if (assetCodes == null) {
+                return fetchTransactions(userId, null, safePage, safeSize);
+            }
+
+            if (assetCodes.size() == 1) {
+                return fetchTransactions(userId, assetCodes.get(0), safePage, safeSize);
+            }
+
+            // 多个币种：每个币种各取够前 safePage*safeSize 条，合并后本地分页（保持"最近优先"）
+            final long need = (long) safePage * (long) safeSize;
+            final List<WalletTransaction> merged = new ArrayList<>();
+            long total = 0L;
+            for (final String assetCode : assetCodes) {
+                long fetched = 0L;
+                long assetTotal = 0L;
+                for (int sitePage = 1; sitePage <= MAX_SITE_PAGES; sitePage++) {
+                    final WalletTransactionPage batch = fetchTransactions(userId, assetCode, sitePage, SITE_PAGE_SIZE);
+                    assetTotal = batch.total();
+                    merged.addAll(batch.records());
+                    fetched += batch.records().size();
+                    if (batch.records().isEmpty() || fetched >= assetTotal || fetched >= need) {
+                        break;
                     }
                 }
+                total += assetTotal;
             }
-            list.sort(Comparator.comparingLong(WalletTransaction::createdAt).reversed());
-            final long total = WalletHttp.lng(payload, "total", list.size());
-            return new WalletTransactionPage(List.copyOf(list), total);
+
+            merged.sort(Comparator.comparingLong(WalletTransaction::createdAt).reversed());
+            final int from = (int)Math.min((long)(safePage - 1) * (long)safeSize, merged.size());
+            final int to = (int)Math.min((long)from + (long)safeSize, merged.size());
+            return new WalletTransactionPage(List.copyOf(merged.subList(from, to)), total);
         });
+    }
+
+    /** 从官网取一页流水；{@code assetCode} 为空表示不限制币种。 */
+    private WalletTransactionPage fetchTransactions(final String userId, final String assetCode,
+                                                    final int page, final int size) {
+        final Map<String, String> query = new LinkedHashMap<>();
+        query.put("userId", userId);
+        if (assetCode != null && !assetCode.isBlank()) {
+            query.put("assetCode", assetCode);
+        }
+        query.put("page", String.valueOf(page));
+        query.put("size", String.valueOf(size));
+
+        final JsonObject payload = this.http.get("/admin/transactions", query);
+        final JsonArray records = WalletHttp.array(payload, "records");
+        final List<WalletTransaction> list = new ArrayList<>();
+        if (records != null) {
+            for (final JsonElement element : records) {
+                if (element.isJsonObject()) {
+                    list.add(toTransaction(element.getAsJsonObject()));
+                }
+            }
+        }
+        list.sort(Comparator.comparingLong(WalletTransaction::createdAt).reversed());
+        final long total = WalletHttp.lng(payload, "total", list.size());
+        return new WalletTransactionPage(List.copyOf(list), total);
     }
 
     private String resolveUserId(final UUID playerId, final String playerName) {
