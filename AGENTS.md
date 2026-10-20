@@ -53,6 +53,7 @@
 
 插件 MainMenu（正式版 `1_0_1` / 测试中 `Beta_1_2_1`）· RealTime（`1_0_0` / `Beta_1_0_2`）· MainMenuRepair Fabric 模组（`1_0_0` / `Beta_1_0_1`）·
 YudreamPlaytime（`1_0_0`，MainMenu 伴侣插件：菜单里显示查看者自己的在线时长）· Wallet（`Beta_0_2_1`，主菜单钱包：货币/余额/流水 + 管理员可切换本服货币启停 + 供后续插件依赖的 WalletApi）·
+ConcertoMenu（`Beta_0_1_0`，主菜单唱片机 → 发 `concerto:menu` 指令打开客户端 Concerto 主界面）·
 yudream-minecraft-server（正式版 `2_0_0` / 测试中 `Beta_2_0_1`，反编译基线纳入本仓的 Bukkit 桥接插件，编译目标 spigot-api 1.13.2 + Java 8，含本地时长统计、断线补发与后端对齐）；
 结构 `./Minecraft-26_3-plugin/<插件名>/`（Paper 插件，MainMenu 提供功能注册 API）· `./fabric-26_3-mod/MainMenuRepair/`（独立 Gradle 工程）·
 `./templates/plugin-template/`（newPlugin 模板）· `./release/<项目名>/`（产物留档）· `./run/`（共用测试服）· `./docs/dev|exp|plan/`（规范 / 经验 / 计划）；

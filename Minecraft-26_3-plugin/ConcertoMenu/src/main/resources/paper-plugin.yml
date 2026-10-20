@@ -1,0 +1,13 @@
+name: ConcertoMenu
+version: '${version}'
+main: com.example.concertomenu.ConcertoMenuPlugin
+api-version: '26.3'
+description: 在主菜单里放一个唱片机，点击让装了 Concerto 客户端模组的玩家打开 Concerto 音乐界面
+authors: [zhou-BZDDX]
+website: https://github.com/zhou-BZDDX/mcPlugin
+
+dependencies:
+  server:
+    MainMenu:
+      load: BEFORE
+      required: false

@@ -64,6 +64,7 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `./Minecraft-2
 │   ├── RealTime/                   # 在主菜单里显示当前时间（功能插件参考实现）
 │   ├── YudreamPlaytime/            # 主菜单里显示查看者自己的在线时长（MainMenu 伴侣插件）
 │   ├── Wallet/                     # 主菜单里的钱包（货币 / 余额 / 流水）+ 供后续插件依赖的钱包 API
+│   ├── ConcertoMenu/               # 主菜单里的 Concerto 音乐入口（唱片机 → 打开客户端 Concerto 界面）
 │   └── yudream-minecraft-server/   # YuDream Admin 桥接插件：上报 + 本地时长统计 + 断线补发（Java 8 / Bukkit 1.13.2 目标）
 ├── fabric-26_3-mod/                # Fabric 客户端模组（独立 Gradle 工程，不参与上面的插件构建）
 │   └── MainMenuRepair/             # 清理 ESC 暂停菜单的界面修复模组
@@ -333,6 +334,7 @@ dependencies {
 | YudreamPlaytime | `1_0_0`（2026.10.19） | —（已转正） |
 | yudream-minecraft-server | `2_0_0`（2026.10.19） | `Beta_2_0_1`（修：列表接口 500 时不再刷 WARN，路径探测一次并持久化） |
 | Wallet | —（还在测试版阶段） | `Beta_0_2_1`（管理员可切换本服货币启停；流水只显示启用币种） |
+| ConcertoMenu | —（还在测试版阶段） | `Beta_0_1_0`（首个版本：主菜单唱片机入口） |
 
 > 涨号规则（正式版之后再改动先回到测试版 `Beta_<第 1 位>_x_x`，转正时去掉 `Beta`、第 3 位归 0、第 2 位至少 +1，第 1 位不变）见
 > [`./docs/dev/版本与产物规范.md`](./docs/dev/版本与产物规范.md) §2；
