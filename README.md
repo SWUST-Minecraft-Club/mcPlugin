@@ -424,6 +424,12 @@ dependencies {
 | `Beta_0_2_0` | `25dbacd` | 新增：管理员在货币类型页点击羊毛切换本服启停（写 `assets.yml`）；修：返回主菜单（下一 tick 重开，旧版 MainMenu 退回 `/cd`） |
 | `Beta_0_2_1` | `6c54d9f` | 修：停用币种后流水页仍显示该币种（流水按本服启用币种过滤）；新增按币种过滤的 `transactions` 重载 |
 
+**ConcertoMenu（插件）**
+
+| 版本 | 提交 | 改动 |
+| --- | --- | --- |
+| `Beta_0_1_0` | `0dcb330` | 首个版本：主菜单唱片机 → 发 `concerto:menu` 的 `open` 指令打开客户端 Concerto 主界面 |
+
 ## 常见问题
 
 **新增的插件目录没被识别**：目录里必须有 `build.gradle`，否则 `settings.gradle` 会跳过并打印一行提示。
