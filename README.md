@@ -332,7 +332,7 @@ dependencies {
 | RealTime | `1_0_0`（2026.10.18） | `Beta_1_0_1`（修 jar 元数据里的仓库地址） |
 | MainMenuRepair（fabric） | `1_0_0`（2026.10.18） | `Beta_1_0_1`（修 jar 元数据里的仓库地址） |
 | YudreamPlaytime | `1_0_0`（2026.10.19） | —（已转正） |
-| yudream-minecraft-server | `2_0_0`（2026.10.19） | —（已转正，源自上游 `1_6_2`） |
+| yudream-minecraft-server | `2_0_0`（2026.10.19） | `Beta_2_0_1`（修：列表接口 500 时不再刷 WARN，路径探测一次并持久化） |
 | Wallet | —（还在测试版阶段） | `Beta_0_1_0`（首个版本：主菜单钱包 + 钱包 API） |
 
 > 涨号规则（正式版之后再改动先回到测试版 `Beta_1_x_x`，转正时第 1 位 +1、后两位归 0）见

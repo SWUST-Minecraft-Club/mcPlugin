@@ -1,6 +1,9 @@
 package online.yudream.minecraft.bukkit.playtime;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,20 +40,23 @@ public final class PlaytimeSync {
 
    private static final int PAGE_SIZE = 100;
    private static final int MAX_PAGES = 50;
+   private static final long FAILURE_LOG_INTERVAL_MS = 30L * 60L * 1000L;
 
    private final YudreamMinecraftPlugin plugin;
    private volatile long lastAttemptAt;
    private volatile String lastResult = "尚未尝试";
-   /** 上次成功的路径：管理端优先，失败过就记住另一条，避免每次都白撞一次 5xx。 */
-   private volatile boolean preferAdminPath = true;
+   /** 上次成功的路径：管理端优先，失败过就记住另一条并写盘，重启后直接走它，避免反复撞 5xx。 */
+   private volatile boolean preferAdminPath;
+   private long lastFailureLoggedAt;
 
    public PlaytimeSync(YudreamMinecraftPlugin plugin) {
       this.plugin = plugin;
+      this.preferAdminPath = this.loadPreferredPath();
    }
 
    /** 最近一次对齐的结果（给 /yudreammc status 与 syncplaytime 用，省得翻日志）。 */
    public String describeLastResult() {
-      return this.lastResult;
+      return this.lastResult + "（接口：" + (this.preferAdminPath ? "管理端" : "用户端") + "）";
    }
 
    public long getLastAttemptAt() {
@@ -96,8 +102,6 @@ public final class PlaytimeSync {
             this.lastResult = "失败：HTTP " + result.getStatusCode()
                     + "（管理端列表接口需要 API key 带 plugin:minecraft-server:manage 权限）"
                     + "，响应=" + shorten(result.getBody());
-            this.plugin.getLogger().warning("与后端对齐本地时长失败：HTTP " + result.getStatusCode()
-                    + "，body=" + shorten(result.getBody()));
             return false;
          }
 
@@ -136,7 +140,13 @@ public final class PlaytimeSync {
       ledger.saveIfDirty();
       this.lastResult = "成功：后端记录 " + rows + " 条，更新本地 " + updated + " 条，本地共 " + ledger.size() + " 名玩家"
               + (rows > 0 && updated == 0 ? "；没有任何字段被采纳，记录样例=" + sample : "");
-      this.plugin.getLogger().info("本地时长台账已与后端对齐：" + this.lastResult);
+      if (updated > 0) {
+         this.plugin.getLogger().info("本地时长台账已与后端对齐：" + this.lastResult);
+      } else {
+         // 没有变化是常态（两边已经一致），不刷 INFO；只在 FINE 里留痕
+         this.plugin.getLogger().fine("本地时长台账已与后端一致（无变化）：" + this.lastResult);
+      }
+
       return true;
    }
 
@@ -144,6 +154,8 @@ public final class PlaytimeSync {
     * 取一页玩家记录：优先上次成功的路径，失败（含 5xx）就换另一条路径再试一次。
     *
     * <p>管理端路径在部分部署上会返回 500，用户端路径在旧后端上可能不存在，所以两边都要能兜。
+    * 探测结果会写进 {@code sync-endpoint.txt}：重启后直接走可用的那条，不再每次白撞一次 5xx；
+    * 只有**两条都失败**时才打告警，且 30 分钟内最多一条（避免控制台被刷屏）。
     */
    private HttpResult fetchPlayersPage(int page) throws IOException {
       HttpResult result = this.plugin.getApiClient().playersAt(this.preferAdminPath, page, PAGE_SIZE);
@@ -154,12 +166,55 @@ public final class PlaytimeSync {
       HttpResult alternative = this.plugin.getApiClient().playersAt(!this.preferAdminPath, page, PAGE_SIZE);
       if (alternative.isSuccess()) {
          this.preferAdminPath = !this.preferAdminPath;
-         this.plugin.getLogger().info("玩家列表接口改用" + (this.preferAdminPath ? "管理端" : "用户端")
-                 + "路径（另一条返回 HTTP " + result.getStatusCode() + "）。");
+         this.savePreferredPath();
+         this.plugin.getLogger().info("玩家列表接口切换到" + (this.preferAdminPath ? "管理端" : "用户端")
+                 + "路径（另一条返回 HTTP " + result.getStatusCode() + "），之后都用这条。");
          return alternative;
       }
 
+      this.warnThrottled("与后端对齐本地时长失败：管理端 HTTP " + result.getStatusCode()
+              + "、用户端 HTTP " + alternative.getStatusCode()
+              + "（管理端列表接口需要 API key 带 plugin:minecraft-server:manage 权限）");
       return result;
+   }
+
+   /** 两条路径都失败时的告警节流（30 分钟一条）。 */
+   private void warnThrottled(String message) {
+      long now = System.currentTimeMillis();
+      if (now - this.lastFailureLoggedAt < FAILURE_LOG_INTERVAL_MS) {
+         return;
+      }
+
+      this.lastFailureLoggedAt = now;
+      this.plugin.getLogger().warning(message);
+   }
+
+   private File endpointStateFile() {
+      return new File(this.plugin.getDataFolder(), "sync-endpoint.txt");
+   }
+
+   /** 读上次成功的路径（{@code admin} / {@code legacy}），没有记录时默认先试管理端。 */
+   private boolean loadPreferredPath() {
+      File file = this.endpointStateFile();
+      if (!file.isFile()) {
+         return true;
+      }
+
+      try {
+         String text = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8).trim();
+         return !"legacy".equalsIgnoreCase(text);
+      } catch (IOException e) {
+         return true;
+      }
+   }
+
+   private void savePreferredPath() {
+      try {
+         Files.write(this.endpointStateFile().toPath(),
+                 (this.preferAdminPath ? "admin" : "legacy").getBytes(StandardCharsets.UTF_8));
+      } catch (IOException e) {
+         this.plugin.getLogger().fine("无法保存同步接口路径：" + e.getMessage());
+      }
    }
 
    private boolean merge(PlaytimeLedger ledger, Map<String, Object> row, Set<UUID> onlineNow, long now) {
