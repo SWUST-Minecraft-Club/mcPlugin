@@ -363,6 +363,7 @@ dependencies {
 | `Beta_1_0_2` | `da87b2c` | 正式版后重回测试版：修 jar 元数据里的仓库地址（`mcPligin` → `mcPlugin`）；仓库路径统一为相对路径；产物已留档 |
 | `Beta_1_1_0` | `bfa2fe6` | 新增：功能项支持按查看者渲染（`icon(viewer)` / `description(viewer)` + 构建器 `iconForViewer` / `linesForViewer`），管理界面同步；产物已留档 |
 | `Beta_1_2_0` | `eee95e1` | 新增 `MainMenuApi.open(player)` / `openOrNull(player)`：功能插件可在自己的界面里「返回上一级」；产物已留档 |
+| `Beta_1_2_1` | `d2ca44a` | 调整：不再追加「点击使用 / 点击无效」开发者提示（移除两个配置项）；位置冲突提示保留 |
 
 **RealTime（插件）**
 
@@ -371,6 +372,7 @@ dependencies {
 | `Beta_0_1_0` | `9108bca` | 首个版本：主菜单第 1 行第 2 格显示当前时间 |
 | `1_0_0` | `0c83099` | 出正式版：主菜单第 1 行第 2 格显示当前时间（时区与格式可配）；产物已留档 |
 | `Beta_1_0_1` | `da87b2c` | 正式版后重回测试版：修 jar 元数据里的仓库地址（`mcPligin` → `mcPlugin`）；产物已留档 |
+| `Beta_1_0_2` | `d2ca44a` | 调整：去掉「固定功能位 · 点击无效」开发者提示（移除 `time.hint`） |
 
 **MainMenuRepair（fabric 模组）**
 
