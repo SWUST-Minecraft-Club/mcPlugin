@@ -62,7 +62,7 @@ public final class MainMenuPlugin extends JavaPlugin {
         this.admin = new AdminService(this);
         this.debug = new DebugReporter(this);
 
-        MainMenuApi.install(features);
+        MainMenuApi.install(features, menus::open);
         getServer().getServicesManager().register(
                 MenuFeatureRegistry.class, features, this, ServicePriority.Normal);
 

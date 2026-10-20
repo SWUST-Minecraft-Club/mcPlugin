@@ -1,0 +1,34 @@
+# Wallet（主菜单里的钱包）
+#
+# 货币种类、余额、流水全部以 YuDream 官网为准；本插件不在本地保存余额，
+# 只做短时缓存用于菜单显示，所有加减货币的操作都直接调用官网接口（官网流水即上报结果）。
+
+# 官网地址（不要带结尾斜杠）。接口前缀固定为 /api/plugins/yudream-wallet
+base-url: "https://www.swustmc.cn"
+
+# 官网 API Key：需要 plugin:yudream-wallet:manage 权限
+# （余额查询、流水、加/减货币都在管理端接口下）。view 权限只能读货币种类。
+api-key: ""
+
+# 本服启用的货币 code 列表（黄绿色羊毛 = 本服启用且官网启用）。
+# 注意 code 以官网「钱包 → 资产」里的 code 为准；留空 = 官网所有 enabled 的货币都算本服启用。
+assets: []
+
+# 缓存时间（秒）：货币种类 / 余额。菜单每秒重绘，只读缓存，不阻塞。
+assets-cache-seconds: 60
+balance-cache-seconds: 30
+
+# 单次 HTTP 超时（毫秒）
+request-timeout-ms: 8000
+
+# 玩家映射方式：auto（先 UUID 绑定再名字）/ uuid / name
+match-mode: auto
+
+# 流水页：第 1~5 行放流水，每页条数（最大 45）
+history-page-size: 45
+
+# 管理员玩家列表页：每页玩家数（最大 45）
+admin-page-size: 45
+
+# 时间显示时区（流水时间）。默认东 8 区，与官网一致。
+timezone: "Asia/Shanghai"

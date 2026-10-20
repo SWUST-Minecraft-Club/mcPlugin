@@ -63,6 +63,7 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `./Minecraft-2
 │   ├── MainMenu/                   # 主菜单框架 + 功能插件注册 API
 │   ├── RealTime/                   # 在主菜单里显示当前时间（功能插件参考实现）
 │   ├── YudreamPlaytime/            # 主菜单里显示查看者自己的在线时长（MainMenu 伴侣插件）
+│   ├── Wallet/                     # 主菜单里的钱包（货币 / 余额 / 流水）+ 供后续插件依赖的钱包 API
 │   └── yudream-minecraft-server/   # YuDream Admin 桥接插件：上报 + 本地时长统计 + 断线补发（Java 8 / Bukkit 1.13.2 目标）
 ├── fabric-26_3-mod/                # Fabric 客户端模组（独立 Gradle 工程，不参与上面的插件构建）
 │   └── MainMenuRepair/             # 清理 ESC 暂停菜单的界面修复模组
@@ -327,11 +328,12 @@ dependencies {
 
 | 项目 | 正式版 | 测试版（进行中） |
 | --- | --- | --- |
-| MainMenu | `1_0_1`（2026.10.18） | `Beta_1_1_0`（功能项支持按查看者渲染） |
+| MainMenu | `1_0_1`（2026.10.18） | `Beta_1_2_0`（功能项按查看者渲染 + `MainMenuApi.open`） |
 | RealTime | `1_0_0`（2026.10.18） | `Beta_1_0_1`（修 jar 元数据里的仓库地址） |
 | MainMenuRepair（fabric） | `1_0_0`（2026.10.18） | `Beta_1_0_1`（修 jar 元数据里的仓库地址） |
 | YudreamPlaytime | `1_0_0`（2026.10.19） | —（已转正） |
 | yudream-minecraft-server | `2_0_0`（2026.10.19） | —（已转正，源自上游 `1_6_2`） |
+| Wallet | —（还在测试版阶段） | `Beta_0_1_0`（首个版本：主菜单钱包 + 钱包 API） |
 
 > 涨号规则（正式版之后再改动先回到测试版 `Beta_1_x_x`，转正时第 1 位 +1、后两位归 0）见
 > [`./docs/dev/版本与产物规范.md`](./docs/dev/版本与产物规范.md) §2；

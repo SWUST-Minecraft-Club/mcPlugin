@@ -1,7 +1,9 @@
 package com.example.mainmenu.api;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.ServicesManager;
+import java.util.function.Consumer;
 
 /**
  * 主菜单对外入口。
@@ -34,6 +36,7 @@ import org.bukkit.plugin.ServicesManager;
 public final class MainMenuApi {
 
     private static volatile MenuFeatureRegistry registry;
+    private static volatile Consumer<Player> opener;
 
     private MainMenuApi() {
     }
@@ -63,15 +66,47 @@ public final class MainMenuApi {
         return services.load(MenuFeatureRegistry.class);
     }
 
+    /**
+     * 替玩家打开主菜单（第一页）。
+     *
+     * <p>功能插件在自己的界面里做「返回上一级」时用：关闭自己的界面后调用它即可回到主菜单。
+     *
+     * @throws IllegalStateException 主菜单尚未加载
+     */
+    public static void open(final Player player) {
+        final Consumer<Player> current = opener;
+        if (current == null) {
+            throw new IllegalStateException(
+                    "MainMenu 尚未加载。请在 paper-plugin.yml 的 dependencies.server 中声明 MainMenu");
+        }
+        current.accept(player);
+    }
+
+    /** 替玩家打开主菜单；主菜单不可用时返回 false（软依赖场景，不抛异常）。 */
+    public static boolean openOrNull(final Player player) {
+        final Consumer<Player> current = opener;
+        if (current == null || player == null) {
+            return false;
+        }
+        current.accept(player);
+        return true;
+    }
+
     // ------------------------------------------------------------------
     // 以下为 MainMenu 内部使用
     // ------------------------------------------------------------------
 
     public static void install(final MenuFeatureRegistry implementation) {
+        install(implementation, null);
+    }
+
+    public static void install(final MenuFeatureRegistry implementation, final Consumer<Player> openHandler) {
         registry = implementation;
+        opener = openHandler;
     }
 
     public static void uninstall() {
         registry = null;
+        opener = null;
     }
 }
