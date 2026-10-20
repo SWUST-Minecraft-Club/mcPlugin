@@ -3,6 +3,7 @@ package com.example.wallet;
 import com.example.mainmenu.api.MainMenuApi;
 import com.example.mainmenu.api.MenuFeatureRegistry;
 import com.example.wallet.api.WalletApi;
+import com.example.wallet.internal.AssetSwitchStore;
 import com.example.wallet.internal.PlaytimeLedgerReader;
 import com.example.wallet.internal.WalletServiceImpl;
 import com.example.wallet.menu.WalletFeature;
@@ -29,7 +30,8 @@ public final class WalletPlugin extends JavaPlugin {
         this.service = new WalletServiceImpl(this, this.config);
         WalletApi.install(this.service);
 
-        this.menus = new WalletMenus(this, this.config, this.service, new PlaytimeLedgerReader(this));
+        this.menus = new WalletMenus(this, this.config, this.service, new PlaytimeLedgerReader(this),
+                new AssetSwitchStore(this, this.config.enabledAssets()));
         getServer().getPluginManager().registerEvents(new WalletGuiListener(this.menus), this);
         this.feature = new WalletFeature(this, this.config, this.service, this.menus);
 

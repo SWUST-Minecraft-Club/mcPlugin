@@ -12,7 +12,7 @@
 | 普通玩家 | 悬停 | 逐行显示本服启用货币的余额（按货币的 `scale` 格式化；未绑定官网账号显示「未绑定网站账号」） |
 | 普通玩家 | 左键 | 打开**流水页**：第 1~5 行是流水（纸图标，按时间倒序），第 6 行 **47 上一页 / 49 返回主菜单 / 51 下一页** |
 | 管理员（`wallet.admin`） | 左键 | 打开**玩家货币页**：列出在本服有在线时长记录的玩家（读 `plugins/YudreamMinecraftServer/playtime.yml`）及各自余额 |
-| 管理员（`wallet.admin`） | 右键 | 打开**货币类型页**：黄绿色羊毛 = 本服启用且官网启用，红色羊毛 = 未启用/官网停用 |
+| 管理员（`wallet.admin`） | 右键 | 打开**货币类型页**：黄绿色羊毛 = 本服启用且官网启用，红色羊毛 = 未启用/官网停用；**点击羊毛切换本服启用状态**（写 `plugins/Wallet/assets.yml`） |
 
 本服没有任何启用货币时，图标显示**暂无货币**，点击只提示不打开界面。
 
@@ -21,7 +21,8 @@
 ```yaml
 base-url: "https://www.swustmc.cn"   # 官网地址，不带结尾斜杠
 api-key: ""                          # 需要 plugin:yudream-wallet:manage 权限
-assets: []                           # 本服启用的货币 code；留空 = 官网所有 enabled 的货币
+assets: []                           # 本服启用的**初始**列表；留空 = 官网所有 enabled 的货币
+                                    # 管理员在游戏内切换后写 plugins/Wallet/assets.yml，后者优先
 assets-cache-seconds: 60
 balance-cache-seconds: 30
 request-timeout-ms: 8000
@@ -33,6 +34,9 @@ timezone: "Asia/Shanghai"            # 流水时间显示时区
 
 > **API Key 权限**：余额查询、流水、加/减货币都在钱包的管理端接口下，需要
 > `plugin:yudream-wallet:manage`（只读货币种类需要 `view`）。
+
+> **返回主菜单**：界面第 6 行第 5 格的屏障会重新打开主菜单。优先用 MainMenu `Beta_1_2_0` 起的
+> `MainMenuApi.open(player)`；如果服务端还是旧版 MainMenu，会自动退回执行 `/cd`。
 
 ## 给后续插件用（依赖 + API）
 

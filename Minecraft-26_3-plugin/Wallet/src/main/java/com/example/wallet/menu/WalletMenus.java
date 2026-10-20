@@ -46,26 +46,66 @@ public final class WalletMenus {
     private final WalletConfig config;
     private final WalletService service;
     private final PlaytimeLedgerReader ledger;
+    private final com.example.wallet.internal.AssetSwitchStore switches;
 
     public WalletMenus(final WalletPlugin plugin, final WalletConfig config, final WalletService service,
-                       final PlaytimeLedgerReader ledger) {
+                       final PlaytimeLedgerReader ledger,
+                       final com.example.wallet.internal.AssetSwitchStore switches) {
         this.plugin = plugin;
         this.config = config;
         this.service = service;
         this.ledger = ledger;
+        this.switches = switches;
     }
 
-    /** 本服启用且官网启用的货币（assets 留空 = 官网启用的都算）。 */
+    /** 本服启用且官网启用的货币（初始列表来自 config 的 assets，管理员游戏内切换后以 assets.yml 为准）。 */
     public List<WalletAsset> enabledAssets() {
-        return this.service.cachedAssets().stream()
-                .filter(asset -> asset.enabled() && this.config.isLocallyEnabled(asset.code()))
-                .toList();
+        final List<String> codes = this.switches.effective(this.service.cachedAssets());
+        final List<WalletAsset> result = new ArrayList<>();
+        for (final WalletAsset asset : this.service.cachedAssets()) {
+            if (codes.contains(asset.code())) {
+                result.add(asset);
+            }
+        }
+        return result;
     }
 
-    /** 从当前界面返回上一级：回到主菜单（主菜单不可用时只关闭界面）。 */
+    /** 从当前界面返回上一级：下一 tick 重新打开主菜单（旧版 MainMenu 没有 open API 时退回执行 /cd）。 */
     public void back(final Player player) {
-        player.closeInventory();
-        MainMenuApi.openOrNull(player);
+        Bukkit.getScheduler().runTask(this.plugin, () -> {
+            boolean opened = false;
+            try {
+                opened = MainMenuApi.openOrNull(player);
+            } catch (Throwable ignored) {
+                // 运行期是旧版 MainMenu（没有 MainMenuApi.open）时会抛 LinkageError，退回命令
+            }
+            if (!opened) {
+                Bukkit.dispatchCommand(player, "cd");
+            }
+        });
+    }
+
+    /** 管理员点击「货币类型」页里的羊毛：切换本服启用状态。 */
+    public void toggleAsset(final Player player, final WalletHolder holder, final int slot) {
+        if (!player.hasPermission("wallet.admin")) {
+            return;
+        }
+
+        final List<WalletAsset> assets = this.service.cachedAssets();
+        if (slot < 0 || slot >= CONTENT_SLOTS || slot >= assets.size()) {
+            return;
+        }
+
+        final WalletAsset asset = assets.get(slot);
+        if (!asset.enabled()) {
+            player.sendMessage(Component.text("[钱包] 官网已停用该货币，无法在本服启用。", NamedTextColor.RED));
+            return;
+        }
+
+        final boolean enabled = this.switches.toggle(asset.code(), assets);
+        player.sendMessage(Component.text("[钱包] " + (enabled ? "已在本服启用：" : "已在本服停用：") + asset.name(),
+                enabled ? NamedTextColor.GREEN : NamedTextColor.GRAY));
+        drawAssets(holder);
     }
 
     public void reopen(final Player player, final WalletHolder.Kind kind, final int page) {
@@ -187,7 +227,7 @@ public final class WalletMenus {
                 if (slot >= CONTENT_SLOTS) {
                     break;
                 }
-                final boolean localEnabled = this.config.isLocallyEnabled(asset.code());
+                final boolean localEnabled = this.switches.isEnabled(asset.code(), assets);
                 final boolean active = localEnabled && asset.enabled();
                 final List<Component> lore = new ArrayList<>();
                 lore.add(line("code：", asset.code()));
@@ -195,6 +235,11 @@ public final class WalletMenus {
                 lore.add(line("小数位：", String.valueOf(asset.scale())));
                 lore.add(line("官网启用：", asset.enabled() ? "是" : "否"));
                 lore.add(line("本服启用：", localEnabled ? "是" : "否"));
+                if (asset.enabled()) {
+                    lore.add(plain("点击切换本服启用状态", NamedTextColor.YELLOW));
+                } else {
+                    lore.add(plain("官网已停用，无法在本服启用", NamedTextColor.DARK_GRAY));
+                }
                 inventory.setItem(slot++, item(active ? Material.LIME_WOOL : Material.RED_WOOL,
                         Component.text(asset.name() + "（" + asset.code() + "）",
                                 active ? NamedTextColor.GREEN : NamedTextColor.RED), lore));
@@ -321,6 +366,11 @@ public final class WalletMenus {
     private static Component line(final String label, final String value) {
         return Component.text(label, NamedTextColor.GRAY)
                 .append(Component.text(value == null ? "" : value, NamedTextColor.WHITE))
+                .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
+    }
+
+    private static Component plain(final String text, final NamedTextColor color) {
+        return Component.text(text, color)
                 .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
     }
 

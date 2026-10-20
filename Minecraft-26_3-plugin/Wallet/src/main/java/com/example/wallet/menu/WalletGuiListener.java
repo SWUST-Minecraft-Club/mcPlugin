@@ -34,7 +34,9 @@ public final class WalletGuiListener implements Listener {
             case 49 -> this.menus.back(player);
             case 51 -> this.menus.reopen(player, holder.kind(), holder.page() + 1);
             default -> {
-                // 其他格子只展示，不响应
+                if (holder.kind() == WalletHolder.Kind.ASSETS) {
+                    this.menus.toggleAsset(player, holder, event.getRawSlot());
+                }
             }
         }
     }

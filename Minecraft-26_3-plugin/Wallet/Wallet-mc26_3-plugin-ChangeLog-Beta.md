@@ -18,3 +18,11 @@
    长整型/BigDecimal 的字符串序列化；流水查询先用 `game/balance` 解析站内 `userId` 再查管理端流水
 5.说明：依赖 MainMenu 的按查看者渲染与 `MainMenuApi.open(player)`（`Beta_1_1_0` / `Beta_1_2_0` 起）；
    API Key 需要 `plugin:yudream-wallet:manage` 权限；未绑定官网账号的玩家显示「未绑定网站账号」
+
+[Beta_0_1_0 -> Beta_0_2_0] 2026.10.20 13:10:00
+1.新增：管理员在「货币类型」页**点击羊毛即可在本服启用 / 停用该货币**（黄绿色 = 启用、红色 = 停用），
+   切换结果写进 `plugins/Wallet/assets.yml`（优先于 config.yml 的 assets 初始列表，改 config 不会丢注释）；
+   官网停用的货币点不上，会提示"官网已停用该货币"
+2.修复：「返回主菜单」按钮点了没反应、只是把界面关掉 —— 改为下一 tick 重新打开主菜单；
+   同时兼容旧版 MainMenu（运行期没有 `MainMenuApi.open` 时退回执行 `/cd`）
+3.说明：本服启停只影响本服菜单显示与余额查询范围，不改官网资产的全局状态；每笔货币变动仍以官网流水为准
