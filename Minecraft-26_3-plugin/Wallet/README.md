@@ -38,6 +38,21 @@ timezone: "Asia/Shanghai"            # 流水时间显示时区
 > **返回主菜单**：界面第 6 行第 5 格的屏障会重新打开主菜单。优先用 MainMenu `Beta_1_2_0` 起的
 > `MainMenuApi.open(player)`；如果服务端还是旧版 MainMenu，会自动退回执行 `/cd`。
 
+## 管理员指令
+
+```text
+/walletin <玩家名> <币种编码> <数量>
+/walletout <玩家名> <币种编码> <数量>
+```
+
+- 只对**在线玩家**生效；玩家名不区分大小写。
+- 币种必须存在于 Wallet 官网且 `enabled=true`；数量必须大于 0，并按该资产的 `scale` 校验小数位。
+- 权限：`wallet.adjust`（默认 OP）；`wallet.admin` 只控制菜单里的管理界面。
+- 操作直接调用 Wallet 的 `credit` / `debit` 写回官网，官网流水即结果；
+  `businessNo` 为 `wallet-admin-in-<uuid>` / `wallet-admin-out-<uuid>`，官网来源显示为 `ADMIN`，
+  备注包含执行命令的管理员名称。
+- 成功时回复本次变动和官网返回的余额；失败时回复 Wallet/官网返回的错误信息。
+
 ## 给后续插件用（依赖 + API）
 
 ```groovy

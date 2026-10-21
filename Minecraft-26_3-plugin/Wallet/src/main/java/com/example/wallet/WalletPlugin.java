@@ -3,13 +3,18 @@ package com.example.wallet;
 import com.example.mainmenu.api.MainMenuApi;
 import com.example.mainmenu.api.MenuFeatureRegistry;
 import com.example.wallet.api.WalletApi;
+import com.example.wallet.command.WalletAdminCommand;
 import com.example.wallet.internal.AssetSwitchStore;
 import com.example.wallet.internal.PlaytimeLedgerReader;
 import com.example.wallet.internal.WalletServiceImpl;
 import com.example.wallet.menu.WalletFeature;
 import com.example.wallet.menu.WalletGuiListener;
 import com.example.wallet.menu.WalletMenus;
+import io.papermc.paper.command.brigadier.Commands;
+import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.List;
 
 /**
  * Wallet：主菜单里的钱包（货币种类 / 余额 / 流水），同时对外提供 {@link WalletApi} 给后续插件依赖。
@@ -29,6 +34,14 @@ public final class WalletPlugin extends JavaPlugin {
         this.config = WalletConfig.load(getConfig());
         this.service = new WalletServiceImpl(this, this.config);
         WalletApi.install(this.service);
+
+        getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
+            final Commands commands = event.registrar();
+            commands.register("walletin", "给在线玩家增加货币（管理员）", List.of(),
+                    new WalletAdminCommand(this, this.service, true));
+            commands.register("walletout", "从在线玩家扣除货币（管理员）", List.of(),
+                    new WalletAdminCommand(this, this.service, false));
+        });
 
         this.menus = new WalletMenus(this, this.config, this.service, new PlaytimeLedgerReader(this),
                 new AssetSwitchStore(this, this.config.enabledAssets()));

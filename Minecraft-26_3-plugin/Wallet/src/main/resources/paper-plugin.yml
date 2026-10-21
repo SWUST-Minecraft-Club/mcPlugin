@@ -12,3 +12,11 @@ dependencies:
     MainMenu:
       load: BEFORE
       required: false
+
+permissions:
+  wallet.admin:
+    description: 允许打开钱包管理界面（玩家货币 / 货币类型）
+    default: op
+  wallet.adjust:
+    description: 允许使用 /walletin 与 /walletout 调整在线玩家货币
+    default: op
