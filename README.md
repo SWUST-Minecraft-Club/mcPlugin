@@ -423,6 +423,7 @@ dependencies {
 | `Beta_0_1_0` | `eee95e1` | 首个版本：主菜单钱包（绿宝石 / 余额 / 流水 / 货币类型 / 玩家货币）+ `WalletApi` 钱包 API；数据与操作全部走官网 |
 | `Beta_0_2_0` | `25dbacd` | 新增：管理员在货币类型页点击羊毛切换本服启停（写 `assets.yml`）；修：返回主菜单（下一 tick 重开，旧版 MainMenu 退回 `/cd`） |
 | `Beta_0_2_1` | `6c54d9f` | 修：停用币种后流水页仍显示该币种（流水按本服启用币种过滤）；新增按币种过滤的 `transactions` 重载 |
+| `Beta_0_3_0` | `31fcf90` | 新增管理员指令 `/walletin` / `/walletout`（在线玩家、按资产精度校验、写官网流水）；`wallet.adjust` / `wallet.admin` 权限声明 |
 
 **ConcertoMenu（插件）**
 
