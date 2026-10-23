@@ -4,6 +4,7 @@ import com.example.mainmenu.api.MainMenuApi;
 import com.example.mainmenu.api.MenuFeatureRegistry;
 import com.example.mainmenu.command.CdCommand;
 import com.example.mainmenu.debug.DebugReporter;
+import com.example.mainmenu.internal.CustomFeatureStore;
 import com.example.mainmenu.internal.FeatureRegistryImpl;
 import com.example.mainmenu.internal.FeatureStateStore;
 import com.example.mainmenu.listener.ClockInteractListener;
@@ -40,6 +41,7 @@ public final class MainMenuPlugin extends JavaPlugin {
     private static volatile MainMenuPlugin instance;
 
     private FeatureStateStore states;
+    private CustomFeatureStore customFeatures;
     private FeatureRegistryImpl features;
     private MenuService menus;
     private AdminService admin;
@@ -57,7 +59,10 @@ public final class MainMenuPlugin extends JavaPlugin {
 
         this.states = new FeatureStateStore(this);
         this.states.load();
+        this.customFeatures = new CustomFeatureStore(this);
+        this.customFeatures.load();
         this.features = new FeatureRegistryImpl(states);
+        this.features.syncCustomFeatures(this.customFeatures.features());
         this.menus = new MenuService(this);
         this.admin = new AdminService(this);
         this.debug = new DebugReporter(this);
@@ -106,6 +111,32 @@ public final class MainMenuPlugin extends JavaPlugin {
 
     public FeatureStateStore states() {
         return states;
+    }
+
+    public CustomFeatureStore customFeatures() {
+        return customFeatures;
+    }
+
+    /** 管理页创建自定义功能并立即同步到功能注册表；名称为空时返回 null。 */
+    public String createCustomFeature(final String name) {
+        if (customFeatures == null || features == null) {
+            return null;
+        }
+        final String id = customFeatures.create(name);
+        if (id == null) {
+            return null;
+        }
+        features.syncCustomFeatures(customFeatures.features());
+        return id;
+    }
+
+    /** /cd reload：重新读取 custom-features.yml 并替换内存里的自定义功能。 */
+    public void reloadCustomFeatures() {
+        if (customFeatures == null || features == null) {
+            return;
+        }
+        customFeatures.load();
+        features.syncCustomFeatures(customFeatures.features());
     }
 
     public DebugReporter debug() {

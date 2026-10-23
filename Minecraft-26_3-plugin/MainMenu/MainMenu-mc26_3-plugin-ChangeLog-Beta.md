@@ -125,3 +125,11 @@
    占位符参与功能区排序与分页，排序值写入 `features.yml` 的 `features.<id>.order`
 3.配套：占位符列表持久化在 `features.yml` 的 `placeholders` 段，重启后恢复；
    功能插件 `unregister` 不会误删占位符；`/cd debug` 将占位符标记为「占位符」
+
+[Beta_1_4_0 -> Beta_1_5_0] 2026.10.23 15:26:00
+1.新增：管理页第 1 行第 3 格「添加自定义插件功能」—— 点击弹出 dialog 输入功能名称，
+   创建后作为正常功能项注册：默认纸图标，管理页可像其它功能一样显示/隐藏、调排序、转固定位置
+2.新增：`plugins/MainMenu/custom-features.yml` 管理自定义功能 —— `name` / `icon` / `command` /
+   `description`（MiniMessage 列表）/ `order`；点击执行 `command`（不带 `/`，留空则点击无效），
+   修改后 `/cd reload` 生效
+3.配套：自定义功能的管理状态仍写入 `features.yml`；功能插件 `unregister` 不会误删自定义功能

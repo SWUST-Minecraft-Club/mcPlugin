@@ -50,6 +50,7 @@ public final class CdCommand {
                         .requires(source -> source.getSender().hasPermission("mainmenu.reload"))
                         .executes(context -> {
                             plugin.reloadConfig();
+                            plugin.reloadCustomFeatures();
                             plugin.message(context.getSource().getSender(), "messages.reloaded");
                             return Command.SINGLE_SUCCESS;
                         }))

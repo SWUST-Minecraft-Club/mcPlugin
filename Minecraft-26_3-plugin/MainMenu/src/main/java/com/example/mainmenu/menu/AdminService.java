@@ -4,10 +4,21 @@ import com.example.mainmenu.MainMenuPlugin;
 import com.example.mainmenu.api.FeaturePlacement;
 import com.example.mainmenu.api.MenuFeature;
 import com.example.mainmenu.internal.PlaceholderFeature;
+import com.example.mainmenu.util.Schedulers;
+import io.papermc.paper.dialog.Dialog;
+import io.papermc.paper.registry.data.dialog.ActionButton;
+import io.papermc.paper.registry.data.dialog.DialogBase;
+import io.papermc.paper.registry.data.dialog.action.DialogAction;
+import io.papermc.paper.registry.data.dialog.body.DialogBody;
+import io.papermc.paper.registry.data.dialog.input.DialogInput;
+import io.papermc.paper.registry.data.dialog.input.TextDialogInput;
+import io.papermc.paper.registry.data.dialog.type.DialogType;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickCallback;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -95,6 +106,63 @@ public final class AdminService {
                 "<green>已添加功能占位符；点击红色玻璃板调整排序值或删除。</green>"));
     }
 
+    /** 第 1 行第 3 格：弹出 dialog 输入名称，创建自定义功能。 */
+    private void openCustomFeatureDialog(final Player player) {
+        final TextDialogInput nameInput = DialogInput.text("name", Component.text("功能名称"))
+                .maxLength(64)
+                .build();
+        final DialogBase base = DialogBase.builder(Component.text("添加自定义插件功能"))
+                .body(List.of(DialogBody.plainMessage(
+                        Component.text("输入功能名称；创建后在 plugins/MainMenu/custom-features.yml "
+                                + "配置图标、描述与点击指令。"), 300)))
+                .inputs(List.of(nameInput))
+                .canCloseWithEscape(true)
+                .pause(false)
+                .afterAction(DialogBase.DialogAfterAction.CLOSE)
+                .build();
+        final ActionButton confirm = ActionButton.builder(Component.text("创建"))
+                .width(200)
+                .action(DialogAction.customClick((response, audience) -> {
+                    if (!(audience instanceof Player p)) {
+                        return;
+                    }
+                    final String name = response.getText("name");
+                    // Dialog 回调线程不一定是玩家区域线程；创建与重开管理页统一回到玩家线程
+                    Schedulers.runFor(plugin, p, () -> createCustomFeatureAndReopen(p, name));
+                }, ClickCallback.Options.builder()
+                        .uses(1)
+                        .lifetime(Duration.ofMinutes(10))
+                        .build()))
+                .build();
+        final DialogType type = DialogType.multiAction(List.of(confirm))
+                .exitAction(null)
+                .columns(1)
+                .build();
+
+        player.closeInventory();
+        player.showDialog(Dialog.create(factory -> factory.empty().base(base).type(type)));
+    }
+
+    private void createCustomFeatureAndReopen(final Player player, final String name) {
+        final String id = plugin.createCustomFeature(name);
+        if (id == null) {
+            player.sendMessage(plugin.miniRaw("<red>功能名称不能为空。</red>"));
+            openCustomFeatureDialog(player);
+            return;
+        }
+        final List<MenuFeature> list = plugin.features().functionAreaFeatures();
+        int page = 1;
+        for (int index = 0; index < list.size(); index++) {
+            if (list.get(index).id().equals(id)) {
+                page = index / AdminLayout.PAGE_SIZE + 1;
+                break;
+            }
+        }
+        openManage(player, page, 1);
+        player.sendMessage(plugin.miniRaw(
+                "<green>已创建自定义功能；点击纸图标可像其它功能一样配置。</green>"));
+    }
+
     private void fillPlaceholderAttribute(final Player player, final AdminHolder holder) {
         final Optional<MenuFeature> found = plugin.features().featureById(holder.featureId());
         if (found.isEmpty() || !(found.get() instanceof PlaceholderFeature)) {
@@ -144,6 +212,12 @@ public final class AdminService {
                 plugin.miniRaw("<gray>在功能区末尾添加一个占位符</gray>"),
                 plugin.miniRaw("<dark_gray>主菜单不显示，仅管理界面可见</dark_gray>"),
                 plugin.miniRaw("<yellow>点击添加</yellow>")));
+
+        // 第 1 行第 3 格：添加自定义插件功能
+        items[AdminLayout.ADD_CUSTOM] = named("WRITABLE_BOOK", "<green>添加自定义插件功能</green>", List.of(
+                plugin.miniRaw("<gray>输入名称，创建一个可点击执行指令的功能项</gray>"),
+                plugin.miniRaw("<dark_gray>默认图标为纸；图标 / 描述 / 指令在 custom-features.yml 配置</dark_gray>"),
+                plugin.miniRaw("<yellow>点击输入名称</yellow>")));
 
         // 左栏：非固定位置功能插件
         final List<MenuFeature> functionFeatures = plugin.features().functionAreaFeatures();
@@ -284,6 +358,10 @@ public final class AdminService {
     private void handleManage(final Player player, final AdminHolder holder, final int slot) {
         if (slot == AdminLayout.ADD_PLACEHOLDER) {
             addPlaceholder(player, holder);
+            return;
+        }
+        if (slot == AdminLayout.ADD_CUSTOM) {
+            openCustomFeatureDialog(player);
             return;
         }
         if (slot == AdminLayout.BACK) {

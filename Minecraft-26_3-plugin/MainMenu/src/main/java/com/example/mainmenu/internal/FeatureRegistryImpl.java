@@ -64,8 +64,10 @@ public final class FeatureRegistryImpl implements MenuFeatureRegistry {
 
     @Override
     public synchronized boolean unregister(final String id) {
-        if (states.isPlaceholder(id)) {
-            // 占位符只能由管理界面删除，功能插件不能误删
+        if (states.isPlaceholder(id)
+                || features.stream().anyMatch(feature -> feature.id().equals(id)
+                && feature instanceof CustomCommandFeature)) {
+            // 占位符与自定义功能只能由管理界面 / 配置文件维护，功能插件不能误删
             return false;
         }
         final boolean removed = features.removeIf(feature -> feature.id().equals(id));
@@ -146,6 +148,25 @@ public final class FeatureRegistryImpl implements MenuFeatureRegistry {
             max = Math.max(max, orderOf(feature));
         }
         return max > Integer.MAX_VALUE - 10 ? Integer.MAX_VALUE : max + 10;
+    }
+
+    // ------------------------------------------------------------------ 自定义功能（管理页创建）
+
+    /**
+     * 用配置文件里的定义替换当前所有自定义功能，保留它们在 features.yml 里的管理状态。
+     */
+    public synchronized void syncCustomFeatures(final List<CustomCommandFeature> customFeatures) {
+        features.removeIf(feature -> feature instanceof CustomCommandFeature);
+        final Set<String> ids = new HashSet<>();
+        for (final MenuFeature feature : features) {
+            ids.add(feature.id());
+        }
+        for (final CustomCommandFeature feature : customFeatures) {
+            if (ids.add(feature.id())) {
+                features.add(feature);
+            }
+        }
+        rebuild();
     }
 
     // ------------------------------------------------------------------ 渲染用查询
