@@ -133,3 +133,9 @@
    `description`（MiniMessage 列表）/ `order`；点击执行 `command`（不带 `/`，留空则点击无效），
    修改后 `/cd reload` 生效
 3.配套：自定义功能的管理状态仍写入 `features.yml`；功能插件 `unregister` 不会误删自定义功能
+
+[Beta_1_5_0 -> Beta_1_5_1] 2026.10.23 15:55:00
+1.修复：自定义功能执行其他插件命令时只显示帮助页 / 无反应 —— `Bukkit.dispatchCommand` 不会触发
+   `PlayerCommandPreprocessEvent`，而 PlayerTitle 等插件的 `/plt gui` 子命令正是在该事件里处理并取消事件；
+   现在点击后先关闭主菜单，下一 tick 触发 `PlayerCommandPreprocessEvent`，事件未取消再走 `dispatchCommand`
+2.调整：指令不存在或玩家没有权限时给玩家一条明确提示；执行异常写入控制台日志

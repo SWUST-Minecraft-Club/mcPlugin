@@ -28,6 +28,21 @@
   对着方块的情况仍由服务端事件处理。已写进 MainMenuRepair 的 README 与 `docs/dev/` 相关说明。
 - **来源**：2026.10.18，MainMenu `Beta_0_4_0`。
 
+## `Bukkit.dispatchCommand` 不会触发 `PlayerCommandPreprocessEvent`
+
+- **现象**：在菜单/按钮里执行 `Bukkit.dispatchCommand(player, "plt gui")`，目标插件只显示 `/plt` 的帮助页；
+  玩家手动输入 `/plt gui` 却能打开称号仓库。其他在 `PlayerCommandPreprocessEvent` 里处理子命令的插件同样受影响。
+- **根因**：`Bukkit.dispatchCommand` 直接走命令派发器，**不会**触发 `PlayerCommandPreprocessEvent`；
+  PlayerTitle 5.5.4-cn 的 `CommandListener` 正是在该事件里识别 `plt gui`、取消事件并打开 GUI，
+  所以绕过事件后只剩旧命令执行器打印帮助。
+- **规避/解决**：按玩家手动输入的流程执行：
+  1. 先 `player.closeInventory()`，避免目标 GUI 与当前菜单冲突；
+  2. 下一 tick 构造并 `callEvent(new PlayerCommandPreprocessEvent(player, "/" + command))`；
+  3. 事件被取消（目标插件已处理）就结束，否则再 `Bukkit.dispatchCommand`；
+  4. `dispatchCommand` 返回 `false` 时提示“指令不可用或没有权限”。
+  实现见 `./Minecraft-26_3-plugin/MainMenu/src/main/java/com/example/mainmenu/internal/CustomCommandFeature.java`。
+- **来源**：2026.10.23，MainMenu `Beta_1_5_1`；PlayerTitle `5.5.4-cn` 的 `CommandListener#onPlayerCommand`。
+
 ## `preferredSlot` 写在功能区或越界，被误判成位置冲突
 
 - **现象**：功能声明 `preferredSlot(19)`（功能区格子）或 `preferredSlot(99)`（越界）时，被当作"位置冲突"处理：

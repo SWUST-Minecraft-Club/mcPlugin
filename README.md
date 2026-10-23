@@ -218,6 +218,9 @@ features:
 ```
 
 - 点击功能时以**玩家身份**执行 `command`；`command` 留空时功能只展示、点击无效。
+- 点击后先关闭主菜单，下一 tick 按“玩家输入指令”的流程触发 `PlayerCommandPreprocessEvent`，
+  事件未被取消时再派发。因此 PlayerTitle 这类在 `PlayerCommandPreprocessEvent` 里处理 `/plt gui`
+  子命令的插件也能正常打开界面；指令不存在或玩家没有权限时会收到提示。
 - `description` 是 MiniMessage 文本列表；解析失败的行会按纯文本显示。
 - `icon` 无效时回退为纸并在控制台告警。
 - 手工删除 `custom-features.yml` 里的条目后执行 `/cd reload`，该自定义功能会从菜单和管理页移除；
@@ -363,7 +366,7 @@ dependencies {
 
 | 项目 | 正式版 | 测试版（进行中） |
 | --- | --- | --- |
-| MainMenu | `1_0_1`（2026.10.18） | `Beta_1_5_0`（管理页功能占位符 + 自定义插件功能；Folia 实体调度器 + 并发安全） |
+| MainMenu | `1_0_1`（2026.10.18） | `Beta_1_5_1`（管理页功能占位符 + 自定义插件功能；兼容 PlayerTitle 等事件式子命令） |
 | RealTime | `1_0_0`（2026.10.18） | `Beta_1_1_0`（适配 Folia；去掉固定位提示） |
 | MainMenuRepair（fabric） | `1_0_0`（2026.10.18） | `Beta_1_0_1`（修 jar 元数据里的仓库地址） |
 | YudreamPlaytime | `1_0_0`（2026.10.19） | `Beta_1_1_0`（适配 Folia；台账缓存加锁） |
@@ -404,6 +407,7 @@ dependencies {
 | `Beta_1_3_0` | 未提交 | 新增：适配 Folia 26.3（`folia-supported`、Folia 实体调度器、背包线程归属、并发容器） |
 | `Beta_1_4_0` | 未提交 | 新增：管理页第 1 行第 1 格添加功能占位符（红玻璃板显示、主菜单不显示、仅排序值/删除） |
 | `Beta_1_5_0` | 未提交 | 新增：管理页第 1 行第 3 格添加自定义插件功能（dialog 输入名称，`custom-features.yml` 配置图标/描述/指令） |
+| `Beta_1_5_1` | 未提交 | 修复：自定义功能执行 PlayerTitle 等事件式子命令时只显示帮助页（补触发 `PlayerCommandPreprocessEvent`） |
 
 **RealTime（插件）**
 

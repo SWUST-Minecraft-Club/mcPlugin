@@ -2,6 +2,7 @@ package com.example.mainmenu.internal;
 
 import com.example.mainmenu.MainMenuPlugin;
 import com.example.mainmenu.api.MenuFeature;
+import com.example.mainmenu.util.Schedulers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalInt;
@@ -13,6 +14,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -126,12 +128,45 @@ public final class CustomCommandFeature implements MenuFeature {
         if (execute.isBlank()) {
             return;
         }
-        try {
-            Bukkit.dispatchCommand(player, execute);
-        } catch (Throwable ex) {
-            plugin.getLogger().log(Level.WARNING,
-                    "自定义功能 " + id + " 执行指令失败：" + execute, ex);
-        }
+
+        // 先关闭主菜单，下一 tick 按“玩家手动输入指令”的流程执行。
+        // Bukkit.dispatchCommand 不会触发 PlayerCommandPreprocessEvent；部分插件（例如 PlayerTitle 的
+        // /plt gui）正是在该事件里处理子命令并取消事件，所以这里必须手动补上这一步。
+        player.closeInventory();
+        Schedulers.runForDelayed(plugin, player, () -> {
+            if (!player.isOnline()) {
+                return;
+            }
+            try {
+                final PlayerCommandPreprocessEvent event =
+                        new PlayerCommandPreprocessEvent(player, "/" + execute);
+                Bukkit.getPluginManager().callEvent(event);
+                if (event.isCancelled()) {
+                    // 目标插件已经在事件里处理了（PlayerTitle 会打开称号仓库）
+                    return;
+                }
+
+                String message = event.getMessage();
+                if (message.startsWith("/")) {
+                    message = message.substring(1);
+                }
+                message = message.trim();
+                if (message.isEmpty()) {
+                    return;
+                }
+                if (!Bukkit.dispatchCommand(player, message)) {
+                    player.sendMessage(Component.text(
+                                    "[MainMenu] 指令不可用或没有权限：/" + message, NamedTextColor.RED)
+                            .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                }
+            } catch (Throwable ex) {
+                plugin.getLogger().log(Level.WARNING,
+                        "自定义功能 " + id + " 执行指令失败：" + execute, ex);
+                player.sendMessage(Component.text(
+                                "[MainMenu] 指令执行失败：/" + execute, NamedTextColor.RED)
+                        .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+            }
+        }, 1L);
     }
 
     @Override
