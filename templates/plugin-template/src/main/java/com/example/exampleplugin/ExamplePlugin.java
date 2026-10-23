@@ -26,7 +26,8 @@ public final class ExamplePlugin extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(this), this);
 
-        // Paper 插件不在 yml 中声明命令，而是通过生命周期事件注册 Brigadier 命令
+        // Paper / Folia 插件不在 yml 中声明命令，而是通过生命周期事件注册 Brigadier 命令
+        // 需要定时任务时不要用 Bukkit.getScheduler()：Folia 上改用 player.getScheduler() / GlobalRegionScheduler
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
             event.registrar().register(HelloCommand.create(this), "打招呼示例命令", List.of("hi"));
             event.registrar().register(AdminCommand.create(this), "插件管理命令");

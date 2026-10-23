@@ -38,13 +38,13 @@ public final class PlaytimeStats {
     }
 
     /** 查一个玩家的本地记录；没有记录时返回 {@code null}。 */
-    public Record find(final UUID playerId) {
+    public synchronized Record find(final UUID playerId) {
         refresh();
         return records.get(playerId.toString());
     }
 
     /** 台账里一共有多少条记录（用于 /cd debug 之外的排查）。 */
-    public int size() {
+    public synchronized int size() {
         refresh();
         return records.size();
     }

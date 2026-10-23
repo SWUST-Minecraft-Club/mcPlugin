@@ -1,10 +1,10 @@
 // 主菜单插件：全服统一的功能入口
-//   - ESC 菜单里的「主菜单」按钮（Paper dialog + pause_screen_additions 标签）
+//   - ESC 菜单里的「主菜单」按钮（Paper/Folia dialog + pause_screen_additions 标签）
 //   - /cd 命令
 //   - 手持时钟右键
 // 其它插件通过 com.example.mainmenu.api 注册自己的功能，规范见 ./docs/dev/功能插件接入规范.md
 
-version = 'Beta_1_2_1'
+version = 'Beta_1_4_0'
 
 dependencies {
     // 其它插件以 compileOnly project(':MainMenu') 依赖本插件来使用 API；

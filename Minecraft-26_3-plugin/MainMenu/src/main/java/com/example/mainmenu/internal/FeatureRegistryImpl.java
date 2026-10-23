@@ -14,6 +14,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * 功能注册表实现：负责位置冲突判定、功能区排序分页，以及管理界面要用的状态读写。
@@ -35,6 +36,11 @@ public final class FeatureRegistryImpl implements MenuFeatureRegistry {
 
     public FeatureRegistryImpl(final FeatureStateStore states) {
         this.states = states;
+        // 占位符不是真实功能插件，重启后按 features.yml 里的占位符列表恢复
+        for (final String id : states.placeholders()) {
+            features.add(new PlaceholderFeature(id));
+        }
+        rebuild();
     }
 
     @Override
@@ -58,6 +64,10 @@ public final class FeatureRegistryImpl implements MenuFeatureRegistry {
 
     @Override
     public synchronized boolean unregister(final String id) {
+        if (states.isPlaceholder(id)) {
+            // 占位符只能由管理界面删除，功能插件不能误删
+            return false;
+        }
         final boolean removed = features.removeIf(feature -> feature.id().equals(id));
         if (removed) {
             rebuild();
@@ -88,6 +98,54 @@ public final class FeatureRegistryImpl implements MenuFeatureRegistry {
     @Override
     public int pageSize() {
         return MenuLayout.PAGE_SIZE;
+    }
+
+    // ------------------------------------------------------------------ 占位符（管理界面专用）
+
+    public synchronized boolean isPlaceholder(final String id) {
+        return states.isPlaceholder(id);
+    }
+
+    /**
+     * 在功能区末尾添加一个占位符：排序值取当前最大排序值 +10，之后可由管理员调整。
+     *
+     * @return 新占位符的 id
+     */
+    public synchronized String addPlaceholder() {
+        final int order = nextPlaceholderOrder();
+        String id;
+        do {
+            id = "placeholder:" + UUID.randomUUID().toString().replace("-", "");
+        } while (featureById(id).isPresent());
+
+        features.add(new PlaceholderFeature(id));
+        states.addPlaceholder(id);
+        states.stateOf(id).order(order);
+        rebuild();
+        states.save();
+        return id;
+    }
+
+    /** 删除占位符；返回是否真的删除了。 */
+    public synchronized boolean removePlaceholder(final String id) {
+        if (!states.isPlaceholder(id)) {
+            return false;
+        }
+        final boolean removed = features.removeIf(feature -> feature.id().equals(id));
+        states.removePlaceholder(id);
+        if (removed) {
+            rebuild();
+        }
+        states.save();
+        return removed;
+    }
+
+    private int nextPlaceholderOrder() {
+        int max = 0;
+        for (final MenuFeature feature : features) {
+            max = Math.max(max, orderOf(feature));
+        }
+        return max > Integer.MAX_VALUE - 10 ? Integer.MAX_VALUE : max + 10;
     }
 
     // ------------------------------------------------------------------ 渲染用查询
@@ -208,6 +266,9 @@ public final class FeatureRegistryImpl implements MenuFeatureRegistry {
     }
 
     public synchronized void setHidden(final String id, final boolean hidden) {
+        if (states.isPlaceholder(id)) {
+            return;
+        }
         states.stateOf(id).hidden(hidden);
         rebuild();
         states.save();
@@ -226,6 +287,9 @@ public final class FeatureRegistryImpl implements MenuFeatureRegistry {
      * 直接沿用；只有从来没设置过位置的才默认放到第 1 行第 1 格。
      */
     public synchronized void makeFixed(final String id) {
+        if (states.isPlaceholder(id)) {
+            return;
+        }
         final FeatureState state = states.stateOf(id);
         state.forcedFixed(true);
         state.forcedFunction(false);
@@ -243,6 +307,9 @@ public final class FeatureRegistryImpl implements MenuFeatureRegistry {
      * 之后再用拉杆改回固定位置时能回到原来的位置，而不是被当成"没设置过"。
      */
     public synchronized void makeFunction(final String id) {
+        if (states.isPlaceholder(id)) {
+            return;
+        }
         final FeatureState state = states.stateOf(id);
         state.forcedFunction(true);
         state.forcedFixed(false);
@@ -252,6 +319,9 @@ public final class FeatureRegistryImpl implements MenuFeatureRegistry {
 
     /** 设置固定位置功能插件的位置（即使与其它固定位置功能插件冲突也照样记录） */
     public synchronized void setPosition(final String id, final int slot) {
+        if (states.isPlaceholder(id)) {
+            return;
+        }
         states.stateOf(id).position(slot);
         rebuild();
         states.save();

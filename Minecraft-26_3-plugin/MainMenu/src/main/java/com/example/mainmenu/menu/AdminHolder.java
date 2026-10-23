@@ -20,6 +20,8 @@ public final class AdminHolder implements InventoryHolder {
         ATTRIBUTE_FUNCTION,
         /** 固定位置功能插件的属性页 */
         ATTRIBUTE_FIXED,
+        /** 占位符属性页：只有排序值与删除 */
+        ATTRIBUTE_PLACEHOLDER,
         /** 位置选择界面 */
         POSITION_PICKER
     }

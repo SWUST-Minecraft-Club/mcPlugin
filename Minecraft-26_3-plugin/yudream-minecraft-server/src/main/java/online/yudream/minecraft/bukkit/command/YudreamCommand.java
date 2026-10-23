@@ -11,6 +11,7 @@ import online.yudream.minecraft.bukkit.api.HttpResult;
 import online.yudream.minecraft.bukkit.bridge.BridgeMode;
 import online.yudream.minecraft.bukkit.bridge.DownstreamSensor;
 import online.yudream.minecraft.bukkit.config.YudreamConfig;
+import online.yudream.minecraft.bukkit.compat.FoliaSchedulerCompat;
 import online.yudream.minecraft.bukkit.playtime.PlaytimeLedger;
 import online.yudream.minecraft.bukkit.playtime.PlaytimeSync;
 import online.yudream.minecraft.bukkit.util.PlayerSummaryParser;
@@ -138,9 +139,8 @@ public final class YudreamCommand implements CommandExecutor, TabCompleter {
          sender.sendMessage(prefix() + ChatColor.RED + "Not configured or disabled.");
       } else {
          sender.sendMessage(prefix() + "Checking remote players...");
-         this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, new Runnable() {
+         FoliaSchedulerCompat.runAsync(this.plugin, new Runnable() {
             public void run() {
-               final String computedMessage;
                String message;
                try {
                   HttpResult result = YudreamCommand.this.plugin.getApiClient().players(1, 100);
@@ -154,13 +154,7 @@ public final class YudreamCommand implements CommandExecutor, TabCompleter {
                   message = YudreamCommand.prefix() + ChatColor.RED + "Remote status failed: " + e.getMessage();
                }
 
-               computedMessage = message;
-
-               YudreamCommand.this.plugin.getServer().getScheduler().runTask(YudreamCommand.this.plugin, new Runnable() {
-                  public void run() {
-                     sender.sendMessage(computedMessage);
-                  }
-               });
+               YudreamCommand.this.sendTo(sender, message);
             }
          });
       }
@@ -192,16 +186,12 @@ public final class YudreamCommand implements CommandExecutor, TabCompleter {
       }
 
       sender.sendMessage(prefix() + "正在与后端对齐本地时长…");
-      this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, new Runnable() {
+      FoliaSchedulerCompat.runAsync(this.plugin, new Runnable() {
          public void run() {
             final boolean ok = YudreamCommand.this.plugin.getPlaytimeSync().pullFromBackend(online);
             final String result = YudreamCommand.this.plugin.getPlaytimeSync().describeLastResult();
-            YudreamCommand.this.plugin.getServer().getScheduler().runTask(YudreamCommand.this.plugin, new Runnable() {
-               public void run() {
-                  sender.sendMessage(prefix() + (ok ? ChatColor.GREEN + "对齐完成：" : ChatColor.RED + "对齐未完成：")
-                          + ChatColor.GRAY + result);
-               }
-            });
+            YudreamCommand.this.sendTo(sender, prefix() + (ok ? ChatColor.GREEN + "对齐完成：" : ChatColor.RED + "对齐未完成：")
+                    + ChatColor.GRAY + result);
          }
       });
    }
@@ -247,22 +237,18 @@ public final class YudreamCommand implements CommandExecutor, TabCompleter {
       }
 
       final UUID backendTarget = targetId;
-      this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, new Runnable() {
+      FoliaSchedulerCompat.runAsync(this.plugin, new Runnable() {
          public void run() {
             final PlaytimeSync.BackendNumbers backend = sync.fetchPlayerFromBackend(backendTarget.toString());
-            YudreamCommand.this.plugin.getServer().getScheduler().runTask(YudreamCommand.this.plugin, new Runnable() {
-               public void run() {
-                  if (backend == null) {
-                     sender.sendMessage(prefix() + ChatColor.GRAY + "  backend: 查不到该玩家（或列表接口不可用）");
-                     return;
-                  }
+            if (backend == null) {
+               YudreamCommand.this.sendTo(sender, prefix() + ChatColor.GRAY + "  backend: 查不到该玩家（或列表接口不可用）");
+               return;
+            }
 
-                  sender.sendMessage(prefix() + ChatColor.GRAY + "  backend: online " + ChatColor.WHITE
-                          + formatDuration(backend.getOnlineMillis()) + ChatColor.GRAY + ", afk " + ChatColor.WHITE
-                          + formatDuration(backend.getAfkMillis()) + ChatColor.GRAY
-                          + (backend.isOnline() ? " (online now)" : ""));
-               }
-            });
+            YudreamCommand.this.sendTo(sender, prefix() + ChatColor.GRAY + "  backend: online " + ChatColor.WHITE
+                    + formatDuration(backend.getOnlineMillis()) + ChatColor.GRAY + ", afk " + ChatColor.WHITE
+                    + formatDuration(backend.getAfkMillis()) + ChatColor.GRAY
+                    + (backend.isOnline() ? " (online now)" : ""));
          }
       });
    }
@@ -291,6 +277,20 @@ public final class YudreamCommand implements CommandExecutor, TabCompleter {
 
    private static String prefix() {
       return ChatColor.AQUA + "[YuDream] " + ChatColor.RESET;
+   }
+
+   /** 异步回调里给玩家回消息：回到玩家所属区域线程；控制台直接发。 */
+   private void sendTo(final CommandSender sender, final String message) {
+      if (sender instanceof Player) {
+         final Player player = (Player) sender;
+         FoliaSchedulerCompat.runFor(this.plugin, player, new Runnable() {
+            public void run() {
+               player.sendMessage(message);
+            }
+         });
+      } else {
+         sender.sendMessage(message);
+      }
    }
 
    private static String trim(String body) {

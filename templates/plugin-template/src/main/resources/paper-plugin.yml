@@ -1,10 +1,12 @@
-# Paper 插件描述文件（26.3 起推荐使用 paper-plugin.yml）
-# 注意：Paper 插件不在 yml 中声明命令，命令通过代码里的 LifecycleEvents.COMMANDS 注册
+# Paper / Folia 插件描述文件（Folia 沿用 paper-plugin.yml）
+# 注意：Paper / Folia 插件不在 yml 中声明命令，命令通过代码里的 LifecycleEvents.COMMANDS 注册
 name: ExamplePlugin
 version: '${version}'
 main: com.example.exampleplugin.ExamplePlugin
 api-version: '26.3'
-description: Minecraft 26.3 (Paper) 插件开发模板
+# 声明支持 Folia；没有这一项的插件会被 Folia 拒绝加载
+folia-supported: true
+description: Minecraft 26.3 (Folia) 插件开发模板
 authors: [zhou-BZDDX]
 website: https://github.com/zhou-BZDDX/mcPlugin
 

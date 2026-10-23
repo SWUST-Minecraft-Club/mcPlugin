@@ -12,3 +12,7 @@
    负载为 `VarInt 长度 + UTF-8` 的 `open`，与客户端 `StreamCodec.readUtf` 对齐；没装模组的客户端忽略该负载
 3.配套：Concerto 客户端 2.2.0 新增 `MenuPayload` 接收器，收到 `open` 时执行与按 `I` 相同的
    `setScreen(new ConcertoIndexScreen(null))`
+
+[Beta_0_1_0 -> Beta_0_2_0] 2026.10.22 23:45:00
+1.新增：适配 Folia 26.3 —— `paper-plugin.yml` 声明 `folia-supported: true`，编译依赖改为 Folia API
+2.调整：点击回调由 MainMenu 在查看者所属区域线程触发，插件消息发送无需额外调度

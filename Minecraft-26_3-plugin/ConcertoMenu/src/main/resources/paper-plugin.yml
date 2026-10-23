@@ -2,6 +2,8 @@ name: ConcertoMenu
 version: '${version}'
 main: com.example.concertomenu.ConcertoMenuPlugin
 api-version: '26.3'
+# 声明支持 Folia；没有这一项的插件会被 Folia 拒绝加载
+folia-supported: true
 description: 在主菜单里放一个唱片机，点击让装了 Concerto 客户端模组的玩家打开 Concerto 音乐界面
 authors: [zhou-BZDDX]
 website: https://github.com/zhou-BZDDX/mcPlugin

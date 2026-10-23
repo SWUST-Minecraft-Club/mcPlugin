@@ -1,16 +1,20 @@
 package com.example.mainmenu.menu;
 
 import com.example.mainmenu.MainMenuPlugin;
-import java.util.HashMap;
+import com.example.mainmenu.util.Schedulers;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.scheduler.BukkitTask;
 
 /**
  * 打开菜单 / 翻页 / 保持固定格刷新。
+ *
+ * <p>Folia：所有背包操作都必须在该玩家所属区域线程执行；这里统一用
+ * {@link Schedulers} 调到 {@code player.getScheduler()}。
  */
 public final class MenuService {
 
@@ -19,8 +23,8 @@ public final class MenuService {
 
     private final MainMenuPlugin plugin;
     private final MenuRenderer renderer;
-    private final Map<UUID, BukkitTask> refreshTasks = new HashMap<>();
-    private final Map<UUID, Long> lastOpen = new HashMap<>();
+    private final Map<UUID, ScheduledTask> refreshTasks = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> lastOpen = new ConcurrentHashMap<>();
 
     public MenuService(final MainMenuPlugin plugin) {
         this.plugin = plugin;
@@ -31,8 +35,12 @@ public final class MenuService {
         return renderer;
     }
 
-    /** 打开主菜单（必须主线程） */
+    /** 打开主菜单（必须在该玩家的区域线程） */
     public void open(final Player player) {
+        if (!Schedulers.ownedBy(player)) {
+            Schedulers.runFor(plugin, player, () -> open(player));
+            return;
+        }
         final long now = System.currentTimeMillis();
         final Long last = lastOpen.get(player.getUniqueId());
         if (last != null && now - last < OPEN_COOLDOWN_MILLIS) {
@@ -49,8 +57,12 @@ public final class MenuService {
         startRefresh(player, holder);
     }
 
-    /** 切到某一页 */
+    /** 切到某一页（必须在该玩家的区域线程） */
     public void show(final Player player, final MenuHolder holder, final int page) {
+        if (!Schedulers.ownedBy(player)) {
+            Schedulers.runFor(plugin, player, () -> show(player, holder, page));
+            return;
+        }
         holder.page(page);
         holder.getInventory().setContents(renderer.render(player, holder.page()));
     }
@@ -65,7 +77,8 @@ public final class MenuService {
         stopRefresh(player.getUniqueId());
         final UUID uuid = player.getUniqueId();
         final long periodTicks = Math.max(1L, plugin.getConfig().getLong("menu.refresh-seconds", 1L)) * 20L;
-        final BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+        // 每个查看者一个实体调度任务：回调天然在该玩家的区域线程，可安全重绘背包
+        final ScheduledTask task = Schedulers.runForAtFixedRate(plugin, player, () -> {
             final Player online = Bukkit.getPlayer(uuid);
             if (online == null
                     || !(online.getOpenInventory().getTopInventory().getHolder() instanceof MenuHolder open)
@@ -80,14 +93,12 @@ public final class MenuService {
     }
 
     public void stopRefresh(final UUID uuid) {
-        final BukkitTask task = refreshTasks.remove(uuid);
-        if (task != null) {
-            task.cancel();
-        }
+        final ScheduledTask task = refreshTasks.remove(uuid);
+        Schedulers.cancel(task);
     }
 
     public void shutdown() {
-        refreshTasks.values().forEach(BukkitTask::cancel);
+        refreshTasks.values().forEach(Schedulers::cancel);
         refreshTasks.clear();
         lastOpen.clear();
     }

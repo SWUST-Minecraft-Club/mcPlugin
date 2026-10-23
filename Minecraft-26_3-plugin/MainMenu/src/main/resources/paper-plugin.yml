@@ -1,4 +1,4 @@
-# Paper 插件描述文件
+# Paper / Folia 插件描述文件（Folia 沿用 paper-plugin.yml）
 # bootstrapper 用于在服务端启动早期（注册表构建阶段）注册主菜单 dialog 与内置数据包，
 # 这是把按钮挂到 ESC 菜单上的唯一时机。
 name: MainMenu
@@ -6,6 +6,8 @@ version: '${version}'
 main: com.example.mainmenu.MainMenuPlugin
 bootstrapper: com.example.mainmenu.MainMenuBootstrap
 api-version: '26.3'
+# 声明支持 Folia；没有这一项的插件会被 Folia 拒绝加载
+folia-supported: true
 description: 主菜单：ESC 菜单按钮 / /cd / 手持时钟右键 打开 6×9 功能菜单
 authors: [zhou-BZDDX]
 website: https://github.com/zhou-BZDDX/mcPlugin

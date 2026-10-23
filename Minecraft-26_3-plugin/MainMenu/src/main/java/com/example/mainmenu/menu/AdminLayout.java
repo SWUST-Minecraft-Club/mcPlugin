@@ -8,7 +8,7 @@ import java.util.Set;
  * 功能插件管理界面的布局。
  *
  * <pre>
- * 第1行   黑玻璃板 ×9
+ * 第1行   [添加占位符][黑玻璃板 ×8]
  * 第2行   [左栏1][左栏2][左栏3][左栏4][黑][右栏1][右栏2][右栏3][右栏4]
  * 第3行   同上
  * 第4行   同上
@@ -16,7 +16,7 @@ import java.util.Set;
  * 第6行   [左上一页][黑][黑][左下一页][返回][右上一页][黑][黑][右下一页]
  * </pre>
  *
- * 左栏 = 非固定位置功能插件（功能区里的），右栏 = 固定位置功能插件。
+ * 左栏 = 非固定位置功能插件（功能区里的）与占位符，右栏 = 固定位置功能插件。
  */
 public final class AdminLayout {
 
@@ -24,6 +24,9 @@ public final class AdminLayout {
     public static final List<Integer> LEFT_SLOTS = columnRange(2, 5, 1, 4);
     /** 右栏：第 2~5 行、第 6~9 列 */
     public static final List<Integer> RIGHT_SLOTS = columnRange(2, 5, 6, 9);
+
+    /** 第 1 行第 1 格：添加功能占位符 */
+    public static final int ADD_PLACEHOLDER = 0;
 
     /** 第 6 行第 1 格：左栏上一页 */
     public static final int LEFT_PREVIOUS = 5 * MenuLayout.COLUMNS;
@@ -62,7 +65,8 @@ public final class AdminLayout {
 
     /** 管理页的分隔玻璃板：第 1 行、第 6 行、第 5 列（按钮占用的格子除外） */
     public static List<Integer> dividerSlots() {
-        final Set<Integer> buttons = Set.of(LEFT_PREVIOUS, LEFT_NEXT, BACK, RIGHT_PREVIOUS, RIGHT_NEXT);
+        final Set<Integer> buttons = Set.of(
+                ADD_PLACEHOLDER, LEFT_PREVIOUS, LEFT_NEXT, BACK, RIGHT_PREVIOUS, RIGHT_NEXT);
         final List<Integer> slots = new ArrayList<>();
         for (int slot = 0; slot < MenuLayout.SIZE; slot++) {
             final boolean firstRow = slot < MenuLayout.COLUMNS;

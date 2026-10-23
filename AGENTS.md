@@ -2,7 +2,7 @@
 
 - 项目名称：**mcPlugin**（Minecraft 26.3 插件与客户端模组集合）
 - 开发团队：**zhou-BZDDX**
-- Minecraft **26.3**（Paper）多插件仓库 + Fabric 客户端模组：一个 Gradle 工程统一构建与测试；产物按固定命名留档到 `./release/`；版本号、ChangeLog、路径写法都有硬规范。
+- Minecraft **26.3**（Folia）多插件仓库 + Fabric 客户端模组：一个 Gradle 工程统一构建与测试；产物按固定命名留档到 `./release/`；版本号、ChangeLog、路径写法都有硬规范。
 
 ## 开始工作前
 
@@ -51,13 +51,13 @@
 
 ## 现状快照（2026-10-22，调整后更新本行）
 
-插件 MainMenu（正式版 `1_0_1` / 测试中 `Beta_1_2_1`）· RealTime（`1_0_0` / `Beta_1_0_2`）· MainMenuRepair Fabric 模组（`1_0_0` / `Beta_1_0_1`）·
-YudreamPlaytime（`1_0_0`，MainMenu 伴侣插件：菜单里显示查看者自己的在线时长）· Wallet（`Beta_0_3_0`，主菜单钱包：货币/余额/流水 + 管理员可切换本服货币启停 + `/walletin` / `/walletout` 在线玩家调币指令 + 供后续插件依赖的 WalletApi）·
-ConcertoMenu（`Beta_0_1_0`，主菜单唱片机 → 发 `concerto:menu` 指令打开客户端 Concerto 主界面）·
-yudream-minecraft-server（正式版 `2_0_0` / 测试中 `Beta_2_0_1`，反编译基线纳入本仓的 Bukkit 桥接插件，编译目标 spigot-api 1.13.2 + Java 8，含本地时长统计、断线补发与后端对齐）；
-结构 `./Minecraft-26_3-plugin/<插件名>/`（Paper 插件，MainMenu 提供功能注册 API）· `./fabric-26_3-mod/MainMenuRepair/`（独立 Gradle 工程）·
-`./templates/plugin-template/`（newPlugin 模板）· `./release/<项目名>/`（产物留档）· `./run/`（共用测试服）· `./docs/dev|exp|plan/`（规范 / 经验 / 计划）；
-构建 `./gradlew build`（全部插件）· `./gradlew -p ./fabric-26_3-mod/MainMenuRepair build`（模组）· `./gradlew :插件名:runServer`（测试服，端口 25566）；
+插件 MainMenu（正式版 `1_0_1` / 测试中 `Beta_1_4_0`，管理页可添加功能区占位符）· RealTime（`1_0_0` / `Beta_1_1_0`）· MainMenuRepair Fabric 模组（`1_0_0` / `Beta_1_0_1`）·
+YudreamPlaytime（正式版 `1_0_0` / 测试中 `Beta_1_1_0`，MainMenu 伴侣插件：菜单里显示查看者自己的在线时长）· Wallet（`Beta_0_4_0`，主菜单钱包：货币/余额/流水 + 管理员可切换本服货币启停 + `/walletin` / `/walletout` 在线玩家调币指令 + 供后续插件依赖的 WalletApi）·
+ConcertoMenu（`Beta_0_2_0`，主菜单唱片机 → 发 `concerto:menu` 指令打开客户端 Concerto 主界面）·
+yudream-minecraft-server（正式版 `2_0_0` / 测试中 `Beta_2_1_0`，反编译基线纳入本仓的 Bukkit 桥接插件，编译目标 spigot-api 1.13.2 + Java 8，含本地时长统计、断线补发与后端对齐；运行期反射适配 Folia）；
+结构 `./Minecraft-26_3-plugin/<插件名>/`（Folia 插件，沿用 `paper-plugin.yml`，MainMenu 提供功能注册 API）· `./fabric-26_3-mod/MainMenuRepair/`（独立 Gradle 工程）·
+`./templates/plugin-template/`（newPlugin 模板）· `./release/<项目名>/`（产物留档）· `./run/`（共用的 Folia 测试服）· `./docs/dev|exp|plan/`（规范 / 经验 / 计划）；
+构建 `./gradlew build`（全部插件）· `./gradlew -p ./fabric-26_3-mod/MainMenuRepair build`（模组）· `./gradlew :插件名:runServer`（Folia 测试服，端口 25566；内部执行 `runFolia`）；
 远端 `origin`（主仓 `zhou-BZDDX/mcPlugin`，双 push 地址，一次推送同步社团镜像 `SWUST-Minecraft-Club/mcPlugin`）· `swust`（镜像远端，仅用于核对）。
 
 ## 敏感信息

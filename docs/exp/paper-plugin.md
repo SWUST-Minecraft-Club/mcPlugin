@@ -1,4 +1,7 @@
-# Paper 插件侧：坑与经验
+# Paper / Folia 插件侧：坑与经验
+
+> Folia 沿用 Paper API 与 `paper-plugin.yml`，本文的对话框、配置、事件类条目在 Folia 上同样适用；
+> 调度器与线程归属的差异见 [folia.md](./folia.md)。
 
 ## ESC 菜单按钮点一次就失效
 

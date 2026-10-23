@@ -16,6 +16,7 @@ import online.yudream.minecraft.bukkit.bridge.DownstreamSensor;
 import online.yudream.minecraft.bukkit.bridge.InboundChatPoller;
 import online.yudream.minecraft.bukkit.command.YudreamCommand;
 import online.yudream.minecraft.bukkit.compat.AdvancementCompatibility;
+import online.yudream.minecraft.bukkit.compat.FoliaSchedulerCompat;
 import online.yudream.minecraft.bukkit.compat.PaperChatCompatibility;
 import online.yudream.minecraft.bukkit.compat.ServerCompatibility;
 import online.yudream.minecraft.bukkit.config.YudreamConfig;
@@ -34,19 +35,19 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class YudreamMinecraftPlugin extends JavaPlugin {
-   private YudreamConfig settings;
-   private YudreamApiClient apiClient;
-   private ReportQueue reportQueue;
-   private AfkTracker afkTracker;
+   private volatile YudreamConfig settings;
+   private volatile YudreamApiClient apiClient;
+   private volatile ReportQueue reportQueue;
+   private volatile AfkTracker afkTracker;
    private PlaytimeLedger playtimeLedger;
    private PlaytimeSync playtimeSync;
-   private PendingReportJournal reportJournal;
-   private DownstreamSensor sensor;
-   private InboundChatPoller inboundPoller;
-   private int snapshotTaskId = -1;
-   private int inboundPollTaskId = -1;
-   private int playtimeSaveTaskId = -1;
-   private int playtimeSyncTaskId = -1;
+   private volatile PendingReportJournal reportJournal;
+   private volatile DownstreamSensor sensor;
+   private volatile InboundChatPoller inboundPoller;
+   private Object snapshotTask;
+   private Object inboundPollTask;
+   private Object playtimeSaveTask;
+   private Object playtimeSyncTask;
 
    public void onEnable() {
       this.saveDefaultConfig();
@@ -75,7 +76,7 @@ public final class YudreamMinecraftPlugin extends JavaPlugin {
          this.syncOnlinePlayers();
       }
 
-      this.snapshotTaskId = this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+      this.snapshotTask = FoliaSchedulerCompat.runGlobalRepeating(this, new Runnable() {
          public void run() {
             YudreamMinecraftPlugin.this.reportPlayerSnapshot();
          }
@@ -85,9 +86,9 @@ public final class YudreamMinecraftPlugin extends JavaPlugin {
    }
 
    public void onDisable() {
-      if (this.snapshotTaskId >= 0) {
-         this.getServer().getScheduler().cancelTask(this.snapshotTaskId);
-         this.snapshotTaskId = -1;
+      if (this.snapshotTask != null) {
+         FoliaSchedulerCompat.cancel(this.snapshotTask);
+         this.snapshotTask = null;
       }
 
       this.stopPlaytimeSyncTask();
@@ -175,7 +176,11 @@ public final class YudreamMinecraftPlugin extends JavaPlugin {
             this.inboundPoller = new InboundChatPoller(this);
          }
 
-         this.inboundPollTaskId = this.getServer().getScheduler().runTaskTimerAsynchronously(this, () -> this.inboundPoller.poll(), 200L, this.settings.getChatBridge().getPollIntervalTicks()).getTaskId();
+         this.inboundPollTask = FoliaSchedulerCompat.runAsyncRepeating(this, new Runnable() {
+            public void run() {
+               YudreamMinecraftPlugin.this.inboundPoller.poll();
+            }
+         }, 200L, this.settings.getChatBridge().getPollIntervalTicks());
          this.getLogger().info("群服互联入站已启动：server-id=" + this.settings.getServerId() + " -> " + this.settings.getBaseUrl() + "，实时推送优先，轮询兜底（间隔 " + this.settings.getChatBridge().getPollIntervalTicks() / 20L + " 秒），调试日志=" + (this.settings.getChatBridge().isDebug() ? "开" : "关") + "。server-id 必须与 Admin 侧配置了群服互联的服务器条目一致，否则只会收到心跳、永远收不到群消息。");
       } else {
          String reason = !this.settings.isEnabled() ? "bridge 总开关关闭" : (!this.settings.getChatBridge().isEnabled() ? "chat-bridge 未启用" : "poll-inbound 未启用");
@@ -184,9 +189,9 @@ public final class YudreamMinecraftPlugin extends JavaPlugin {
    }
 
    private void stopInboundPoller() {
-      if (this.inboundPollTaskId >= 0) {
-         this.getServer().getScheduler().cancelTask(this.inboundPollTaskId);
-         this.inboundPollTaskId = -1;
+      if (this.inboundPollTask != null) {
+         FoliaSchedulerCompat.cancel(this.inboundPollTask);
+         this.inboundPollTask = null;
          this.getLogger().info("群服互联入站已停止。");
       }
 
@@ -324,19 +329,19 @@ public final class YudreamMinecraftPlugin extends JavaPlugin {
       }
 
       long interval = this.settings == null ? 600L : this.settings.getLocalPlaytime().getSaveIntervalTicks();
-      this.playtimeSaveTaskId = this.getServer().getScheduler().runTaskTimerAsynchronously(this, new Runnable() {
+      this.playtimeSaveTask = FoliaSchedulerCompat.runAsyncRepeating(this, new Runnable() {
          public void run() {
             if (YudreamMinecraftPlugin.this.playtimeLedger != null) {
                YudreamMinecraftPlugin.this.playtimeLedger.saveIfDirty();
             }
          }
-      }, interval, interval).getTaskId();
+      }, interval, interval);
    }
 
    private void stopPlaytimeSaveTask() {
-      if (this.playtimeSaveTaskId >= 0) {
-         this.getServer().getScheduler().cancelTask(this.playtimeSaveTaskId);
-         this.playtimeSaveTaskId = -1;
+      if (this.playtimeSaveTask != null) {
+         FoliaSchedulerCompat.cancel(this.playtimeSaveTask);
+         this.playtimeSaveTask = null;
       }
    }
 
@@ -351,14 +356,14 @@ public final class YudreamMinecraftPlugin extends JavaPlugin {
       }
 
       long interval = this.settings.getLocalPlaytime().getSyncIntervalTicks();
-      this.playtimeSyncTaskId = this.getServer().getScheduler().runTaskTimer(this, new Runnable() {
+      this.playtimeSyncTask = FoliaSchedulerCompat.runGlobalRepeating(this, new Runnable() {
          public void run() {
             final Set<UUID> online = new HashSet<>();
             for (Player player : YudreamMinecraftPlugin.this.getServer().getOnlinePlayers()) {
                online.add(player.getUniqueId());
             }
 
-            YudreamMinecraftPlugin.this.getServer().getScheduler().runTaskAsynchronously(YudreamMinecraftPlugin.this, new Runnable() {
+            FoliaSchedulerCompat.runAsync(YudreamMinecraftPlugin.this, new Runnable() {
                public void run() {
                   if (YudreamMinecraftPlugin.this.playtimeSync != null) {
                      YudreamMinecraftPlugin.this.playtimeSync.pullFromBackend(online);
@@ -366,13 +371,13 @@ public final class YudreamMinecraftPlugin extends JavaPlugin {
                }
             });
          }
-      }, 200L, interval).getTaskId();
+      }, 200L, interval);
    }
 
    private void stopPlaytimeSyncTask() {
-      if (this.playtimeSyncTaskId >= 0) {
-         this.getServer().getScheduler().cancelTask(this.playtimeSyncTaskId);
-         this.playtimeSyncTaskId = -1;
+      if (this.playtimeSyncTask != null) {
+         FoliaSchedulerCompat.cancel(this.playtimeSyncTask);
+         this.playtimeSyncTask = null;
       }
    }
 

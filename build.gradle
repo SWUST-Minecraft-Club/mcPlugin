@@ -54,13 +54,14 @@ subprojects { pluginProject ->
         }
     }
 
-    // 运行期由服务端提供 Paper API，必须 compileOnly，否则会打进去造成类冲突。
+    // 运行期由服务端提供 Folia API，必须 compileOnly，否则会打进去造成类冲突。
+    // Folia API 是 Paper API 的超集，同时提供区域化调度器（RegionScheduler 等）。
     // 面向旧版服务端的项目要自备 API（例如 yudream-minecraft-server 编译目标是 spigot-api 1.13.2）：
     // 在它自己的 build.gradle 里写 ext.bringsOwnBukkitApi = true 即可跳过这里的默认依赖。
     afterEvaluate {
         if (!pluginProject.hasProperty('bringsOwnBukkitApi')) {
             pluginProject.dependencies {
-                compileOnly "io.papermc.paper:paper-api:${paperApiVersion}"
+                compileOnly "dev.folia:folia-api:${foliaApiVersion}"
             }
         }
     }
@@ -91,15 +92,28 @@ subprojects { pluginProject ->
         }
     }
 
+    // 测试服跑 Folia 26.3：用 run-paper 的 Folia 支持注册 runFolia 任务。
+    // 旧的 runServer 命令保留为兼容别名（实际执行 runFolia），所以：
+    //   ./gradlew :插件名:runServer  = 启动 Folia 测试服
+    //   ./gradlew :插件名:runFolia   = 显式启动 Folia 测试服
+    runPaper {
+        folia {
+            registerTask {
+                minecraftVersion(project.minecraftVersion)
+                // 所有插件共用仓库根目录下的 ./run/ 测试服（只下一份服务端、只生成一份世界）。
+                // 共用目录时不要同时启动两个插件的测试服（会抢同一个端口）。
+                // 想让某个插件用独立目录，在它自己的 build.gradle 里写 runDirectory(file('run'))
+                runDirectory(rootProject.file('run'))
+                // 想固定 Folia 构建号时打开这行（构建号见 https://fill.papermc.io/v3/projects/folia/versions/26.3/builds）
+                // build(5)
+            }
+        }
+    }
     tasks.named('runServer') {
-        // 测试服用的服务端版本
-        minecraftVersion(project.minecraftVersion)
-        // 所有插件共用仓库根目录下的 ./run/ 测试服（只下一份服务端、只生成一份世界）。
-        // 共用目录时不要同时启动两个插件的 runServer（会抢同一个端口）。
-        // 想让某个插件用独立目录，在它自己的 build.gradle 里写 runDirectory(file('run'))
-        runDirectory(rootProject.file('run'))
-        // 想固定服务端构建号时打开这行（构建号见 papermc.io/downloads/paper）
-        // build(200)
+        description = '已迁移到 Folia：实际执行 runFolia（保留旧命令兼容）'
+        dependsOn tasks.named('runFolia')
+        // 不执行 run-paper 默认的 Paper 启动动作，只借用它的任务名与依赖关系
+        onlyIf { false }
     }
 }
 

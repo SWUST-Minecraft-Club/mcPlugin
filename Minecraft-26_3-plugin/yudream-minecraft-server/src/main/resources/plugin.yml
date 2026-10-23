@@ -2,6 +2,8 @@ name: YudreamMinecraftServer
 main: online.yudream.minecraft.bukkit.YudreamMinecraftPlugin
 version: '${version}'
 api-version: 1.13
+# 声明支持 Folia；调度器由兼容层在运行期按服务端类型选择（Folia / Bukkit）
+folia-supported: true
 author: YuDream
 description: Reports player join, quit and AFK activity to YuDream Admin, standalone or as a proxy backend sensor.
 

@@ -25,7 +25,6 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickCallback;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 /**
@@ -109,7 +108,7 @@ public final class MainMenuBootstrap implements PluginBootstrap {
                 .build();
     }
 
-    /** dialog 按钮被点击：在主线程打开菜单（延迟 1 tick，让客户端的 dialog 先关闭，避免界面被顶掉） */
+    /** dialog 按钮被点击：延迟 1 tick 在玩家所属区域线程打开菜单（让客户端的 dialog 先关闭，避免界面被顶掉） */
     static void handleOpenClick(final DialogResponseView response, final Audience audience) {
         if (!(audience instanceof Player player)) {
             return;
@@ -119,11 +118,8 @@ public final class MainMenuBootstrap implements PluginBootstrap {
             return;
         }
         plugin.getLogger().info("收到 dialog 按钮点击（玩家 " + player.getName() + "），准备打开主菜单");
-        if (Bukkit.isPrimaryThread()) {
-            CdCommand.openNow(plugin, player);
-        } else {
-            Bukkit.getScheduler().runTask(plugin, () -> CdCommand.openNow(plugin, player));
-        }
+        // 回调线程不一定是玩家的区域线程；openNow 内部会调度到 player.getScheduler()
+        CdCommand.openNow(plugin, player);
     }
 
     /** 供调试输出使用 */

@@ -18,12 +18,15 @@
 
 ```bash
 ./gradlew :yudream-minecraft-server:build
-# 产物：./Minecraft-26_3-plugin/yudream-minecraft-server/build/libs/yudream-minecraft-server-bukkit-Beta_1_7_0.jar
+# 产物：./Minecraft-26_3-plugin/yudream-minecraft-server/build/libs/yudream-minecraft-server-bukkit-Beta_2_1_0.jar
 ```
 
 - 面向 1.8.8+ 的 Bukkit 系服务端（`plugin.yml` 声明 `api-version: 1.13`），因此**编译目标是
-  spigot-api 1.13.2、字节码 Java 8**，而不是本仓其它插件的 Paper 26.3 + Java 25
+  spigot-api 1.13.2、字节码 Java 8**，而不是本仓其它插件的 Folia 26.3 + Java 25
   （在它自己的 `build.gradle` 里用 `ext.bringsOwnBukkitApi = true` 跳过根工程的默认依赖）。
+- Folia 26.3 兼容：`plugin.yml` 声明 `folia-supported: true`，运行期由反射式 `FoliaSchedulerCompat`
+  识别服务端并使用全局 / 异步 / 实体调度器；非 Folia 服务端自动回退到 Bukkit 调度器，
+  所以同一份 jar 仍可继续跑 1.8.8+。
 - 产物命名沿用产品线 `yudream-minecraft-server-bukkit-<版本>.jar`（跨游戏版本，不带 mc 标签），
   这条是《版本与产物规范》里登记的例外。
 

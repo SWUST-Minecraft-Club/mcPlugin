@@ -2,6 +2,8 @@ name: RealTime
 version: '${version}'
 main: com.example.realtime.RealTimePlugin
 api-version: '26.3'
+# 声明支持 Folia；没有这一项的插件会被 Folia 拒绝加载
+folia-supported: true
 description: 在主菜单里显示当前时间（时区与格式可配）
 authors: [zhou-BZDDX]
 website: https://github.com/zhou-BZDDX/mcPlugin

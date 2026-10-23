@@ -9,6 +9,7 @@ import java.util.logging.Level;
 import online.yudream.minecraft.bridge.core.http.InboundChatSse;
 import online.yudream.minecraft.bukkit.YudreamMinecraftPlugin;
 import online.yudream.minecraft.bukkit.api.HttpResult;
+import online.yudream.minecraft.bukkit.compat.FoliaSchedulerCompat;
 import org.bukkit.Bukkit;
 
 public final class InboundChatPoller {
@@ -153,7 +154,7 @@ public final class InboundChatPoller {
 
                      }
                   };
-                  this.plugin.getServer().getScheduler().runTask(this.plugin, deliver);
+                  FoliaSchedulerCompat.runGlobal(this.plugin, deliver);
                }
             }
          }
@@ -161,7 +162,7 @@ public final class InboundChatPoller {
    }
 
    private void broadcast(final String sender, final String content) {
-      this.plugin.getServer().getScheduler().runTask(this.plugin, new Runnable() {
+      FoliaSchedulerCompat.runGlobal(this.plugin, new Runnable() {
          public void run() {
             String line = InboundChatPoller.this.plugin.getSettings().getChatBridge().formatInbound(sender, content);
             Bukkit.broadcastMessage(line);

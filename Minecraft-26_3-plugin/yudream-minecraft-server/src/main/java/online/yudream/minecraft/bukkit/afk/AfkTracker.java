@@ -3,13 +3,13 @@ package online.yudream.minecraft.bukkit.afk;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import online.yudream.minecraft.bukkit.compat.FoliaSchedulerCompat;
 import online.yudream.minecraft.bukkit.config.YudreamConfig;
 import online.yudream.minecraft.bukkit.report.PlayerEventType;
 import online.yudream.minecraft.bukkit.report.ReportQueue;
 import online.yudream.minecraft.bukkit.util.PlayerSnapshots;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitTask;
 
 public final class AfkTracker {
    private final JavaPlugin plugin;
@@ -17,7 +17,7 @@ public final class AfkTracker {
    private final YudreamConfig config;
    private final AfkListener listener;
    private final Map<UUID, State> states = new ConcurrentHashMap();
-   private BukkitTask task;
+   private Object task;
 
    public AfkTracker(JavaPlugin plugin, ReportQueue reportQueue, YudreamConfig config) {
       this(plugin, reportQueue, config, (AfkListener)null);
@@ -32,7 +32,7 @@ public final class AfkTracker {
 
    public void start() {
       if (this.config.isAfkEnabled()) {
-         this.task = this.plugin.getServer().getScheduler().runTaskTimer(this.plugin, new Runnable() {
+         this.task = FoliaSchedulerCompat.runGlobalRepeating(this.plugin, new Runnable() {
             public void run() {
                AfkTracker.this.checkAfk();
             }
@@ -42,7 +42,7 @@ public final class AfkTracker {
 
    public void stop() {
       if (this.task != null) {
-         this.task.cancel();
+         FoliaSchedulerCompat.cancel(this.task);
          this.task = null;
       }
 

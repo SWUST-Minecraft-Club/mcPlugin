@@ -2,6 +2,8 @@ name: YudreamPlaytime
 version: '${version}'
 main: com.example.yudreamplaytime.YudreamPlaytimePlugin
 api-version: '26.3'
+# 声明支持 Folia；没有这一项的插件会被 Folia 拒绝加载
+folia-supported: true
 description: 在主菜单里显示查看者自己的在线时长与挂机时长（数据来自本机 YuDream 桥接插件的本地台账）
 authors: [zhou-BZDDX]
 website: https://github.com/zhou-BZDDX/mcPlugin

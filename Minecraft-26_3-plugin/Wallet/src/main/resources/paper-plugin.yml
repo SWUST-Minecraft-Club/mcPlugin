@@ -2,6 +2,8 @@ name: Wallet
 version: '${version}'
 main: com.example.wallet.WalletPlugin
 api-version: '26.3'
+# 声明支持 Folia；没有这一项的插件会被 Folia 拒绝加载
+folia-supported: true
 description: 主菜单里的钱包：货币种类、余额与流水（数据与操作全部走 YuDream 官网），并为后续插件提供钱包 API
 authors: [zhou-BZDDX]
 website: https://github.com/zhou-BZDDX/mcPlugin

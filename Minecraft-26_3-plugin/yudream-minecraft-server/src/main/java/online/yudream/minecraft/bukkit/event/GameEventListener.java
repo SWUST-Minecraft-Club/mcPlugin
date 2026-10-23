@@ -1,6 +1,7 @@
 package online.yudream.minecraft.bukkit.event;
 
 import online.yudream.minecraft.bukkit.YudreamMinecraftPlugin;
+import online.yudream.minecraft.bukkit.compat.FoliaSchedulerCompat;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -23,7 +24,7 @@ public final class GameEventListener implements Listener {
       if (this.plugin.getSettings().getChatBridge().isReportEvents()) {
          final Player player = event.getPlayer();
          final String message = event.getMessage();
-         this.plugin.getServer().getScheduler().runTask(this.plugin, new Runnable() {
+         FoliaSchedulerCompat.runFor(this.plugin, player, new Runnable() {
             public void run() {
                if (player.isOnline()) {
                   GameEventListener.this.plugin.handleGameChat(player, message);

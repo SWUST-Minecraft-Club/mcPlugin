@@ -18,3 +18,9 @@
 [Beta_0_1_0 -> 正式版1_0_0] 2026.10.19
 测试期结束，整理为正式版 `1_0_0`（第一位 +1、后两位归 0、去掉 `Beta`），
 正式版改动汇总见同目录的 `YudreamPlaytime-mc26_3-plugin-ChangeLog.md`。
+
+---
+
+[正式版1_0_0 -> Beta_1_1_0] 2026.10.22 23:45:00
+1.新增：适配 Folia 26.3 —— `paper-plugin.yml` 声明 `folia-supported: true`，编译依赖改为 Folia API
+2.修复：本地时长台账缓存加同步，多个区域线程同时渲染主菜单时不会并发读写同一份 HashMap

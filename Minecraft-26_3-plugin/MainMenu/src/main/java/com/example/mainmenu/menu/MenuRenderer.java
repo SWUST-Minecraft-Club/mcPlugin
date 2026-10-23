@@ -3,6 +3,7 @@ package com.example.mainmenu.menu;
 import com.example.mainmenu.MainMenuPlugin;
 import com.example.mainmenu.api.FeaturePlacement;
 import com.example.mainmenu.api.MenuFeature;
+import com.example.mainmenu.internal.PlaceholderFeature;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -49,10 +50,16 @@ public final class MenuRenderer {
 
         // 自定义位置的功能（每页都显示）
         for (final MenuFeature feature : plugin.features().customPositionFeatures()) {
+            if (feature instanceof PlaceholderFeature) {
+                continue; // 占位符只在管理界面显示
+            }
             place(items, feature, viewer);
         }
         // 功能区本页的功能
         for (final MenuFeature feature : plugin.features().featuresOnPage(page)) {
+            if (feature instanceof PlaceholderFeature) {
+                continue; // 占位符只在管理界面显示
+            }
             place(items, feature, viewer);
         }
         return items;

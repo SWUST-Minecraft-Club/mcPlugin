@@ -35,7 +35,7 @@ public final class AdvancementCompatibility {
                final Player player = AdvancementCompatibility.player(event);
                final String title = AdvancementCompatibility.displayTitle(event);
                if (player != null && title != null && !title.isEmpty()) {
-                  plugin.getServer().getScheduler().runTask(plugin, new Runnable() {
+                  FoliaSchedulerCompat.runFor(plugin, player, new Runnable() {
                      public void run() {
                         if (player.isOnline()) {
                            plugin.handleGameAdvancement(player, title);

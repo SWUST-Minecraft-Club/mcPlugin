@@ -1,7 +1,7 @@
 // Wallet：主菜单里的钱包功能（货币种类 / 余额 / 流水），并给后续插件提供钱包 API。
 //   - 货币、余额、流水全部以 YuDream 官网为准（本地不存余额，只做短时缓存展示）
 //   - 所有加减货币的操作都直接调用官网接口，官网流水即为上报结果
-version = 'Beta_0_3_0'
+version = 'Beta_0_4_0'
 
 dependencies {
     // 运行期由服务端提供 MainMenu 的类；只用 compileOnly，避免打进自己的 jar 造成类冲突

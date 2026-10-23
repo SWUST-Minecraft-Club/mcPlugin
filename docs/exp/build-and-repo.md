@@ -30,7 +30,7 @@
 - **根因**：默认源在部分网络环境下被限速。
 - **规避/解决**：
   - Gradle wrapper 默认走华为云镜像（`./gradle/wrapper/gradle-wrapper.properties`）；CI 在构建前用 `sed` 换回官方源。
-  - Maven 依赖慢时可在根 `build.gradle` 里加阿里云镜像；`paper-api` **只有 PaperMC 官方仓库有**，镜像必须保留。
+  - Maven 依赖慢时可在根 `build.gradle` 里加阿里云镜像；`folia-api` / `paper-api` **只有 PaperMC 官方仓库有**，镜像必须保留。
   - 客户端 jar 直接从 Mojang 官方 `piston-data` 地址下载，不经过 Fabric 的 Maven。
 - **来源**：`./.github/workflows/build.yml`、`./.github/workflows/release.yml`、README「常见问题」。
 

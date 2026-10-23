@@ -11,6 +11,7 @@ import com.example.wallet.api.WalletTransaction;
 import com.example.wallet.api.WalletTransactionPage;
 import com.example.wallet.internal.PlaytimeLedgerReader;
 import com.example.wallet.util.Format;
+import com.example.wallet.util.PlayerTasks;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -75,9 +76,9 @@ public final class WalletMenus {
         return this.switches.effective(this.service.cachedAssets());
     }
 
-    /** 从当前界面返回上一级：下一 tick 重新打开主菜单（旧版 MainMenu 没有 open API 时退回执行 /cd）。 */
+    /** 从当前界面返回上一级：下一 tick 在玩家区域线程重新打开主菜单（旧版 MainMenu 没有 open API 时退回执行 /cd）。 */
     public void back(final Player player) {
-        Bukkit.getScheduler().runTask(this.plugin, () -> {
+        PlayerTasks.run(this.plugin, player, () -> {
             boolean opened = false;
             try {
                 opened = MainMenuApi.openOrNull(player);
@@ -124,6 +125,10 @@ public final class WalletMenus {
     // ------------------------------------------------------------------ 流水页
 
     public void openHistory(final Player player, final int page) {
+        if (!PlayerTasks.ownedBy(player)) {
+            PlayerTasks.run(this.plugin, player, () -> openHistory(player, page));
+            return;
+        }
         final WalletHolder holder = new WalletHolder(WalletHolder.Kind.HISTORY, Math.max(page, 1),
                 player.getUniqueId());
         final Inventory inventory = Bukkit.createInventory(holder, 54,
@@ -136,7 +141,7 @@ public final class WalletMenus {
 
         this.service.transactions(player.getUniqueId(), player.getName(), enabledCodes(), holder.page(),
                         this.config.historyPageSize())
-                .whenComplete((result, error) -> runSync(() -> {
+                .whenComplete((result, error) -> runFor(player, () -> {
                     if (viewing(player, holder)) {
                         drawHistory(holder, result, error);
                     }
@@ -204,13 +209,17 @@ public final class WalletMenus {
     // ------------------------------------------------------------------ 货币类型页（管理员）
 
     public void openAssets(final Player player) {
+        if (!PlayerTasks.ownedBy(player)) {
+            PlayerTasks.run(this.plugin, player, () -> openAssets(player));
+            return;
+        }
         final WalletHolder holder = new WalletHolder(WalletHolder.Kind.ASSETS, 1, player.getUniqueId());
         final Inventory inventory = Bukkit.createInventory(holder, 54, Component.text("货币类型"));
         holder.inventory(inventory);
         drawAssets(holder);
         player.openInventory(inventory);
 
-        this.service.assets().whenComplete((assets, error) -> runSync(() -> {
+        this.service.assets().whenComplete((assets, error) -> runFor(player, () -> {
             if (viewing(player, holder)) {
                 drawAssets(holder);
             }
@@ -258,6 +267,10 @@ public final class WalletMenus {
     // ------------------------------------------------------------------ 玩家货币页（管理员）
 
     public void openPlayers(final Player player, final int page) {
+        if (!PlayerTasks.ownedBy(player)) {
+            PlayerTasks.run(this.plugin, player, () -> openPlayers(player, page));
+            return;
+        }
         final List<PlaytimeLedgerReader.Entry> entries = this.ledger.read();
         final int size = this.config.adminPageSize();
         final int pages = Math.max(1, (entries.size() + size - 1) / size);
@@ -286,7 +299,7 @@ public final class WalletMenus {
 
         if (!futures.isEmpty()) {
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                    .whenComplete((ignored, error) -> runSync(() -> {
+                    .whenComplete((ignored, error) -> runFor(player, () -> {
                         if (viewing(player, holder)) {
                             drawPlayers(holder, entries, pages);
                         }
@@ -350,8 +363,8 @@ public final class WalletMenus {
                 .collect(Collectors.toMap(WalletAsset::code, asset -> asset, (left, right) -> left));
     }
 
-    private void runSync(final Runnable task) {
-        Bukkit.getScheduler().runTask(this.plugin, task);
+    private void runFor(final Player player, final Runnable task) {
+        PlayerTasks.run(this.plugin, player, task);
     }
 
     private static boolean viewing(final Player player, final WalletHolder holder) {

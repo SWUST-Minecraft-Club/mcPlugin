@@ -1,7 +1,9 @@
 package online.yudream.minecraft.bukkit.event;
 
 import online.yudream.minecraft.bukkit.YudreamMinecraftPlugin;
+import online.yudream.minecraft.bukkit.compat.FoliaSchedulerCompat;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -52,9 +54,10 @@ public final class PlayerActivityListener implements Listener {
    )
    public void onChat(final AsyncPlayerChatEvent event) {
       if (this.plugin.getSettings().isResetOnChat()) {
-         this.plugin.getServer().getScheduler().runTask(this.plugin, new Runnable() {
+         final Player player = event.getPlayer();
+         FoliaSchedulerCompat.runFor(this.plugin, player, new Runnable() {
             public void run() {
-               PlayerActivityListener.this.plugin.handleActivity(event.getPlayer(), "chat");
+               PlayerActivityListener.this.plugin.handleActivity(player, "chat");
             }
          });
       }

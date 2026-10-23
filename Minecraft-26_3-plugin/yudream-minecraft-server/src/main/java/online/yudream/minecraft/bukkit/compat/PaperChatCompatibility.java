@@ -3,8 +3,7 @@ package online.yudream.minecraft.bukkit.compat;
 import java.lang.reflect.Method;
 import java.util.logging.Level;
 import online.yudream.minecraft.bukkit.YudreamMinecraftPlugin;
-import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
+import org.bukkit.entity.Player;import org.bukkit.event.Event;
 import org.bukkit.event.EventException;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -34,7 +33,7 @@ public final class PaperChatCompatibility {
             if (plugin.getSettings().isResetOnChat()) {
                final Player player = PaperChatCompatibility.player(event);
                if (player != null) {
-                  plugin.getServer().getScheduler().runTask(plugin, new Runnable() {
+                  FoliaSchedulerCompat.runFor(plugin, player, new Runnable() {
                      public void run() {
                         if (player.isOnline()) {
                            plugin.handleActivity(player, "chat");

@@ -1,7 +1,7 @@
 // ConcertoMenu：把 Concerto 客户端菜单挂进 MainMenu（唱片机图标）。
 //   - 点击后向客户端发送 concerto:menu 通道的 open 指令，客户端（Concerto 2.2.0+）收到后打开自己的主界面
 //   - 没装 Concerto 客户端模组的玩家：负载被忽略，无副作用
-version = 'Beta_0_1_0'
+version = 'Beta_0_2_0'
 
 dependencies {
     compileOnly project(':MainMenu')

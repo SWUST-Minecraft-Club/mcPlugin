@@ -4,6 +4,7 @@ import com.example.mainmenu.MainMenuBootstrap;
 import com.example.mainmenu.MainMenuPlugin;
 import com.example.mainmenu.api.FeaturePlacement;
 import com.example.mainmenu.api.MenuFeature;
+import com.example.mainmenu.internal.PlaceholderFeature;
 import com.example.mainmenu.menu.MenuLayout;
 import io.papermc.paper.datapack.Datapack;
 import io.papermc.paper.datapack.DatapackManager;
@@ -129,6 +130,9 @@ public final class DebugReporter {
         }
         final Optional<MenuFeature> feature = plugin.features().featureAt(slot, page);
         if (feature.isPresent()) {
+            if (feature.get() instanceof PlaceholderFeature) {
+                return "占位符";
+            }
             final String id = feature.get().id();
             return MenuLayout.isFunctionArea(slot) ? id : id + "*";
         }

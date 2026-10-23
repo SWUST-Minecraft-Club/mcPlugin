@@ -2,13 +2,14 @@ package online.yudream.minecraft.bukkit.bridge;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import online.yudream.minecraft.bukkit.YudreamMinecraftPlugin;
+import online.yudream.minecraft.bukkit.compat.FoliaSchedulerCompat;
 import online.yudream.minecraft.bukkit.config.DownstreamOptions;
 import online.yudream.minecraft.bukkit.report.PlayerEventPayload;
 import online.yudream.minecraft.bukkit.report.PlayerEventType;
@@ -20,13 +21,13 @@ import org.bukkit.plugin.messaging.PluginMessageListener;
 public final class DownstreamSensor implements PluginMessageListener {
    private final YudreamMinecraftPlugin plugin;
    private final DownstreamOptions options;
-   private final Map<UUID, Long> lastActivityAt = new HashMap();
+   private final Map<UUID, Long> lastActivityAt = new ConcurrentHashMap();
    private volatile long lastAckAt;
    private volatile int proxyProtocolVersion = -1;
    private volatile String proxyVersion = "";
    private volatile String proxyTarget = "";
    private volatile boolean proxyAccepting;
-   private int heartbeatTaskId = -1;
+   private Object heartbeatTask;
    private boolean channelsRegistered;
 
    public DownstreamSensor(YudreamMinecraftPlugin plugin, DownstreamOptions options) {
@@ -43,8 +44,8 @@ public final class DownstreamSensor implements PluginMessageListener {
       }
 
       long periodTicks = Math.max(this.options.getHeartbeatSeconds(), 1L) * 20L;
-      if (this.heartbeatTaskId < 0) {
-         this.heartbeatTaskId = this.plugin.getServer().getScheduler().scheduleSyncRepeatingTask(this.plugin, new Runnable() {
+      if (this.heartbeatTask == null) {
+         this.heartbeatTask = FoliaSchedulerCompat.runGlobalRepeating(this.plugin, new Runnable() {
             public void run() {
                DownstreamSensor.this.sendHello((Player)null);
             }
@@ -55,9 +56,9 @@ public final class DownstreamSensor implements PluginMessageListener {
    }
 
    public void stop() {
-      if (this.heartbeatTaskId >= 0) {
-         this.plugin.getServer().getScheduler().cancelTask(this.heartbeatTaskId);
-         this.heartbeatTaskId = -1;
+      if (this.heartbeatTask != null) {
+         FoliaSchedulerCompat.cancel(this.heartbeatTask);
+         this.heartbeatTask = null;
       }
 
       if (this.channelsRegistered) {
@@ -133,9 +134,16 @@ public final class DownstreamSensor implements PluginMessageListener {
       }
    }
 
-   private void send(Player player, byte[] data) {
+   private void send(final Player player, final byte[] data) {
       try {
-         player.sendPluginMessage(this.plugin, "yudream:bridge", data);
+         // 插件消息必须在该玩家的区域线程发送；onPlayerQuit 等已经在归属线程时会直接执行
+         FoliaSchedulerCompat.runFor(this.plugin, player, new Runnable() {
+            public void run() {
+               if (player.isOnline()) {
+                  player.sendPluginMessage(DownstreamSensor.this.plugin, "yudream:bridge", data);
+               }
+            }
+         });
       } catch (Throwable t) {
          this.plugin.getLogger().log(Level.FINE, "Could not forward a YuDream bridge message", t);
       }
@@ -157,7 +165,8 @@ public final class DownstreamSensor implements PluginMessageListener {
       if ("yudream:bridge".equals(channel)) {
          final BridgeProtocol.Incoming incoming = BridgeProtocol.decode(message);
          if (incoming != null) {
-            this.plugin.getServer().getScheduler().runTask(this.plugin, new Runnable() {
+            // 插件消息回调在 Netty 线程；回到该玩家的区域线程再处理
+            FoliaSchedulerCompat.runFor(this.plugin, player, new Runnable() {
                public void run() {
                   if (player.isOnline()) {
                      if (incoming.isProbe()) {
@@ -175,11 +184,15 @@ public final class DownstreamSensor implements PluginMessageListener {
       }
    }
 
-   private void broadcastGroupMessage(BridgeProtocol.Incoming incoming) {
-      String content = incoming.getContent();
+   private void broadcastGroupMessage(final BridgeProtocol.Incoming incoming) {
+      final String content = incoming.getContent();
       if (content != null && !content.trim().isEmpty()) {
-         String line = this.plugin.getSettings().getChatBridge().formatInbound(incoming.getSender(), content);
-         this.plugin.getServer().broadcastMessage(line);
+         final String line = this.plugin.getSettings().getChatBridge().formatInbound(incoming.getSender(), content);
+         FoliaSchedulerCompat.runGlobal(this.plugin, new Runnable() {
+            public void run() {
+               DownstreamSensor.this.plugin.getServer().broadcastMessage(line);
+            }
+         });
       }
    }
 

@@ -7,7 +7,9 @@
 //
 // 产物命名沿用产品线：yudream-minecraft-server-bukkit-<版本>.jar（跨游戏版本，不带 mc 标签，
 // 这条是本仓「版本与产物规范」的登记例外）。
-version = 'Beta_2_0_1'
+// Folia 兼容：保持 Java 8 / spigot-api 1.13.2，运行期通过反射识别 Folia 并改用区域化调度器
+// （见 ./src/main/java/online/yudream/minecraft/bukkit/compat/FoliaSchedulerCompat.java）。
+version = 'Beta_2_1_0'
 
 base {
     archivesName = 'yudream-minecraft-server-bukkit'

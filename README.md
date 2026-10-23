@@ -5,13 +5,15 @@
 ![Minecraft](https://img.shields.io/badge/Minecraft-26.3-green.svg)
 ![Java](https://img.shields.io/badge/Java-25-orange.svg)
 
-Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `./Minecraft-26_3-plugin/<插件名>/`，由仓库根目录的一个 Gradle 工程统一管理：共享构建配置和服务端版本，每个插件又能单独打包、单独启动测试服。
+Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-26_3-plugin/<插件名>/`，由仓库根目录的一个 Gradle 工程统一管理：共享构建配置和服务端版本，每个插件又能单独打包、单独启动测试服。
 
-目前仓库里有 4 个插件：**[MainMenu](./Minecraft-26_3-plugin/MainMenu)**（主菜单框架，其它插件以它为依赖注册功能）、
+目前仓库里有 6 个插件：**[MainMenu](./Minecraft-26_3-plugin/MainMenu)**（主菜单框架，其它插件以它为依赖注册功能）、
 **[RealTime](./Minecraft-26_3-plugin/RealTime)**（在主菜单里显示当前时间）、
 **[YudreamPlaytime](./Minecraft-26_3-plugin/YudreamPlaytime)**（主菜单里显示查看者自己的在线时长，MainMenu 的伴侣插件）、
+**[Wallet](./Minecraft-26_3-plugin/Wallet)**（主菜单里的钱包：货币 / 余额 / 流水 + `/walletin` / `/walletout`）、
+**[ConcertoMenu](./Minecraft-26_3-plugin/ConcertoMenu)**（主菜单唱片机 → 打开客户端 Concerto 界面）、
 **[yudream-minecraft-server](./Minecraft-26_3-plugin/yudream-minecraft-server)**（把玩家动态上报给 YuDream Admin 的 Bukkit 桥接插件，
-自带本地时长统计与断线补发）。新增插件用 `./gradlew newPlugin -PpluginName=你的插件名`。
+自带本地时长统计与断线补发，运行期反射兼容 Folia）。新增插件用 `./gradlew newPlugin -PpluginName=你的插件名`。
 
 ## 规范索引
 
@@ -23,7 +25,7 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `./Minecraft-2
 | 开发规范总纲 | [`./docs/dev/conventions.md`](./docs/dev/conventions.md) | 技术栈、仓库结构与**路径约定**、编码约定、模组约定、Git、文档纪律 |
 | 版本与产物规范 | [`./docs/dev/版本与产物规范.md`](./docs/dev/版本与产物规范.md) | 涨号规则、产物命名、留档、ChangeLog、发布流程、历史产物重建 |
 | 功能插件接入 | [`./docs/dev/功能插件接入规范.md`](./docs/dev/功能插件接入规范.md) | 依赖声明、注册 API、位置 / 排序 / 冲突规则 |
-| 经验与坑 | [`./docs/exp/`](./docs/exp/) | Paper 插件 / Fabric 模组 / 构建环境三份坑库，遇到问题先查 |
+| 经验与坑 | [`./docs/exp/`](./docs/exp/) | Paper-Folia 插件 / Fabric 模组 / 构建环境坑库，遇到问题先查 |
 | 计划（不提交） | `./docs/plan/` | 阶段计划与任务拆解；长期结论沉淀回 `docs/dev` 或 `docs/exp` |
 | 新增插件 | [新增插件](#新增插件)、[`./templates/plugin-template/`](./templates/plugin-template) | 脚手架、目录名 / 包名 / 类名一致性 |
 | CI | [`./.github/workflows/`](./.github/workflows) | `build.yml` 构建、`release.yml` 发布 |
@@ -34,9 +36,9 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `./Minecraft-2
 
 | 组件 | 版本 | 说明 |
 | --- | --- | --- |
-| JDK | 25 及以上 | Paper 26.3 要求 Java 25；本机装 JDK 26 也能用，Gradle 用工具链把字节码编译到 25 |
+| JDK | 25 及以上 | Folia 26.3 要求 Java 25；本机装 JDK 26 也能用，Gradle 用工具链把字节码编译到 25 |
 | Gradle | 9.8.1 | 仓库自带 wrapper（`gradlew`），不需要手动安装 Gradle |
-| Paper API | `26.3.build.200-stable` | 在 `gradle.properties` 中配置，对所有插件生效 |
+| Folia API | `26.3.build.5-alpha` | 在 `gradle.properties` 中配置，对所有插件生效（Folia API 是 Paper API 的超集） |
 
 > 本机没有 JDK 25 时，`settings.gradle` 里的 foojay 插件会自动下载对应版本的工具链，无需手动安装。
 
@@ -47,8 +49,8 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `./Minecraft-2
 ```
 .
 ├── AGENTS.md                       # AI 协作入口：硬规则 / 必读清单 / 沟通字典 / 现状快照
-├── build.gradle                    # 所有插件共享的构建配置（依赖、工具链、runServer）
-├── gradle.properties               # 统一版本：Minecraft / Paper API / Java（升级版本改这里）
+├── build.gradle                    # 所有插件共享的构建配置（依赖、工具链、Folia 测试服）
+├── gradle.properties               # 统一版本：Minecraft / Folia API / Java（升级版本改这里）
 ├── settings.gradle                 # 自动发现 ./Minecraft-26_3-plugin/ 下的插件目录
 ├── docs/
 │   ├── dev/                        # 规范层（提交）：总纲 + 版本与产物 + 功能插件接入
@@ -86,11 +88,11 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `./Minecraft-2
 # 2. 编译打包，产物在 ./Minecraft-26_3-plugin/MyPlugin/build/libs/
 ./gradlew :MyPlugin:build
 
-# 3. 启动测试服（Paper 26.3 + 自动加载刚构建的插件），服务端文件在仓库根目录的 ./run/
+# 3. 启动测试服（Folia 26.3 + 自动加载刚构建的插件），服务端文件在仓库根目录的 ./run/
 ./gradlew :MyPlugin:runServer
 ```
 
-首次 `runServer` 会自动下载 Paper 服务端并在 `./run/` 生成世界；如果服务端提示 `You need to agree to the EULA`，把 `./run/eula.txt` 里的 `eula=false` 改成 `eula=true`（表示你同意 [Mojang EULA](https://aka.ms/MinecraftEULA)）后重新执行即可。
+首次 `runServer` 会自动下载 Folia 服务端并在 `./run/` 生成世界（内部执行 `runFolia`）；如果服务端提示 `You need to agree to the EULA`，把 `./run/eula.txt` 里的 `eula=false` 改成 `eula=true`（表示你同意 [Mojang EULA](https://aka.ms/MinecraftEULA)）后重新执行即可。
 
 ## 常用命令
 
@@ -131,7 +133,7 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `./Minecraft-2
 | `command/HelloCommand.java` | `/hello [名字]`：权限校验、可选参数 |
 | `command/AdminCommand.java` | `/mcplugin reload\|info`：子命令、配置热重载 |
 | `listener/PlayerJoinListener.java` | 玩家进服欢迎（读配置） |
-| `resources/paper-plugin.yml` | Paper 插件描述文件 + 权限声明 |
+| `resources/paper-plugin.yml` | Paper / Folia 插件描述文件 + 权限声明（`folia-supported: true` 已内置） |
 | `resources/config.yml` | 默认配置，MiniMessage 文本格式 |
 
 > 同一台服务器上装多个插件时，注意命令名和权限节点不要重复。脚手架会把权限节点一起改名（如 `shop.hello`），但命令字面量还是模板里的 `/hello`、`/mcplugin`，记得改成自己的。
@@ -163,10 +165,10 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `./Minecraft-2
 
 主菜单第 6 行第 5 格的命令方块是管理入口，**只有管理员**（权限 `mainmenu.admin`，默认 OP）能看到和点击；其他玩家那一格是普通玻璃板，点了也没反应。
 
-管理页布局（左栏 = 非固定位置功能插件，右栏 = 固定位置功能插件，每栏 16 格/页）：
+管理页布局（左栏 = 非固定位置功能插件与占位符，右栏 = 固定位置功能插件，每栏 16 格/页）：
 
 ```
-第1行   黑色玻璃板 ×9
+第1行   [添加占位符][黑色玻璃板 ×8]
 第2~5行 [左栏×4][黑][右栏×4]
 第6行   [左上一页][黑][黑][左下一页][返回][右上一页][黑][黑][右下一页]
 ```
@@ -174,10 +176,12 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `./Minecraft-2
 | 操作 | 位置 | 说明 |
 | --- | --- | --- |
 | 进入管理页 | 主菜单第 6 行第 5 格 | 仅管理员 |
-| 进入属性页 | 点左栏 / 右栏里的功能 | 左栏 → 非固定位置属性页；右栏 → 固定位置属性页 |
+| 添加功能占位符 | 管理页第 1 行第 1 格（漏斗） | 在功能区末尾添加一个占位符；管理页左栏用红色染色玻璃板显示，主菜单不显示 |
+| 进入属性页 | 点左栏 / 右栏里的功能 | 左栏 → 非固定位置属性页；右栏 → 固定位置属性页；占位符 → 占位符属性页 |
 | 返回上一级 | 第 6 行第 5 格（屏障） | 属性页、位置选择页都在这格返回 |
-| 显示 / 隐藏 | 属性页第 3 行第 3 格（羊毛） | 黄绿色 = 显示中，红色 = 已隐藏 |
-| 调整排序值 | 非固定位置属性页第 3 行第 5 格（空地图） | 左键 +1、右键 −1；按住 Shift 为 ±4 |
+| 显示 / 隐藏 | 属性页第 3 行第 3 格（羊毛） | 黄绿色 = 显示中，红色 = 已隐藏（占位符没有此项） |
+| 调整排序值 | 非固定位置 / 占位符属性页第 3 行第 5 格（空地图） | 左键 +1、右键 −1；按住 Shift 为 ±4 |
+| 删除占位符 | 占位符属性页第 3 行第 7 格（TNT） | 从管理页删除该占位符，不影响已注册的功能插件 |
 | 转为固定位置 | 非固定位置属性页第 3 行第 7 格（拉杆） | 还原原来的位置（管理员设过的、或插件自己声明的 `preferredSlot`）；从来没设置过位置的才默认第 1 行第 1 格，并切到固定位置属性页 |
 | 更改位置 | 固定位置属性页第 3 行第 5 格（末影之眼） | 进入位置选择界面 |
 | 转为非固定位置 | 固定位置属性页第 3 行第 7 格（红石火把） | 改回非固定位置功能插件，按排序值排进功能区 |
@@ -188,7 +192,13 @@ Minecraft **26.3**（Paper）多插件仓库。所有插件放在 `./Minecraft-2
 - **隐藏的功能不再占位** —— 原来与它冲突的插件可以正常显示，不会被挤到功能区；
 - **固定位置功能插件位置冲突时**，归到功能区并显示在**最前面**，但它**依然算固定位置功能插件**（在管理页右栏里、位置也保留）。
 
-> 管理界面里的物品材质写死在代码里（入口=命令方块、分隔=黑色染色玻璃板、显示/隐藏=黄绿色/红色羊毛、排序值=空地图、更改位置=末影之眼、转固定位置=拉杆、转非固定位置=红石火把、位置选择界面的功能名=命名牌、返回/取消=屏障），不走配置，避免旧版 `config.yml` 缺键时被兜底成石头。属性页只有三个操作位和返回键，其余格子是空的。
+占位符说明：
+
+- 占位符参与功能区的排序与分页，但主菜单渲染时跳过它，所以玩家侧看到的是空位，不会出现红色玻璃板。
+- 占位符属性页只有“排序值”和“删除”两个操作；删除占位符后，后面的功能会按排序值前移。
+- 占位符列表与排序值存在 `plugins/MainMenu/features.yml`（`placeholders` 段 + `features.<id>.order`），重启后恢复。
+
+> 管理界面里的物品材质写死在代码里（入口=命令方块、添加占位符=漏斗、分隔=黑色染色玻璃板、显示/隐藏=黄绿色/红色羊毛、排序值=空地图、更改位置=末影之眼、转固定位置=拉杆、转非固定位置=红石火把、占位符=红色染色玻璃板、删除占位符=TNT、位置选择界面的功能名=命名牌、返回/取消=屏障），不走配置，避免旧版 `config.yml` 缺键时被兜底成石头。属性页只有操作位和返回键，其余格子是空的。
 
 所有改动都会写进 `plugins/MainMenu/features.yml`，重启服务端后依然有效。
 
@@ -219,7 +229,7 @@ MainMenuApi.registry().register(
 
 ### ESC 菜单按钮是怎么实现的
 
-Paper 26.3 没有“直接往暂停界面加按钮”的 API。官方途径是 dialog 系统：
+Folia 26.3 沿用 Paper 的 dialog 系统，没有“直接往暂停界面加按钮”的 API。官方途径是 dialog 系统：
 
 1. 插件在 **bootstrapper** 阶段注册一个 dialog（`mainmenu:main_menu`），并把它声明进 `minecraft:pause_screen_additions` 标签；
 2. 插件 jar 内自带一个数据包（`src/main/resources/pack/`）负责把 dialog 键填进该标签；
@@ -278,16 +288,16 @@ ESC 菜单按钮：已就绪：pause_screen_additions 包含 mainmenu:main_menu�
 
 ## 开发约定
 
-编码约定（命令写在代码里、MiniMessage、`paper-api` 用 `compileOnly`、`api-version` 跟随游戏版本、Paper API 优先于 NMS、
+编码约定（命令写在代码里、MiniMessage、`folia-api` 用 `compileOnly`、`api-version` 跟随游戏版本、Folia 调度器与线程归属、
 插件间依赖只用 `compileOnly`、配置与持久化、测试插件命名）全部收敛在
 [`./docs/dev/conventions.md`](./docs/dev/conventions.md) §3、§4、§5；踩过的坑与规避方式见 [`./docs/exp/`](./docs/exp/)。
 
 ## 测试服说明
 
-- 所有插件共用仓库根目录的 `./run/`：只下一份服务端、只生成一份世界，插件各自的配置在 `./run/plugins/<插件名>/`。
+- 所有插件共用仓库根目录的 `./run/`：只下一份 Folia 服务端、只生成一份世界，插件各自的配置在 `./run/plugins/<插件名>/`。
 - **不要同时启动两个插件的 `runServer`**，会抢同一个端口。
-- 想让某个插件用独立目录：在它自己的 `build.gradle` 里写 `tasks.named('runServer') { runDirectory(file('run')) }`，就会变成该插件目录下的 `./run/`。
-- 想固定服务端构建号：在根 `build.gradle` 的 `runServer` 配置里打开 `build(200)`，构建号见 [papermc.io/downloads/paper](https://papermc.io/downloads/paper)。
+- 想让某个插件用独立目录：在它自己的 `build.gradle` 里写 `tasks.named('runFolia') { runDirectory(file('run')) }`，就会变成该插件目录下的 `./run/`。
+- 想固定服务端构建号：在根 `build.gradle` 的 `runFolia` 配置里打开 `build(5)`，构建号见 [Folia 构建列表](https://fill.papermc.io/v3/projects/folia/versions/26.3/builds)。
 - 想额外装别的插件到测试服：把 jar 放进 `./run/plugins/` 即可。
 
 ## 升级 Minecraft 版本
@@ -296,17 +306,17 @@ ESC 菜单按钮：已就绪：pause_screen_additions 包含 mainmenu:main_menu�
 
 ```properties
 minecraftVersion=26.4
-paperApiVersion=26.4.build.1-stable
+foliaApiVersion=26.4.build.1-alpha
 targetJavaVersion=25
 ```
 
-`paperApiVersion` 的可选构建号见 [PaperMC Maven 仓库](https://repo.papermc.io/repository/maven-public/io/papermc/paper/paper-api/)。也可以用动态版本 `26.4.build.+`（不推荐：每次构建拉到的版本可能不同，产物不可复现）。
+`foliaApiVersion` 的可选构建号见 [Folia API Maven 仓库](https://repo.papermc.io/repository/maven-public/dev/folia/folia-api/)。也可以用动态版本 `26.4.build.+`（不推荐：每次构建拉到的版本可能不同，产物不可复现）。
 
 如果只有个别插件需要停留在旧版本，可以在那个插件的 `build.gradle` 里单独覆盖：
 
 ```groovy
 dependencies {
-    compileOnly 'io.papermc.paper:paper-api:26.2.build.150-stable'
+    compileOnly 'dev.folia:folia-api:26.3.build.5-alpha'
 }
 ```
 
@@ -328,13 +338,13 @@ dependencies {
 
 | 项目 | 正式版 | 测试版（进行中） |
 | --- | --- | --- |
-| MainMenu | `1_0_1`（2026.10.18） | `Beta_1_2_1`（按查看者渲染 + `MainMenuApi.open`；去掉开发者提示） |
-| RealTime | `1_0_0`（2026.10.18） | `Beta_1_0_2`（去掉固定位提示） |
+| MainMenu | `1_0_1`（2026.10.18） | `Beta_1_4_0`（管理页功能占位符；Folia 实体调度器 + 并发安全；按查看者渲染 + `MainMenuApi.open`） |
+| RealTime | `1_0_0`（2026.10.18） | `Beta_1_1_0`（适配 Folia；去掉固定位提示） |
 | MainMenuRepair（fabric） | `1_0_0`（2026.10.18） | `Beta_1_0_1`（修 jar 元数据里的仓库地址） |
-| YudreamPlaytime | `1_0_0`（2026.10.19） | —（已转正） |
-| yudream-minecraft-server | `2_0_0`（2026.10.19） | `Beta_2_0_1`（修：列表接口 500 时不再刷 WARN，路径探测一次并持久化） |
-| Wallet | —（还在测试版阶段） | `Beta_0_3_0`（新增 `/walletin` / `/walletout` 管理员调币指令；管理员可切换本服货币启停；流水只显示启用币种） |
-| ConcertoMenu | —（还在测试版阶段） | `Beta_0_1_0`（首个版本：主菜单唱片机入口） |
+| YudreamPlaytime | `1_0_0`（2026.10.19） | `Beta_1_1_0`（适配 Folia；台账缓存加锁） |
+| yudream-minecraft-server | `2_0_0`（2026.10.19） | `Beta_2_1_0`（反射适配 Folia，保持 Java 8 / 1.13.2 兼容） |
+| Wallet | —（还在测试版阶段） | `Beta_0_4_0`（适配 Folia：界面回调走实体调度器；`/walletin` / `/walletout`；管理员可切换本服货币启停） |
+| ConcertoMenu | —（还在测试版阶段） | `Beta_0_2_0`（适配 Folia；首个版本：主菜单唱片机入口） |
 
 > 涨号规则（正式版之后再改动先回到测试版 `Beta_<第 1 位>_x_x`，转正时去掉 `Beta`、第 3 位归 0、第 2 位至少 +1，第 1 位不变）见
 > [`./docs/dev/版本与产物规范.md`](./docs/dev/版本与产物规范.md) §2；
@@ -366,6 +376,8 @@ dependencies {
 | `Beta_1_1_0` | `bfa2fe6` | 新增：功能项支持按查看者渲染（`icon(viewer)` / `description(viewer)` + 构建器 `iconForViewer` / `linesForViewer`），管理界面同步；产物已留档 |
 | `Beta_1_2_0` | `eee95e1` | 新增 `MainMenuApi.open(player)` / `openOrNull(player)`：功能插件可在自己的界面里「返回上一级」；产物已留档 |
 | `Beta_1_2_1` | `d2ca44a` | 调整：不再追加「点击使用 / 点击无效」开发者提示（移除两个配置项）；位置冲突提示保留 |
+| `Beta_1_3_0` | 未提交 | 新增：适配 Folia 26.3（`folia-supported`、Folia 实体调度器、背包线程归属、并发容器） |
+| `Beta_1_4_0` | 未提交 | 新增：管理页第 1 行第 1 格添加功能占位符（红玻璃板显示、主菜单不显示、仅排序值/删除） |
 
 **RealTime（插件）**
 
@@ -375,6 +387,7 @@ dependencies {
 | `1_0_0` | `0c83099` | 出正式版：主菜单第 1 行第 2 格显示当前时间（时区与格式可配）；产物已留档 |
 | `Beta_1_0_1` | `da87b2c` | 正式版后重回测试版：修 jar 元数据里的仓库地址（`mcPligin` → `mcPlugin`）；产物已留档 |
 | `Beta_1_0_2` | `d2ca44a` | 调整：去掉「固定功能位 · 点击无效」开发者提示（移除 `time.hint`） |
+| `Beta_1_1_0` | 未提交 | 新增：适配 Folia 26.3（`folia-supported` + Folia API 编译） |
 
 **MainMenuRepair（fabric 模组）**
 
@@ -401,6 +414,7 @@ dependencies {
 | --- | --- | --- |
 | `Beta_0_1_0` | `bfa2fe6` | 首个版本：主菜单里显示查看者自己的在线时长与 AFK 时长（玩家头图标、点击无效）；数据读本机 yudream 桥接插件的本地台账 |
 | `1_0_0` | `5e976f5` | 出正式版：测试期功能汇总（按查看者渲染的「我的在线时长」；配置项 stats-file / cache-seconds / order）；产物已留档 |
+| `Beta_1_1_0` | 未提交 | 新增：适配 Folia 26.3；修复：台账缓存读取加同步，避免多区域线程并发读写 |
 
 **yudream-minecraft-server（Bukkit 桥接插件）**
 
@@ -415,6 +429,7 @@ dependencies {
 | `Beta_1_8_4` | `83b9d0f` | 修：后端有记录时改为"以后端为准"（累计 + 当前区间一起采用），修正历史被灌大的本地数字；挂机区间不再跨重启累加 |
 | `2_0_0` | `5e976f5` | 出正式版：测试期功能汇总（本地在线时长统计 + 待发落盘补发 + 与后端对齐 + 玩家列表接口链路修复）；产物已留档 |
 | `Beta_2_0_1` | `90c01d9` | 修：管理端列表接口 500 时不再每个同步周期刷 WARN（路径探测一次并持久化到 `sync-endpoint.txt`）；同步无变化不再打 INFO；status 回执带当前接口 |
+| `Beta_2_1_0` | 未提交 | 新增：反射式 Folia 调度兼容层（`folia-supported`），全局 / 异步 / 实体调度器分流；保持 Java 8 + spigot-api 1.13.2 |
 
 **Wallet（插件）**
 
@@ -424,18 +439,20 @@ dependencies {
 | `Beta_0_2_0` | `25dbacd` | 新增：管理员在货币类型页点击羊毛切换本服启停（写 `assets.yml`）；修：返回主菜单（下一 tick 重开，旧版 MainMenu 退回 `/cd`） |
 | `Beta_0_2_1` | `6c54d9f` | 修：停用币种后流水页仍显示该币种（流水按本服启用币种过滤）；新增按币种过滤的 `transactions` 重载 |
 | `Beta_0_3_0` | `31fcf90` | 新增管理员指令 `/walletin` / `/walletout`（在线玩家、按资产精度校验、写官网流水）；`wallet.adjust` / `wallet.admin` 权限声明 |
+| `Beta_0_4_0` | 未提交 | 新增：适配 Folia 26.3（界面回调走玩家实体调度器，异步回复回到执行者区域线程） |
 
 **ConcertoMenu（插件）**
 
 | 版本 | 提交 | 改动 |
 | --- | --- | --- |
 | `Beta_0_1_0` | `0dcb330` | 首个版本：主菜单唱片机 → 发 `concerto:menu` 的 `open` 指令打开客户端 Concerto 主界面 |
+| `Beta_0_2_0` | 未提交 | 新增：适配 Folia 26.3（`folia-supported` + Folia API 编译） |
 
 ## 常见问题
 
 **新增的插件目录没被识别**：目录里必须有 `build.gradle`，否则 `settings.gradle` 会跳过并打印一行提示。
 
-**依赖下载慢或超时**：把根 `build.gradle` 里 `subprojects` 中的 `mavenCentral()` 换成国内镜像（`paper-api` 只有 PaperMC 官方仓库有，镜像里没有，所以要保留）：
+**依赖下载慢或超时**：把根 `build.gradle` 里 `subprojects` 中的 `mavenCentral()` 换成国内镜像（`folia-api` 只有 PaperMC 官方仓库有，镜像里没有，所以要保留）：
 
 ```groovy
 repositories {
@@ -464,15 +481,16 @@ pluginManagement {
 
 **改了 `paper-plugin.yml` 或 `config.yml` 不生效**：`paper-plugin.yml` 需要重新 `./gradlew :插件名:build` 再重启服务端；`config.yml` 在 `./run/plugins/<插件名>/` 下，改完用插件自带的 reload 命令热重载。注意默认配置只在文件不存在时才会释放，删掉该文件才会重新生成。
 
-**提示 Java 版本不对**：确认 `gradle.properties` 的 `targetJavaVersion` 不低于服务端要求（26.3 为 25），并让本机装有对应 JDK。
+**提示 Java 版本不对**：确认 `gradle.properties` 的 `targetJavaVersion` 不低于服务端要求（Folia 26.3 为 25），并让本机装有对应 JDK。
 
 ## 参考链接
 
-- [Paper 插件开发文档](https://docs.papermc.io/paper/dev/)
-- [Paper 工程配置说明](https://docs.papermc.io/paper/dev/project-setup/)
-- [Paper 服务端下载 / 构建列表](https://papermc.io/downloads/paper)
+- [Paper / Folia 插件开发文档](https://docs.papermc.io/paper/dev/)
+- [Paper 工程配置说明（Folia API 兼容）](https://docs.papermc.io/paper/dev/project-setup/)
+- [Folia 服务端下载 / 构建列表](https://fill.papermc.io/v3/projects/folia/versions/26.3/builds)
+- [Folia API Maven 仓库](https://repo.papermc.io/repository/maven-public/dev/folia/folia-api/)
 - [MiniMessage 文本格式](https://docs.advntr.dev/minimessage/format.html)
-- [run-paper（本地测试服插件）](https://github.com/jpenilla/run-task)
+- [run-paper（本地测试服插件，含 Folia 支持）](https://github.com/jpenilla/run-task)
 
 ## License
 

@@ -14,6 +14,8 @@ public final class ServerCompatibility {
       Version version = detectVersion();
       if (version == null) {
          return "Detected " + Bukkit.getVersion() + ". Using generic Bukkit compatibility mode.";
+      } else if (FoliaSchedulerCompat.isFolia()) {
+         return "Detected Minecraft " + version + " on Folia. Regionised scheduler compatibility is active.";
       } else if (version.major == 1 && version.minor < 8) {
          return "Detected Minecraft " + version + ". This plugin is built for Bukkit 1.8.8 and newer.";
       } else if (version.major == 1 && version.minor <= 12) {

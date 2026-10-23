@@ -6,6 +6,7 @@ import com.example.wallet.api.WalletException;
 import com.example.wallet.api.WalletService;
 import com.example.wallet.api.WalletTransaction;
 import com.example.wallet.util.Format;
+import com.example.wallet.util.PlayerTasks;
 import io.papermc.paper.command.brigadier.BasicCommand;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import net.kyori.adventure.text.Component;
@@ -196,9 +197,14 @@ public final class WalletAdminCommand implements BasicCommand {
         if (!plugin.isEnabled()) {
             return;
         }
-        plugin.getServer().getScheduler().runTask(plugin, () -> sender.sendMessage(
-                Component.text("[钱包] ", NamedTextColor.GRAY)
-                        .append(Component.text(text, color))));
+        final Component message = Component.text("[钱包] ", NamedTextColor.GRAY)
+                .append(Component.text(text, color));
+        // 异步 HTTP 回调可能落在任意线程；玩家消息回到玩家所属区域线程发送
+        if (sender instanceof Player player) {
+            PlayerTasks.run(plugin, player, () -> player.sendMessage(message));
+        } else {
+            sender.sendMessage(message);
+        }
     }
 
     private void usage(CommandSender sender) {

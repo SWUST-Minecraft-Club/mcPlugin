@@ -11,8 +11,8 @@ body:
     id: server-version
     attributes:
       label: 服务端版本
-      description: 例如 Paper 26.3 build 200
-      placeholder: Paper 26.3 build 200
+      description: 例如 Folia 26.3 build 5
+      placeholder: Folia 26.3 build 5
     validations:
       required: true
   - type: input

@@ -12,11 +12,11 @@
 
 | 层 | 选型 | 说明 |
 | --- | --- | --- |
-| 服务端平台 | Paper 26.3（Minecraft 26.3） | 插件 `api-version` 必须为 `26.3`，运行期由服务端提供 Paper API |
-| 插件语言 | Java 25（本机 JDK 26 也可） | 字节码统一 `options.release = 25`；Paper 26.3 最低 Java 25 |
-| 构建 | Gradle 9.8.1（仓库自带 wrapper）+ run-paper 3.1.0 | 根 `build.gradle` 统一配置，子插件只写版本号与额外依赖 |
+| 服务端平台 | Folia 26.3（Minecraft 26.3） | 插件 `api-version` 必须为 `26.3`，运行期由服务端提供 Folia API（Paper API 的超集） |
+| 插件语言 | Java 25（本机 JDK 26 也可） | 字节码统一 `options.release = 25`；Folia 26.3 最低 Java 25 |
+| 构建 | Gradle 9.8.1（仓库自带 wrapper）+ run-paper 3.1.0 | 根 `build.gradle` 统一配置；`runServer` 内部执行 Folia 任务 `runFolia` |
 | 客户端模组 | Fabric（26.3），不用 fabric-loom | 官方客户端 jar 未混淆，直接编译；Mixin 注解用本仓库的注解桩 |
-| 文本 | Adventure MiniMessage | 随 Paper 内置，配置与消息统一用 MiniMessage |
+| 文本 | Adventure MiniMessage | 随 Paper/Folia API 内置，配置与消息统一用 MiniMessage |
 | 产物 | jar，留档到 `./release/<项目名>/` | 命名、涨号与 ChangeLog 见[版本与产物规范](./版本与产物规范.md) |
 
 ## 2. 仓库结构与路径约定
@@ -29,11 +29,11 @@
 │   ├── exp/                         # 经验层（提交）：坑与经验库
 │   ├── plan/                        # 计划层（不提交）：阶段计划与任务拆解
 │   └── local.md                     # 机密（不提交）：本机路径 / 账密 / 代理 / token
-├── Minecraft-26_3-plugin/<插件名>/   # Paper 插件，一个目录一个插件
+├── Minecraft-26_3-plugin/<插件名>/   # Folia 插件（沿用 paper-plugin.yml），一个目录一个插件
 ├── fabric-26_3-mod/MainMenuRepair/  # Fabric 客户端模组（独立 Gradle 工程）
 ├── templates/plugin-template/       # newPlugin 脚手架模板
 ├── release/<项目名>/                 # 构建产物留档（提交进仓库）
-├── run/                             # 共用的 Paper 测试服（不提交）
+├── run/                             # 共用的 Folia 测试服（不提交）
 └── scripts/                         # 仓库维护脚本（如 rebuild-history.sh）
 ```
 
@@ -46,19 +46,27 @@
 - Gradle / CI 里的路径写成相对工程根的形式（`rootProject.file('...')`、`./gradlew -p ./...`），不要改成绝对路径。
 - 例外：插件运行期读写的路径相对**服务端根目录**（`plugins/<插件名>/config.yml`），测试服里就是 `./run/plugins/<插件名>/`。
 
-## 3. Paper 插件编码约定
+## 3. Folia 插件编码约定
 
+- **Folia 声明**：每个 `paper-plugin.yml`（或旧式 `plugin.yml`）必须写 `folia-supported: true`，否则 Folia 会拒绝加载。
 - **命令写在代码里**：在 `onEnable` 监听 `LifecycleEvents.COMMANDS` 注册 Brigadier 命令，不在 `paper-plugin.yml` 写 `commands:`。
-- **`paper-api` 必须 `compileOnly`**：运行期由服务端提供；用 `implementation` 会打进 jar 造成类冲突。
+- **`folia-api` 必须 `compileOnly`**：运行期由服务端提供；用 `implementation` 会打进 jar 造成类冲突。
 - **`api-version` 与游戏版本同步**：填 `26.3`，升级时与 `gradle.properties` 的 `minecraftVersion` 一起改。
 - **文本用 MiniMessage**：配置与消息里的 `<yellow>` 等标签直接生效；旧版 `&a` 需显式用 `LegacyComponentSerializer` 转换。
-- **优先 Paper API 而非 NMS**：读写方块 / 实体 / 数据包先查 Paper 文档；官方 API 确实覆盖不到才考虑 paperweight-userdev。
+- **优先 Paper/Folia API 而非 NMS**：读写方块 / 实体 / 数据包先查 Paper 文档；官方 API 确实覆盖不到才考虑 paperweight-userdev。
 - **插件间依赖**：`paper-plugin.yml` 里声明 `dependencies.server.<插件>.load: BEFORE`，编译期用
   `compileOnly project(':MainMenu')`；**不要 `implementation`**。功能插件写法见[功能插件接入规范](./功能插件接入规范.md)。
 - **配置释放**：默认配置只在目标文件不存在时释放；新增键要有兜底值。关键 UI 元素（菜单材质等）宁可写死在代码里，
   避免旧配置缺键时被兜底成错误的值（见 [exp/paper-plugin.md](../exp/paper-plugin.md)）。
 - **持久化**：玩家可管理的数据写 `getDataFolder()`（服务端根目录下 `plugins/<插件名>/`），不要写绝对路径。
-- **线程**：菜单点击回调在主线程执行；不要在渲染路径（`icon()` / `description()`）里做阻塞 IO。
+- **线程（Folia 区域化调度）**：**禁止使用 `Bukkit.getScheduler()`**（Folia 上不可用）。
+  - 全局任务（遍历在线玩家、广播、与位置无关的维护）用 `Bukkit.getGlobalRegionScheduler()`；
+  - 世界 / 方块 / 区块任务用 `Bukkit.getRegionScheduler()`；
+  - 玩家 / 实体相关任务（打开背包、改背包内容、发消息、传送、改实体状态）用 `player.getScheduler()`；
+  - 纯 IO / 网络用 `Bukkit.getAsyncScheduler()`。
+  - 背包与实体状态只能在该实体所属区域线程操作；已在该线程时直接执行，不要多绕一 tick。
+  - 跨区域线程共享的集合用并发容器或显式加锁；不要假设“主线程”存在。
+  - 详见 [exp/folia.md](../exp/folia.md)。
 - **权限**：新增命令 / 管理界面必须登记权限节点，并在 `paper-plugin.yml` 里写清默认值。
 - **测试插件**：联调用的临时插件命名 `TestPlugin*`，不参与产物留档、不随 Release 发布。
 
@@ -76,6 +84,7 @@
 - 用 `./gradlew newPlugin -PpluginName=名字 [-PpackageName=包名]` 生成；脚手架会替换
   `ExamplePlugin` / `exampleplugin` / `com.example.exampleplugin` 三处占位符并搬好包目录。
 - 目录名、`paper-plugin.yml` 的 `name` / `main`、Java 包名三者必须一致；插件名只能字母 / 数字 / 下划线且字母开头。
+- 模板的 `paper-plugin.yml` 已带 `folia-supported: true`，新插件不要删掉这一项。
 - 同名命令与权限节点不要和现有插件重复（脚手架只改权限前缀，命令字面量要自己改）。
 - 新增插件后 `./gradlew listPlugins` 能列出即注册成功（`settings.gradle` 自动发现）。
 

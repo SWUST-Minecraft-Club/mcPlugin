@@ -3,8 +3,12 @@ package com.example.mainmenu.internal;
 import com.example.mainmenu.MainMenuPlugin;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -17,26 +21,34 @@ public final class FeatureStateStore {
 
     private static final String FILE_NAME = "features.yml";
     private static final String ROOT = "features";
+    private static final String PLACEHOLDER_ROOT = "placeholders";
 
     private final MainMenuPlugin plugin;
     private final Map<String, FeatureState> states = new LinkedHashMap<>();
+    private final Set<String> placeholders = new LinkedHashSet<>();
 
     public FeatureStateStore(final MainMenuPlugin plugin) {
         this.plugin = plugin;
     }
 
     /** 取某个功能的状态（不存在时创建空状态，但不落盘） */
-    public FeatureState stateOf(final String id) {
+    public synchronized FeatureState stateOf(final String id) {
         return states.computeIfAbsent(id, key -> new FeatureState());
     }
 
-    public void load() {
+    public synchronized void load() {
         states.clear();
+        placeholders.clear();
         final File file = new File(plugin.getDataFolder(), FILE_NAME);
         if (!file.isFile()) {
             return;
         }
         final YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+        for (final String id : yaml.getStringList(PLACEHOLDER_ROOT)) {
+            if (id != null && !id.isBlank()) {
+                placeholders.add(id.trim());
+            }
+        }
         final ConfigurationSection root = yaml.getConfigurationSection(ROOT);
         if (root == null) {
             return;
@@ -61,8 +73,11 @@ public final class FeatureStateStore {
         plugin.getLogger().info("已载入 " + states.size() + " 条功能管理状态（" + FILE_NAME + "）");
     }
 
-    public void save() {
+    public synchronized void save() {
         final YamlConfiguration yaml = new YamlConfiguration();
+        if (!placeholders.isEmpty()) {
+            yaml.set(PLACEHOLDER_ROOT, new ArrayList<>(placeholders));
+        }
         states.forEach((id, state) -> {
             if (state.isEmpty()) {
                 return;
@@ -94,5 +109,26 @@ public final class FeatureStateStore {
         } catch (final IOException exception) {
             plugin.getLogger().warning("保存功能管理状态失败：" + exception.getMessage());
         }
+    }
+
+    // ------------------------------------------------------------------ 占位符
+
+    /** 已持久化的占位符 id 列表（保持添加顺序）。 */
+    public synchronized List<String> placeholders() {
+        return List.copyOf(placeholders);
+    }
+
+    public synchronized boolean isPlaceholder(final String id) {
+        return placeholders.contains(id);
+    }
+
+    public synchronized void addPlaceholder(final String id) {
+        placeholders.add(id);
+    }
+
+    /** 删除占位符定义及其排序覆盖。 */
+    public synchronized void removePlaceholder(final String id) {
+        placeholders.remove(id);
+        states.remove(id);
     }
 }

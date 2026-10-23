@@ -1,9 +1,9 @@
 package com.example.mainmenu.listener;
 
 import com.example.mainmenu.MainMenuPlugin;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -31,7 +31,8 @@ public final class ClockInteractListener implements Listener {
     private static final long COOLDOWN_MILLIS = 200L;
 
     private final MainMenuPlugin plugin;
-    private final Map<UUID, Long> lastOpen = new HashMap<>();
+    // 不同玩家的交互事件可能落在不同区域线程，冷却表必须并发安全
+    private final Map<UUID, Long> lastOpen = new ConcurrentHashMap<>();
 
     public ClockInteractListener(final MainMenuPlugin plugin) {
         this.plugin = plugin;

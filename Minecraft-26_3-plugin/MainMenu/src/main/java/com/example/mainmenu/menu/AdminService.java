@@ -3,6 +3,7 @@ package com.example.mainmenu.menu;
 import com.example.mainmenu.MainMenuPlugin;
 import com.example.mainmenu.api.FeaturePlacement;
 import com.example.mainmenu.api.MenuFeature;
+import com.example.mainmenu.internal.PlaceholderFeature;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -53,6 +54,10 @@ public final class AdminService {
     }
 
     private void openAttribute(final Player player, final String featureId, final boolean fixed) {
+        if (plugin.features().isPlaceholder(featureId)) {
+            openPlaceholderAttribute(player, featureId);
+            return;
+        }
         final AdminHolder.Mode mode = fixed
                 ? AdminHolder.Mode.ATTRIBUTE_FIXED
                 : AdminHolder.Mode.ATTRIBUTE_FUNCTION;
@@ -62,6 +67,56 @@ public final class AdminService {
         holder.attach(inventory);
         fillAttribute(player, holder);
         player.openInventory(inventory);
+    }
+
+    /** 占位符属性页：只有排序值和删除两个操作。 */
+    private void openPlaceholderAttribute(final Player player, final String featureId) {
+        final AdminHolder holder = new AdminHolder(player.getUniqueId(),
+                AdminHolder.Mode.ATTRIBUTE_PLACEHOLDER, featureId);
+        final Inventory inventory = Bukkit.createInventory(holder, MenuLayout.SIZE,
+                plugin.miniRaw(plugin.string("menu.admin.placeholder-title", "<dark_gray>占位符属性</dark_gray>")));
+        holder.attach(inventory);
+        fillPlaceholderAttribute(player, holder);
+        player.openInventory(inventory);
+    }
+
+    /** 在功能区末尾添加占位符，并把左栏翻到它所在页。 */
+    private void addPlaceholder(final Player player, final AdminHolder holder) {
+        final String id = plugin.features().addPlaceholder();
+        final List<MenuFeature> list = plugin.features().functionAreaFeatures();
+        for (int index = 0; index < list.size(); index++) {
+            if (list.get(index).id().equals(id)) {
+                holder.leftPage(index / AdminLayout.PAGE_SIZE + 1);
+                break;
+            }
+        }
+        fillManage(player, holder);
+        player.sendMessage(plugin.miniRaw(
+                "<green>已添加功能占位符；点击红色玻璃板调整排序值或删除。</green>"));
+    }
+
+    private void fillPlaceholderAttribute(final Player player, final AdminHolder holder) {
+        final Optional<MenuFeature> found = plugin.features().featureById(holder.featureId());
+        if (found.isEmpty() || !(found.get() instanceof PlaceholderFeature)) {
+            player.closeInventory();
+            return;
+        }
+        final MenuFeature feature = found.get();
+
+        // 只放两个操作位：排序值 / 删除；其余格子留空
+        final ItemStack[] items = new ItemStack[MenuLayout.SIZE];
+        final int order = plugin.features().orderOf(feature);
+        items[AdminLayout.ATTR_MIDDLE] = named("MAP", "<yellow>排序值</yellow>", List.of(
+                plugin.miniRaw("<gray>当前：<white>" + order + "</white></gray>"),
+                plugin.miniRaw("<dark_gray>左键 +1，右键 -1</dark_gray>"),
+                plugin.miniRaw("<dark_gray>按住 Shift 为 ±4</dark_gray>"),
+                plugin.miniRaw("<dark_gray>排序值只影响功能区顺序</dark_gray>")));
+        items[AdminLayout.ATTR_RIGHT] = named("TNT", "<red>删除该功能插件占位符</red>", List.of(
+                plugin.miniRaw("<gray>从管理界面删除该占位符</gray>"),
+                plugin.miniRaw("<dark_gray>不会影响已注册的功能插件</dark_gray>")));
+        items[AdminLayout.BACK] = named("BARRIER", "<gray>返回管理列表</gray>", null);
+
+        holder.getInventory().setContents(items);
     }
 
     private void openPositionPicker(final Player player, final String featureId) {
@@ -83,6 +138,12 @@ public final class AdminService {
         for (final int slot : AdminLayout.dividerSlots()) {
             items[slot] = divider.clone();
         }
+
+        // 第 1 行第 1 格：添加功能区占位符
+        items[AdminLayout.ADD_PLACEHOLDER] = named("HOPPER", "<green>添加功能占位符</green>", List.of(
+                plugin.miniRaw("<gray>在功能区末尾添加一个占位符</gray>"),
+                plugin.miniRaw("<dark_gray>主菜单不显示，仅管理界面可见</dark_gray>"),
+                plugin.miniRaw("<yellow>点击添加</yellow>")));
 
         // 左栏：非固定位置功能插件
         final List<MenuFeature> functionFeatures = plugin.features().functionAreaFeatures();
@@ -215,11 +276,16 @@ public final class AdminService {
             case MANAGE -> handleManage(player, holder, slot);
             case ATTRIBUTE_FUNCTION -> handleAttributeFunction(player, holder, slot, click);
             case ATTRIBUTE_FIXED -> handleAttributeFixed(player, holder, slot);
+            case ATTRIBUTE_PLACEHOLDER -> handleAttributePlaceholder(player, holder, slot, click);
             case POSITION_PICKER -> handlePositionPicker(player, holder, slot);
         }
     }
 
     private void handleManage(final Player player, final AdminHolder holder, final int slot) {
+        if (slot == AdminLayout.ADD_PLACEHOLDER) {
+            addPlaceholder(player, holder);
+            return;
+        }
         if (slot == AdminLayout.BACK) {
             plugin.menus().open(player);
             return;
@@ -240,7 +306,12 @@ public final class AdminService {
             final List<MenuFeature> list = plugin.features().functionAreaFeatures();
             final int index = (holder.leftPage() - 1) * AdminLayout.PAGE_SIZE + leftIndex;
             if (index < list.size()) {
-                openAttribute(player, list.get(index).id(), false);
+                final MenuFeature selected = list.get(index);
+                if (selected instanceof PlaceholderFeature) {
+                    openPlaceholderAttribute(player, selected.id());
+                } else {
+                    openAttribute(player, selected.id(), false);
+                }
             }
             return;
         }
@@ -313,6 +384,40 @@ public final class AdminService {
         }
     }
 
+    /** 占位符属性页：只允许调整排序值和删除。 */
+    private void handleAttributePlaceholder(final Player player, final AdminHolder holder,
+                                            final int slot, final ClickType click) {
+        final String id = holder.featureId();
+        if (slot == AdminLayout.BACK) {
+            openManage(player);
+            return;
+        }
+        if (slot == AdminLayout.ATTR_MIDDLE) {
+            final Optional<MenuFeature> feature = plugin.features().featureById(id);
+            if (feature.isEmpty()) {
+                return;
+            }
+            final int step = switch (click) {
+                case LEFT -> 1;
+                case RIGHT -> -1;
+                case SHIFT_LEFT -> 4;
+                case SHIFT_RIGHT -> -4;
+                default -> 0;
+            };
+            if (step != 0) {
+                plugin.features().setOrder(id, plugin.features().orderOf(feature.get()) + step);
+                fillPlaceholderAttribute(player, holder);
+            }
+            return;
+        }
+        if (slot == AdminLayout.ATTR_RIGHT) {
+            if (plugin.features().removePlaceholder(id)) {
+                player.sendMessage(plugin.miniRaw("<gray>已删除功能占位符。</gray>"));
+            }
+            openManage(player);
+        }
+    }
+
     private void handlePositionPicker(final Player player, final AdminHolder holder, final int slot) {
         if (slot == MenuLayout.ADMIN_SLOT) {
             // 屏障：取消更改
@@ -330,6 +435,18 @@ public final class AdminService {
     // ------------------------------------------------------------------ 物品构建
 
     private ItemStack entryItem(final Player viewer, final MenuFeature feature, final String stateLine) {
+        if (feature instanceof PlaceholderFeature) {
+            final ItemStack item = feature.icon(viewer);
+            final ItemMeta meta = item.getItemMeta();
+            if (meta != null) {
+                meta.lore(List.of(
+                        plugin.miniRaw("<gray>占位符：仅管理界面可见</gray>"),
+                        plugin.miniRaw("<gray>" + stateLine + "</gray>"),
+                        plugin.miniRaw("<yellow>点击调整排序值或删除</yellow>")));
+                item.setItemMeta(meta);
+            }
+            return item;
+        }
         final ItemStack item = feature.icon(viewer);
         final ItemMeta meta = item.getItemMeta();
         if (meta != null) {

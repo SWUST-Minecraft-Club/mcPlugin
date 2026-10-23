@@ -1,6 +1,7 @@
 package com.example.mainmenu.command;
 
 import com.example.mainmenu.MainMenuPlugin;
+import com.example.mainmenu.util.Schedulers;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
@@ -68,7 +69,8 @@ public final class CdCommand {
 
     private static void openLater(final MainMenuPlugin plugin, final Player player, final String source) {
         plugin.getLogger().info("玩家 " + player.getName() + " 打开主菜单（来源：" + source + "）");
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> plugin.menus().open(player), 1L);
+        // 背包界面只能在玩家所属区域线程打开；实体调度器会落到正确的线程
+        Schedulers.runForDelayed(plugin, player, () -> plugin.menus().open(player), 1L);
     }
 
     /** 主手或副手拿着时钟都算 */
