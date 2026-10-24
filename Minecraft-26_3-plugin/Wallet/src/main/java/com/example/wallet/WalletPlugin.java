@@ -1,15 +1,13 @@
 package com.example.wallet;
 
-import com.example.mainmenu.api.MainMenuApi;
-import com.example.mainmenu.api.MenuFeatureRegistry;
 import com.example.wallet.api.WalletApi;
 import com.example.wallet.command.WalletAdminCommand;
+import com.example.wallet.menu.WalletMainMenuHook;
 import com.example.wallet.internal.AssetSwitchStore;
 import com.example.wallet.internal.PlaytimeLedgerReader;
+import com.example.wallet.internal.TestWalletServiceImpl;
 import com.example.wallet.internal.WalletServiceImpl;
-import com.example.wallet.menu.WalletFeature;
-import com.example.wallet.menu.WalletGuiListener;
-import com.example.wallet.menu.WalletMenus;
+import com.example.wallet.api.WalletService;
 import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -24,15 +22,23 @@ import java.util.List;
 public final class WalletPlugin extends JavaPlugin {
 
     private WalletConfig config;
-    private WalletServiceImpl service;
-    private WalletMenus menus;
-    private WalletFeature feature;
+    private WalletService service;
+    private WalletMainMenuHook mainMenuHook;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         this.config = WalletConfig.load(getConfig());
-        this.service = new WalletServiceImpl(this, this.config);
+        if (this.config.testMode()) {
+            getLogger().warning("============================================================");
+            getLogger().warning("Wallet 本地测试模式已开启（test-mode.enabled=true）！");
+            getLogger().warning("余额与流水只存本机（test-ledger.yml），不会写入官网。");
+            getLogger().warning("上线前务必把 config.yml 的 test-mode.enabled 改回 false！");
+            getLogger().warning("============================================================");
+            this.service = new TestWalletServiceImpl(this, this.config);
+        } else {
+            this.service = new WalletServiceImpl(this, this.config);
+        }
         WalletApi.install(this.service);
 
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
@@ -43,19 +49,14 @@ public final class WalletPlugin extends JavaPlugin {
                     new WalletAdminCommand(this, this.service, false));
         });
 
-        this.menus = new WalletMenus(this, this.config, this.service, new PlaytimeLedgerReader(this),
-                new AssetSwitchStore(this, this.config.enabledAssets()));
-        getServer().getPluginManager().registerEvents(new WalletGuiListener(this.menus), this);
-        this.feature = new WalletFeature(this, this.config, this.service, this.menus);
-
-        if (MainMenuApi.isAvailable()) {
-            MainMenuApi.registry().register(this.feature);
-            getLogger().info("已注册主菜单功能：钱包（绿宝石图标）。");
+        this.mainMenuHook = WalletMainMenuHook.create(this, this.config, this.service);
+        if (this.mainMenuHook != null) {
+            this.mainMenuHook.register();
         } else {
             getLogger().warning("MainMenu 未启用：钱包菜单功能未注册，但 WalletApi 仍可被其它插件使用。");
         }
 
-        if (!this.config.isConfigured()) {
+        if (!this.config.testMode() && !this.config.isConfigured()) {
             getLogger().warning("钱包未配置：请在 config.yml 填 base-url 与 api-key"
                     + "（API Key 需要 plugin:yudream-wallet:manage 权限）。");
         }
@@ -63,18 +64,15 @@ public final class WalletPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        final MenuFeatureRegistry registry = MainMenuApi.registryOrNull();
-        if (registry != null) {
-            try {
-                registry.unregister("wallet:wallet");
-            } catch (RuntimeException ignored) {
-                // MainMenu 可能已经在关闭，忽略
-            }
+        if (this.mainMenuHook != null) {
+            this.mainMenuHook.unregister();
         }
 
         WalletApi.uninstall();
-        if (this.service != null) {
-            this.service.shutdown();
+        if (this.service instanceof WalletServiceImpl real) {
+            real.shutdown();
+        } else if (this.service instanceof TestWalletServiceImpl test) {
+            test.shutdown();
         }
     }
 }

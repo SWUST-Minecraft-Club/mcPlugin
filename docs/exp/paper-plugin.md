@@ -75,3 +75,10 @@
 - **根因**：26.3 的 Material 枚举调整了颜色命名，深灰系混凝土只剩 GRAY / LIGHT_GRAY 两档。
 - **规避/解决**：界面材质先 `javap -classpath <folia-api.jar> org.bukkit.Material | grep CONCRETE` 核对常量名再写；不要凭旧版本记忆手写材质名。
 - **来源**：2026.10.24，Town 界面首次编译。
+
+### 软依赖 Hook 里持有依赖插件类型的字段/局部变量，仍可能在缺失环境炸类加载
+
+- **现象**：Wallet 的 MainMenu 钩子（普通写法：字段/局部变量带 `MenuFeature`、方法里 `new WalletFeature(...)`）在「没装 MainMenu」的服务器上 onEnable 抛 `NoClassDefFoundError: MenuFeature`，位置就在钩子的 `create()` 调用行；而 Town 的同款钩子却在同环境正常。
+- **根因**：HotSpot 校验钩子类字节码时，为验证可赋值性可能加载 `WalletFeature`，进而解析其父接口 `MenuFeature`（MainMenu 类不在 classloader）→ 炸；是否触发与校验器对该方法的类型推断路径有关，同构代码表现不一致（Town 未触发、Wallet 触发），不可依赖「实测没炸」。
+- **规避/解决**：钩子里对依赖插件的类型**全部反射**（`Class.forName` + `Constructor/Method.invoke`），字段一律 `Object`，本类可验证性不再依赖任何外部类型；`create()` 里先 `Class.forName` 探活再返回实例。实现见 `./Minecraft-26_3-plugin/Wallet/.../menu/WalletMainMenuHook.java`。
+- **来源**：2026.10.25，Wallet 测试模式接入（Beta_0_5_0）。

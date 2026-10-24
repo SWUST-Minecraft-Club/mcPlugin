@@ -17,7 +17,12 @@ public record WalletConfig(
         String matchMode,
         int historyPageSize,
         int adminPageSize,
-        ZoneId zone
+        ZoneId zone,
+        boolean testMode,
+        String testCurrencyCode,
+        String testCurrencyName,
+        String testCurrencySymbol,
+        long testStartBalance
 ) {
 
     public static WalletConfig load(final FileConfiguration config) {
@@ -47,7 +52,12 @@ public record WalletConfig(
                 config.getString("match-mode", "auto"),
                 clamp(config.getInt("history-page-size", 45), 1, 45),
                 clamp(config.getInt("admin-page-size", 45), 1, 45),
-                zone
+                zone,
+                config.getBoolean("test-mode.enabled", false),
+                config.getString("test-mode.currency-code", "TEST").trim().toUpperCase(),
+                config.getString("test-mode.currency-name", "测试币"),
+                config.getString("test-mode.currency-symbol", "✦"),
+                Math.max(0, config.getLong("test-mode.start-balance", 100000L))
         );
     }
 

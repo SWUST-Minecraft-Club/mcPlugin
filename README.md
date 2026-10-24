@@ -398,7 +398,7 @@ dependencies {
 | MainMenuRepair（fabric） | `1_0_0`（2026.10.18） | `Beta_1_0_1`（修 jar 元数据里的仓库地址） |
 | YudreamPlaytime | `1_0_0`（2026.10.19） | `Beta_1_1_0`（适配 Folia；台账缓存加锁） |
 | yudream-minecraft-server | `2_0_0`（2026.10.19） | `Beta_2_1_0`（反射适配 Folia，保持 Java 8 / 1.13.2 兼容） |
-| Wallet | —（还在测试版阶段） | `Beta_0_4_0`（适配 Folia：界面回调走实体调度器；`/walletin` / `/walletout`；管理员可切换本服货币启停） |
+| Wallet | —（还在测试版阶段） | `Beta_0_5_0`（新增本地测试模式 test-mode：不连官网、本地账本落盘，默认关闭；须手动开启并会打启动警告） |
 | ConcertoMenu | —（还在测试版阶段） | `Beta_0_2_0`（适配 Folia；首个版本：主菜单唱片机入口） |
 | JoinAnnounce | —（还在测试版阶段） | `Beta_0_2_0`（新增 dialog 弹窗显示与 `announce.display`；`Beta_0_1_0` 为首个版本） |
 | Town | —（还在测试版阶段） | `Beta_0_1_0`（首个版本：小镇成立 / 圈地 / 保护 / 领地 buff；ArcMenu 3D 界面 + Wallet 经济 + 镇政厅道具） |
