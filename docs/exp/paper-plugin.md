@@ -43,6 +43,23 @@
   实现见 `./Minecraft-26_3-plugin/MainMenu/src/main/java/com/example/mainmenu/internal/CustomCommandFeature.java`。
 - **来源**：2026.10.23，MainMenu `Beta_1_5_1`；PlayerTitle `5.5.4-cn` 的 `CommandListener#onPlayerCommand`。
 
+## `required: false` 的软依赖：主类里不能出现依赖插件的类型
+
+- **现象**：JoinAnnounce 在 `paper-plugin.yml` 里把 MainMenu 声明为 `load: BEFORE, required: false`，
+  `onEnable` 里也先判断 `registryOrNull() == null` 才返回，但测试服没装 MainMenu 时仍加载失败：
+  `[ModernPluginLoadingStrategy] Could not load plugin ... Caused by: ClassNotFoundException: com.example.mainmenu.api.MenuFeature`。
+- **根因**：Paper 在创建插件实例前先 `Class.forName` 加载主类，JVM 的类校验 / 链接会解析主类引用到的类型。
+  主类里的局部变量 `MenuFeatureRegistry`、`new NoticeMenuFeature(...)`（它 `implements MenuFeature`）都会被加载，
+  而 MainMenu 的类不在本插件的 classloader 里，于是抛 `NoClassDefFoundError`。
+  `onEnable` 里的判空逻辑根本不会执行到 —— 失败发生在更早的类加载阶段。
+- **规避/解决**：软依赖插件把所有依赖插件的类型收进一个隔离类（本仓示例：
+  `./Minecraft-26_3-plugin/JoinAnnounce/src/main/java/com/example/joinannounce/MenuHook.java`）：
+  - 主类只保留 `getPlugin("MainMenu")` 判断与隔离类的字段，不出现任何 MainMenu 类型；
+  - 确认 `getPlugin("MainMenu") != null` 之后再 `new MenuHook(...)`，隔离类的方法校验发生在这个时刻；
+  - 隔离类里才写 `MainMenuApi` / `MenuFeature`，编译期仍用 `compileOnly`；
+  - 再兜底 catch `LinkageError`，类不可用时只告警，核心功能照常运行。
+- **来源**：2026.10.24，JoinAnnounce `Beta_0_1_0`；`runServer` 未装 MainMenu 时的启动日志。
+
 ## `preferredSlot` 写在功能区或越界，被误判成位置冲突
 
 - **现象**：功能声明 `preferredSlot(19)`（功能区格子）或 `preferredSlot(99)`（越界）时，被当作"位置冲突"处理：

@@ -1,0 +1,76 @@
+# JoinAnnounce 配置文件
+# 文本一律使用 MiniMessage：https://docs.advntr.dev/minimessage/format.html
+# 可用占位符：<player> 玩家名 / <online> 当前在线人数 / <max> 最大人数 / <world> 所在世界
+# 修改后执行 /joinannounce reload 热重载（玩家已经进服的不会补发）
+
+# 发给进服玩家本人的公告
+announce:
+  enabled: true
+  # 显示方式：dialog = 只弹窗（默认）/ chat = 只发聊天栏 / both = 弹窗 + 聊天栏
+  display: dialog
+  # 进服后延迟多少 tick 再发（20 tick = 1 秒），避开原版进服消息
+  delay-ticks: 20
+  # 公告正文：display 含 dialog 时是弹窗内容，含 chat 时逐行发到聊天栏
+  lines:
+    - "<gold>欢迎 <player> 来到本服！</gold>"
+    - "<gray>当前在线：<white><online></white>/<white><max></white></gray>"
+    - "<gray>需要帮助可以打开主菜单（<white>/cd</white>），或联系在线管理员。</gray>"
+
+  # 弹窗（26.3 Dialog API：标题 + 正文 + 关闭按钮，不占用 ESC 菜单按钮）
+  dialog:
+    title: "<gold>服务器公告</gold>"
+    # 正文宽度（像素）
+    width: 260
+    # 底部按钮文字
+    button: "知道了"
+    # 是否允许按 ESC 关闭
+    can-close-with-escape: true
+
+  # 标题 / 副标题（默认关闭，打开后与公告同时出现）
+  title:
+    enabled: false
+    title: "<gold>欢迎 <player></gold>"
+    subtitle: "<gray>祝你玩得开心</gray>"
+    fade-in-ticks: 10
+    stay-ticks: 60
+    fade-out-ticks: 20
+
+  # 提示音（默认关闭）；key 用命名空间形式，写错时只在控制台告警并跳过
+  sound:
+    enabled: false
+    key: "minecraft:entity.player.levelup"
+    volume: 1.0
+    pitch: 1.0
+
+# 首次进服追加的文案（接在 announce.lines 后面，只对第一次进服的玩家生效）
+first-join:
+  enabled: true
+  lines:
+    - "<light_purple>这是你第一次来到本服，欢迎加入！</light_purple>"
+    - "<gray>输入 <white>/cd</white> 可以打开服务器主菜单。</gray>"
+
+# 全服广播：替换原版进服 / 退服消息
+# enabled: false 时完全不干预原版消息；message 留空字符串则关闭这条广播
+broadcast:
+  join:
+    enabled: true
+    message: "<yellow><player></yellow><gray> 加入了游戏</gray>"
+  quit:
+    enabled: true
+    message: "<gray><player> 离开了游戏</gray>"
+
+# 主菜单里的「服务器公告」入口（需要 MainMenu；没装时自动跳过，不影响进服公告）
+menu:
+  enabled: true
+  # 图标材质（Bukkit 材质名，无效时回退 WRITTEN_BOOK）
+  material: WRITTEN_BOOK
+  name: "<gold>服务器公告</gold>"
+  lines:
+    - "<gray>点击再看一遍进服公告</gray>"
+    - "<dark_gray>当前在线：<online>/<max></dark_gray>"
+  # 功能区排序值（越小越靠前）
+  order: 20
+
+messages:
+  reloaded: "<green>JoinAnnounce 配置已重新加载。</green>"
+  preview-console: "<gray>以下为进服公告的文本内容（控制台不播放弹窗、标题与音效）：</gray>"

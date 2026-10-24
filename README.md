@@ -7,11 +7,12 @@
 
 Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-26_3-plugin/<插件名>/`，由仓库根目录的一个 Gradle 工程统一管理：共享构建配置和服务端版本，每个插件又能单独打包、单独启动测试服。
 
-目前仓库里有 6 个插件：**[MainMenu](./Minecraft-26_3-plugin/MainMenu)**（主菜单框架，其它插件以它为依赖注册功能）、
+目前仓库里有 7 个插件：**[MainMenu](./Minecraft-26_3-plugin/MainMenu)**（主菜单框架，其它插件以它为依赖注册功能）、
 **[RealTime](./Minecraft-26_3-plugin/RealTime)**（在主菜单里显示当前时间）、
 **[YudreamPlaytime](./Minecraft-26_3-plugin/YudreamPlaytime)**（主菜单里显示查看者自己的在线时长，MainMenu 的伴侣插件）、
 **[Wallet](./Minecraft-26_3-plugin/Wallet)**（主菜单里的钱包：货币 / 余额 / 流水 + `/walletin` / `/walletout`）、
 **[ConcertoMenu](./Minecraft-26_3-plugin/ConcertoMenu)**（主菜单唱片机 → 打开客户端 Concerto 界面）、
+**[JoinAnnounce](./Minecraft-26_3-plugin/JoinAnnounce)**（进服公告：dialog 弹窗 / 聊天栏可切换 + 首次进服文案 / 进出服广播 + 主菜单公告入口）、
 **[yudream-minecraft-server](./Minecraft-26_3-plugin/yudream-minecraft-server)**（把玩家动态上报给 YuDream Admin 的 Bukkit 桥接插件，
 自带本地时长统计与断线补发，运行期反射兼容 Folia）。新增插件用 `./gradlew newPlugin -PpluginName=你的插件名`。
 
@@ -67,6 +68,7 @@ Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-2
 │   ├── YudreamPlaytime/            # 主菜单里显示查看者自己的在线时长（MainMenu 伴侣插件）
 │   ├── Wallet/                     # 主菜单里的钱包（货币 / 余额 / 流水）+ 供后续插件依赖的钱包 API
 │   ├── ConcertoMenu/               # 主菜单里的 Concerto 音乐入口（唱片机 → 打开客户端 Concerto 界面）
+│   ├── JoinAnnounce/               # 进服公告（本人公告 / 首次进服文案 / 进出服广播 + 主菜单公告入口）
 │   └── yudream-minecraft-server/   # YuDream Admin 桥接插件：上报 + 本地时长统计 + 断线补发（Java 8 / Bukkit 1.13.2 目标）
 ├── fabric-26_3-mod/                # Fabric 客户端模组（独立 Gradle 工程，不参与上面的插件构建）
 │   └── MainMenuRepair/             # 清理 ESC 暂停菜单的界面修复模组
@@ -290,6 +292,31 @@ ESC 菜单按钮：已就绪：pause_screen_additions 包含 mainmenu:main_menu�
 配合 MainMenu 的周期性重绘，显示的时间会自动跟着走。这也是给功能插件的参考写法：
 **需要动态文本就实现接口，让 `icon()` / `description()` 每次现算。**
 
+## 插件：JoinAnnounce（进服公告）
+
+`./Minecraft-26_3-plugin/JoinAnnounce` 负责玩家进服时的公告：延迟弹出 **dialog 弹窗**（默认），
+也可以切回聊天栏或两者同时显示；首次进服追加专属文案，可选标题 / 提示音，并接管进服 / 退服的全服广播。
+文本一律 MiniMessage，支持 `<player>` / `<online>` / `<max>` / `<world>` 占位符。
+
+| 配置段 | 作用 |
+| --- | --- |
+| `announce.display` | 显示方式：`dialog`（默认，只弹窗）/ `chat`（只发聊天栏）/ `both` |
+| `announce` | 进服公告：`enabled`、`delay-ticks`、`lines`（弹窗正文与聊天栏文本共用），以及可选的 `title` / `sound` |
+| `announce.dialog` | 弹窗标题、正文宽度、按钮文字、是否允许 ESC 关闭 |
+| `first-join` | 首次进服追加的文案（接在 `announce.lines` 后面，只对第一次进服的玩家生效） |
+| `broadcast.join` / `broadcast.quit` | 替换原版进服 / 退服广播；`enabled: false` 时完全不干预原版消息，`message` 留空则关闭该条 |
+| `menu` | 主菜单「服务器公告」入口：材质、名称、悬停文本、`order`；没装 MainMenu 时自动跳过 |
+
+| 命令 | 权限 | 说明 |
+| --- | --- | --- |
+| `/joinannounce reload` | `joinannounce.admin`（OP） | 重载配置，菜单入口开关 / 排序同时生效 |
+| `/joinannounce preview` | `joinannounce.admin`（OP） | 立即预览一遍（聊天栏 + 弹窗 + 标题 + 音效），方便调文案 |
+
+弹窗用 26.3 的运行时 API（`Dialog.create(...)` + `player.showDialog(...)`），不需要 bootstrapper、
+内置数据包或注册表项，也不会出现在 ESC 暂停菜单里。
+Folia 适配：延迟公告与弹窗都在 `player.getScheduler()` 里执行；广播直接改写事件消息，不跨区域遍历在线玩家；
+配置在 reload 时整体替换为不可变快照（`volatile` 引用），不同区域线程读到的都是完整配置。
+
 ## 客户端模组：MainMenuRepair
 
 `./fabric-26_3-mod/MainMenuRepair/` 是一个 **Fabric 客户端模组**，直接改客户端界面，把 ESC 暂停菜单里的这两样东西真正删掉：
@@ -373,6 +400,7 @@ dependencies {
 | yudream-minecraft-server | `2_0_0`（2026.10.19） | `Beta_2_1_0`（反射适配 Folia，保持 Java 8 / 1.13.2 兼容） |
 | Wallet | —（还在测试版阶段） | `Beta_0_4_0`（适配 Folia：界面回调走实体调度器；`/walletin` / `/walletout`；管理员可切换本服货币启停） |
 | ConcertoMenu | —（还在测试版阶段） | `Beta_0_2_0`（适配 Folia；首个版本：主菜单唱片机入口） |
+| JoinAnnounce | —（还在测试版阶段） | `Beta_0_2_0`（新增 dialog 弹窗显示与 `announce.display`；`Beta_0_1_0` 为首个版本） |
 
 > 涨号规则（正式版之后再改动先回到测试版 `Beta_<第 1 位>_x_x`，转正时去掉 `Beta`、第 3 位归 0、第 2 位至少 +1，第 1 位不变）见
 > [`./docs/dev/版本与产物规范.md`](./docs/dev/版本与产物规范.md) §2；
@@ -477,6 +505,13 @@ dependencies {
 | --- | --- | --- |
 | `Beta_0_1_0` | `0dcb330` | 首个版本：主菜单唱片机 → 发 `concerto:menu` 的 `open` 指令打开客户端 Concerto 主界面 |
 | `Beta_0_2_0` | 未提交 | 新增：适配 Folia 26.3（`folia-supported` + Folia API 编译） |
+
+**JoinAnnounce（插件）**
+
+| 版本 | 提交 | 改动 |
+| --- | --- | --- |
+| `Beta_0_1_0` | 未提交 | 首个版本：进服公告（延迟 / 多行 / 占位符）、首次进服文案、可选标题与音效、进出服全服广播、主菜单「服务器公告」入口、`/joinannounce reload\|preview` |
+| `Beta_0_2_0` | 未提交 | 新增：进服公告改为 dialog 弹窗（运行时 `Dialog.create` + `player.showDialog`），`announce.display` 可切 dialog / chat / both；主菜单入口与 preview 同步 |
 
 ## 常见问题
 

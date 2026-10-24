@@ -27,6 +27,8 @@
   正式版之后再改动先回到测试版（`2_0_0` → `Beta_2_0_1`），转正时去掉 `Beta`、第 3 位归 0、
   第 2 位至少 +1（保留测试期里更大的值）、第 1 位不变（例：`2_0_0` → `Beta_2_0_1` → `2_1_0`）。
 - **产物留档**：`./release/<项目名>/` 必须与源码一致（构建后 `git status` 应为空），`TestPlugin*` 不归档、不发布。
+- **每次修改后推送**（用户 2026-10-24 明确要求）：改动（代码 / 文档 / 产物留档）完成并验证后，
+  默认提交到 `main` 并推送 `origin`；推送失败先重试，网络超时加 `http.postBuffer`。
 - 新发现的稳定约定，需要提示是否沉淀到 `docs/dev/` 规范。
 - 踩坑与非显然经验必须补充到 `docs/exp/`（格式见该目录 README）。
 
@@ -49,11 +51,12 @@
 - 不要在文档里写 `C:/D:` 盘符路径 —— 仓库改过名，写死路径的脚本已经因此坏过一次。
 - 不要把规范复制到 README 与 docs 两处：规范只写在 `docs/dev/`，README 只留指针。
 
-## 现状快照（2026-10-22，调整后更新本行）
+## 现状快照（2026-10-24，调整后更新本行）
 
 插件 MainMenu（正式版 `1_0_1` / 测试中 `Beta_1_5_1`，管理页可添加功能占位符与自定义插件功能）· RealTime（`1_0_0` / `Beta_1_1_0`）· MainMenuRepair Fabric 模组（`1_0_0` / `Beta_1_0_1`）·
 YudreamPlaytime（正式版 `1_0_0` / 测试中 `Beta_1_1_0`，MainMenu 伴侣插件：菜单里显示查看者自己的在线时长）· Wallet（`Beta_0_4_0`，主菜单钱包：货币/余额/流水 + 管理员可切换本服货币启停 + `/walletin` / `/walletout` 在线玩家调币指令 + 供后续插件依赖的 WalletApi）·
 ConcertoMenu（`Beta_0_2_0`，主菜单唱片机 → 发 `concerto:menu` 指令打开客户端 Concerto 主界面）·
+JoinAnnounce（`Beta_0_2_0`，进服公告：dialog 弹窗 / 聊天栏可切换 + 首次进服文案 / 进出服广播 + 主菜单「服务器公告」入口）·
 yudream-minecraft-server（正式版 `2_0_0` / 测试中 `Beta_2_1_0`，反编译基线纳入本仓的 Bukkit 桥接插件，编译目标 spigot-api 1.13.2 + Java 8，含本地时长统计、断线补发与后端对齐；运行期反射适配 Folia）；
 结构 `./Minecraft-26_3-plugin/<插件名>/`（Folia 插件，沿用 `paper-plugin.yml`，MainMenu 提供功能注册 API）· `./fabric-26_3-mod/MainMenuRepair/`（独立 Gradle 工程）·
 `./templates/plugin-template/`（newPlugin 模板）· `./release/<项目名>/`（产物留档）· `./run/`（共用的 Folia 测试服）· `./docs/dev|exp|plan/`（规范 / 经验 / 计划）；

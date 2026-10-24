@@ -1,0 +1,21 @@
+name: JoinAnnounce
+version: '${version}'
+main: com.example.joinannounce.JoinAnnouncePlugin
+api-version: '26.3'
+# 声明支持 Folia；没有这一项的插件会被 Folia 拒绝加载
+folia-supported: true
+description: 玩家进服时发送可配置公告（本人公告 / 首次进服文案 / 进出服广播 / 主菜单公告入口）
+authors: [zhou-BZDDX]
+website: https://github.com/zhou-BZDDX/mcPlugin
+
+permissions:
+  joinannounce.admin:
+    description: 允许使用 /joinannounce reload|preview
+    default: op
+
+# 主菜单只是额外的「服务器公告」入口：没装 MainMenu 时进服公告照常工作
+dependencies:
+  server:
+    MainMenu:
+      load: BEFORE
+      required: false
