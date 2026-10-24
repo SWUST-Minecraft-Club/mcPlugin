@@ -38,3 +38,6 @@ docs/local.md
 .DS_Store
 Thumbs.db
 desktop.ini
+
+### ZCode 会话工作区 ###
+.zcode/
