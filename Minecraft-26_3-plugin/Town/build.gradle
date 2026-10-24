@@ -2,7 +2,7 @@
 // 公共配置（Java 工具链、Folia API 依赖、仓库、processResources、Folia 测试服版本）
 // 统一在仓库根目录的 build.gradle 里，改一次对所有插件生效。
 
-version = 'Beta_0_2_0'
+version = 'Beta_0_3_0'
 
 dependencies {
     // 主菜单入口（软依赖，隔离在 hook 包）
@@ -11,4 +11,13 @@ dependencies {
     compileOnly project(':Wallet')
     // ArcMenu 界面运行时（软依赖）：API jar 放 ./libs/（来源与许可见 README）
     compileOnly files(rootProject.file('libs/arcmenu-api-3.2.0.jar'))
+
+    testImplementation "dev.folia:folia-api:${foliaApiVersion}"
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
 }

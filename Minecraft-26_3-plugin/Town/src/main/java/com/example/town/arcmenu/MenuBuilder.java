@@ -2,35 +2,24 @@ package com.example.town.arcmenu;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
- * ArcMenu 精确布局库（Java 版）：按 800×450 左上原点书写设计坐标，输出已做实测校正的
- * frontend/backend（见 arcmenu-designing 技能 scripts/arcmenu_layout.py，2026.10 实测于 3.0/26.2）：
- * <ul>
- *   <li>ppb 固定 42.7（改了鼠标不可见）；内容整体乘 G=ppb/160.5，800×450 恰好铺满 16:9 视野</li>
- *   <li>透视：z 越大越近越大，scale(z)=1+ZK·z，位置与尺寸都除以 scale(z)</li>
- *   <li>rectangle 顶部少画 10% 高度、底边准确 → 设高 h/0.9 并锁定底边</li>
- *   <li>text 永远以 offset.x 为水平中心，offset.y≈文字底边 → 左/右对齐靠墨宽换算中心；
- *       含 %占位% / {meta} 的动态文本宽度未知，只允许居中</li>
- *   <li>frame 宽或高 ≤2 会导致整份菜单加载失败，细线一律用 rect</li>
- * </ul>
- * 图层约定（同 PS）：layer 0..6 → z=-3..3；互相重叠的元素绝不共用 z。
+ * ArcMenu 精确布局库：按 800×450 左上原点书写设计坐标，输出补偿后的 frontend/backend。
+ * ppb 固定 42.7；补偿参数需要用当前 ArcMenu / MC 版本的实机截图复核。
+ * 图层约定为 layer 0..6 → z=-3..3，互相重叠的元素使用不同图层。
  */
 public final class MenuBuilder {
 
     public static final int W = 800;
     public static final int H = 450;
     public static final double PPB = 42.7;
-    public static final double G = PPB / 160.5;
+    /** 菜单整体占 16:9 视野的比例；视觉与 backend 命中区必须一起缩放。 */
+    public static final double WINDOW_SCALE = 0.70;
+    public static final double G = PPB / 160.5 * WINDOW_SCALE;
     public static final double ZK = 0.00305 * 160.5 / PPB;
 
-    /** 文字对齐方式。 */
     public enum Align { LEFT, CENTER, RIGHT }
 
     private static final Map<Character, Integer> ADV = new LinkedHashMap<>();
@@ -49,16 +38,17 @@ public final class MenuBuilder {
         ADV.put('>', 5);
     }
 
+    private final Map<String, JsonObject> frontend = new LinkedHashMap<>();
+    private final Map<String, JsonObject> backend = new LinkedHashMap<>();
+
     public static boolean isCjk(final char ch) {
         return ch > 0x2E80;
     }
 
-    /** 去掉 &#RRGGBB 与 &色码 后的纯文本。 */
     public static String stripCodes(final String s) {
         return s.replaceAll("&#([0-9A-Fa-f]{6})", "").replaceAll("&[0-9a-fk-or]", "");
     }
 
-    /** 文字墨迹宽度（画布单位），不含颜色码。 */
     public static double inkWidth(final String raw, final double size) {
         final String s = stripCodes(raw);
         if (s.isEmpty()) {
@@ -73,6 +63,9 @@ public final class MenuBuilder {
     }
 
     private static int z(final int layer) {
+        if (layer < 0 || layer > 6) {
+            throw new IllegalArgumentException("layer 必须在 0..6: " + layer);
+        }
         return layer - 3;
     }
 
@@ -84,10 +77,29 @@ public final class MenuBuilder {
         return Math.round(v * 1000.0) / 1000.0;
     }
 
-    // ------------------------------------------------------------------
+    private static void bounds(final String id, final double l, final double t,
+                               final double w, final double h) {
+        if (w <= 0 || h <= 0 || l < 0 || t < 0 || l + w > W || t + h > H) {
+            throw new IllegalArgumentException(id + " 超出 800×450 设计画布或尺寸非法: "
+                    + l + "," + t + " " + w + "×" + h);
+        }
+    }
 
-    private final Map<String, JsonObject> frontend = new LinkedHashMap<>();
-    private final Map<String, JsonObject> backend = new LinkedHashMap<>();
+    private JsonObject offset(final double cx, final double cy, final int layer) {
+        final double scale = s(layer);
+        final JsonObject off = new JsonObject();
+        off.addProperty("x", r3(G * cx / scale));
+        off.addProperty("y", r3(G * cy / scale));
+        off.addProperty("z", z(layer));
+        return off;
+    }
+
+    private void putFrontend(final String id, final JsonObject value) {
+        if (frontend.containsKey(id) || backend.containsKey(id)) {
+            throw new IllegalArgumentException("菜单元素 ID 重复: " + id);
+        }
+        frontend.put(id, value);
+    }
 
     public JsonObject frontend() {
         final JsonObject obj = new JsonObject();
@@ -101,18 +113,17 @@ public final class MenuBuilder {
         return obj;
     }
 
-    private JsonObject offset(final double cx, final double cy, final int layer) {
-        final double scale = s(layer);
-        final JsonObject off = new JsonObject();
-        off.addProperty("x", r3(G * cx / scale));
-        off.addProperty("y", r3(G * cy / scale));
-        off.addProperty("z", z(layer));
-        return off;
-    }
-
-    /** 实心矩形。l/t 为设计坐标左上角（y 向下），锁定底边补偿高度损失。 */
     public void rect(final String id, final double l, final double t, final double w, final double h,
                      final String color, final int layer) {
+        rect(id, l, t, w, h, color, 255, layer);
+    }
+
+    public void rect(final String id, final double l, final double t, final double w, final double h,
+                     final String color, final int opacity, final int layer) {
+        bounds(id, l, t, w, h);
+        if (opacity < 0 || opacity > 255) {
+            throw new IllegalArgumentException(id + " opacity 必须在 0..255");
+        }
         final double scale = s(layer);
         final double hs = h / 0.9;
         final double bottom = H / 2.0 - (t + h);
@@ -121,15 +132,16 @@ public final class MenuBuilder {
         o.addProperty("width", r3(G * w / scale));
         o.addProperty("height", r3(G * hs / scale));
         o.addProperty("color", color);
+        o.addProperty("opacity", opacity);
         o.add("offset", offset(l + w / 2 - W / 2.0, bottom + hs / 2, layer));
-        frontend.put(id, o);
+        putFrontend(id, o);
     }
 
-    /** 描边框（宽或高 ≤2 会加载失败，细线用 rect）。 */
     public void frame(final String id, final double l, final double t, final double w, final double h,
                       final String color, final int layer, final double thickness) {
-        if (w <= 2 || h <= 2) {
-            throw new IllegalArgumentException("frame " + id + " 宽高 ≤2 会加载失败，用 rect 画细线");
+        bounds(id, l, t, w, h);
+        if (w <= 2 || h <= 2 || thickness <= 0 || 2 * thickness >= Math.min(w, h)) {
+            throw new IllegalArgumentException("frame " + id + " 尺寸或厚度非法");
         }
         final double scale = s(layer);
         final JsonObject o = new JsonObject();
@@ -139,17 +151,20 @@ public final class MenuBuilder {
         o.addProperty("thickness", r3(G * thickness / scale));
         o.addProperty("color", color);
         o.add("offset", offset(l + w / 2 - W / 2.0, H / 2.0 - (t + h / 2), layer));
-        frontend.put(id, o);
+        putFrontend(id, o);
     }
 
-    /**
-     * 文字。x：左对齐=左边缘 / 居中=中心 / 右对齐=右边缘；cy：视觉中心。
-     * 含 %占位% 或 {meta} 的动态文本强制居中；kw 里的 update 等原样透传。
-     */
+    /** 动态文本宽度未知，必须按中心坐标居中，避免把左边缘误当中心。 */
     public void text(final String id, final String content, final double x, final double cy,
                      final double size, final int layer, final Align align, final JsonObject extra) {
+        if (size <= 0) {
+            throw new IllegalArgumentException(id + " 字号必须大于 0");
+        }
         final String plain = stripCodes(content);
         final boolean dynamic = plain.contains("%") || plain.contains("{");
+        if (dynamic && align != Align.CENTER) {
+            throw new IllegalArgumentException(id + " 含动态占位符，必须使用 CENTER");
+        }
         final double w = dynamic ? 0 : inkWidth(plain, size);
         final double cx = switch (align) {
             case LEFT -> x + w / 2;
@@ -168,12 +183,14 @@ public final class MenuBuilder {
         if (extra != null) {
             extra.entrySet().forEach(e -> o.add(e.getKey(), e.getValue()));
         }
-        frontend.put(id, o);
+        putFrontend(id, o);
     }
 
-    /** 物品模型（原版材质，GUI 上下文）。 */
     public void item(final String id, final String material, final double cx, final double cy,
                      final double size, final int layer) {
+        if (size <= 0) {
+            throw new IllegalArgumentException(id + " 物品尺寸必须大于 0");
+        }
         final double scale = s(layer);
         final JsonObject off = offset(cx - W / 2.0, H / 2.0 - cy, layer);
         final JsonObject sc = new JsonObject();
@@ -186,12 +203,15 @@ public final class MenuBuilder {
         o.addProperty("context", "GUI");
         o.add("offset", off);
         o.add("scale", sc);
-        frontend.put(id, o);
+        putFrontend(id, o);
     }
 
-    /** 后端命中区（不受 z 透视影响，只乘 G）。actions/tooltip/condition 等由调用方组装。 */
     public void region(final String id, final double l, final double t, final double w, final double h,
                        final JsonObject spec) {
+        bounds(id, l, t, w, h);
+        if (frontend.containsKey(id) || backend.containsKey(id)) {
+            throw new IllegalArgumentException("菜单元素 ID 重复: " + id);
+        }
         final JsonObject o = new JsonObject();
         o.addProperty("x", r3(G * (l + w / 2 - W / 2.0)));
         o.addProperty("y", r3(G * (H / 2.0 - (t + h / 2))));
@@ -203,8 +223,6 @@ public final class MenuBuilder {
         backend.put(id, o);
     }
 
-    // ------------------------------------------------------------------ 便捷构造
-
     public static JsonArray actions(final String... list) {
         final JsonArray arr = new JsonArray();
         for (final String action : list) {
@@ -213,11 +231,9 @@ public final class MenuBuilder {
         return arr;
     }
 
-    /** 组装 region 的 spec：actions（all/left/right/shift-right 之一或多键）。 */
     public static JsonObject spec(final JsonObject tooltip, final JsonObject actions) {
         final JsonObject o = new JsonObject();
         if (tooltip != null) {
-            // tooltip(...) 返回 {tooltip:[...]}；region 的 tooltip 字段要求字符串/字符串数组，此处展平
             if (tooltip.entrySet().size() == 1 && tooltip.get("tooltip") instanceof JsonArray arr) {
                 o.add("tooltip", arr);
             } else {
@@ -246,27 +262,38 @@ public final class MenuBuilder {
         return actions;
     }
 
-    /** 文本 extra：update 周期。 */
     public static JsonObject updateEvery(final int ticks) {
+        if (ticks <= 0) {
+            throw new IllegalArgumentException("update 必须是正整数");
+        }
         final JsonObject o = new JsonObject();
         o.addProperty("update", ticks);
         return o;
     }
 
-    /** 条件 region spec：condition 不成立时无动作（无 deny 即静默）。 */
     public static JsonObject conditionSpec(final String condition, final JsonObject tooltip,
                                            final JsonObject actions) {
+        return conditionSpec(condition, tooltip, actions, null);
+    }
+
+    public static JsonObject conditionSpec(final String condition, final JsonObject tooltip,
+                                           final JsonObject actions, final JsonArray deny) {
         final JsonObject o = spec(tooltip, actions);
         o.addProperty("condition", condition);
+        if (deny != null) {
+            o.add("deny", deny);
+        }
         return o;
     }
 
-    /** 输出整份菜单（JSON 即合法 YAML）。 */
+    /** JSON 是合法 YAML；每页由 TownUi 的关闭指令区分“真实关闭”和“切页”。 */
     public String dump(final String menuId) {
         final JsonObject doc = new JsonObject();
         doc.addProperty("schema-version", 1);
         doc.addProperty("id", menuId);
         doc.addProperty("permission", "town.use");
+        doc.add("open-commands", new JsonArray());
+        doc.addProperty("main-menu", false);
         final JsonObject canvas = new JsonObject();
         canvas.addProperty("width", (double) W);
         canvas.addProperty("height", (double) H);
@@ -275,6 +302,9 @@ public final class MenuBuilder {
         doc.add("canvas", canvas);
         doc.add("frontend", frontend());
         doc.add("backend", backend());
+        final JsonObject events = new JsonObject();
+        events.add("close", actions("command: town ui-closed " + menuId));
+        doc.add("events", events);
         return doc.toString();
     }
 }

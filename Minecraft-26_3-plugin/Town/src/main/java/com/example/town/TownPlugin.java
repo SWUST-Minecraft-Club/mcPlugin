@@ -1,6 +1,7 @@
 package com.example.town;
 
 import com.example.town.arcmenu.TownUi;
+import com.example.town.arcmenu.TownUiListener;
 import com.example.town.buff.BuffApplier;
 import com.example.town.command.TownCommand;
 import com.example.town.event.TownEvents;
@@ -42,13 +43,21 @@ public final class TownPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        // 旧安装的 config.yml 缺少新版本新增键（如 claim-already-yours）时补齐默认值，避免「缺少消息」
+        getConfig().options().copyDefaults(true);
+        saveConfig();
         config = TownConfig.load(getConfig(), getLogger());
         messages = new Messages(this);
 
         registry = new TownRegistry();
         store = new TownStore(this);
         for (Town town : store.load()) {
-            registry.register(town);
+            try {
+                registry.register(town);
+            } catch (final IllegalArgumentException e) {
+                getLogger().severe("小镇 " + town.id() + "（" + town.name() + "）索引冲突，已跳过加载："
+                        + e.getMessage());
+            }
         }
 
         events = new TownEvents();
@@ -56,12 +65,16 @@ public final class TownPlugin extends JavaPlugin {
         craftEngine = CraftEngineHook.create(this);
         townHalls = new TownHalls(this, craftEngine);
         service = new TownService(this, registry, store, messages, events, wallet);
+        if (wallet != null) {
+            wallet.preloadAssets();
+        }
         com.example.town.api.TownApi.install(service);
         buffApplier = new BuffApplier(this, service);
 
         getServer().getPluginManager().registerEvents(
                 new TownHallListener(this, service, townHalls), this);
         getServer().getPluginManager().registerEvents(new ProtectionListener(this, service), this);
+        getServer().getPluginManager().registerEvents(new TownUiListener(this), this);
 
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event ->
                 event.registrar().register(TownCommand.create(this),
@@ -80,6 +93,12 @@ public final class TownPlugin extends JavaPlugin {
         // 维护任务：邀请过期 / 筹备超时 / 过期 buff 惰性清理（30 秒一次）
         Bukkit.getGlobalRegionScheduler().runAtFixedRate(this,
                 task -> service.maintenance(), 600L, 600L);
+        Bukkit.getGlobalRegionScheduler().runAtFixedRate(this,
+                task -> {
+                    if (ui != null) {
+                        ui.tick();
+                    }
+                }, 40L, 40L);
 
         getComponentLogger().info("Town 已启用：小镇 " + registry.all().size()
                 + " 个；界面=" + (ui != null ? "ArcMenu" : "指令")
@@ -95,6 +114,12 @@ public final class TownPlugin extends JavaPlugin {
         if (service != null) {
             service.saveNow();
         }
+        if (buffApplier != null) {
+            buffApplier.stop();
+        }
+        if (ui != null) {
+            ui.shutdown();
+        }
         com.example.town.api.TownApi.uninstall();
     }
 
@@ -102,6 +127,12 @@ public final class TownPlugin extends JavaPlugin {
     public void reloadEverything() {
         reloadConfig();
         config = TownConfig.load(getConfig(), getLogger());
+        if (wallet != null) {
+            wallet.preloadAssets();
+        }
+        if (buffApplier != null) {
+            buffApplier.restart();
+        }
         if (menuHook != null) {
             menuHook.unregister();
             menuHook.register();

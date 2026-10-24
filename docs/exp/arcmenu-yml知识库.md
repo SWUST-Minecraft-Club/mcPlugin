@@ -2530,3 +2530,26 @@ AI 如果无法取得全目录、图片清单或依赖状态，只能保证单�
 - **现象**：Folia 报插件名歧义：`build/libs/Town-xxx.jar` 与 `plugins/Town-xxx.jar` 同时存在。
 - **根因**：`:Town:runServer` 会自动把 `build/libs` 的产物注入服务端 plugins；手动再拷贝一份同名 jar 就撞名。
 - **修法**：用 runServer 测试时**不要**手动往 `run/plugins/` 放本插件 jar，让任务注入；只有用别的启动方式才手动部署。
+
+### 25.7 Arcitx 输入实测需先按 Esc 才能提交（3.2，2026-10-25）
+
+- **现象**：Arcitx 输入框里按 Enter、或直接点 `submit` 指向的按钮都无效果；先按 Esc 退出编辑态后再点才生效。
+- **根因**：3.2 运行时的 Arcitx 编辑态会吞掉后续点击/回车，第一次交互只是结束编辑。
+- **规避**：不用 Arcitx。用 `ArcMenuTextInputOptions.builder().title(...).maxLength(...)` + `api.textInput().request(plugin, player, options, listener)`，
+  在 `onComplete` 里判断 `ArcMenuTextInputEndReason.SUBMITTED` 后直接执行业务（回调线程需自行 `Threads.forPlayer` 切回玩家区域线程）。
+
+### 25.8 光标大小与跟手感是 ArcMenu 全局配置，与菜单缩放无关
+
+- **现象**：菜单整体缩小（如 70%）后显得光标巨大、拖动不灵敏。
+- **根因**：光标由 ArcMenu `config.yml` 的 `mouse.cursor.size`（逻辑高度）、`sensitivity-x/y`、`sample-rate` 控制，
+  与各菜单的 `pixels-per-block` / 缩放完全独立。鼠标模式光标本身走客户端 Mod 本地渲染（最跟手），touch/vision 是另外两种可选模式。
+- **规避**：按 70% 菜单的经验配 `size: 3.0`、`sensitivity-x/y: 3.0`、`sample-rate: 60`；策略 `player-choice` + `default: mouse`，
+  插件侧不要每次打开菜单都 `setPointerMode` 强切，否则会覆盖玩家自选模式。
+
+### 25.9 第三方插件只能增量合并全局 animations.yml
+
+- **现象**：想给自家菜单加过渡/轨道动画，但 `plugins/ArcMenu/animations.yml` 是全库唯一文件，
+  里面已有默认菜单的大量绑定（实测 4000+ 行）；整份覆盖会让其它菜单动画全丢。
+- **规避**：用 YamlConfiguration 读取后只写自己的键（`transitions.<id>`、`tracks.<id>`、`menus.<菜单id>`），
+  已存在则跳过；首次写入前把原文件备份成 `animations.town-backup.yml` 之类，再随 `menus().reload()` 生效。
+  校验是整库事务式的，合并写错会导致整套菜单不发布，所以合并后必须看 reload 报告。

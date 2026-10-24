@@ -82,6 +82,17 @@ public final class WalletHook {
         return code.isEmpty() ? configured : code;
     }
 
+    /** 预热资产缓存；失败也正常完成，避免预热失败中断启动或重载。 */
+    public CompletableFuture<Void> preloadAssets() {
+        try {
+            return service.assets()
+                    .thenAccept(assets -> { })
+                    .exceptionally(error -> null);
+        } catch (RuntimeException e) {
+            return CompletableFuture.completedFuture(null);
+        }
+    }
+
     /** 余额（缓存优先，未命中走网络；供确认界面显示）。 */
     public CompletableFuture<Double> balance(UUID player, String name, String code) {
         return service.balance(player, name, code)

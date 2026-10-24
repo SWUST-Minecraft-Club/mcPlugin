@@ -170,6 +170,11 @@ public final class TownService {
                 fb.accept(Result.fail("town-exists", Placeholder.unparsed("name", name)));
                 return;
             }
+            Town invited = registry.byInvited(founder.getUniqueId());
+            if (invited != null) {
+                invited.invites().remove(founder.getUniqueId());
+                registry.unindexInvite(founder.getUniqueId());
+            }
             Town town = new Town(newTownId(), name, founder.getUniqueId(),
                     System.currentTimeMillis());
             registry.register(town);
@@ -197,7 +202,7 @@ public final class TownService {
                 return;
             }
             if (!town.mayor().equals(mayor.getUniqueId())) {
-                fb.accept(Result.fail("invite-must-member"));
+                fb.accept(Result.fail("transfer-must-mayor"));
                 return;
             }
             memberCount = town.members().size();
@@ -221,11 +226,11 @@ public final class TownService {
                 fb.accept(Result.fail("action-busy"));
                 return;
             }
-            String symbol = wallet.symbolOf(plugin.config().currencyCode(), currency);
+            String operationId = UUID.randomUUID().toString();
             wallet.debit(mayor.getUniqueId(), mayor.getName(), currency, cost,
-                            "town-found:" + townId + ":" + System.currentTimeMillis(),
+                            "town-found:" + townId + ":" + operationId,
                             "成立小镇 " + townName)
-                    .whenComplete((pay, ex) -> {
+                    .whenComplete((pay, ex) -> afterWallet(mayor, () -> {
                         charging.remove(mayor.getUniqueId());
                         if (pay == null || !pay.ok()) {
                             fb.accept(Result.fail("wallet-failed"));
@@ -234,21 +239,25 @@ public final class TownService {
                         if (activate(mayor, townId, cost)) {
                             fb.accept(Result.ok("founded", Placeholder.unparsed("name", townName)));
                         } else {
-                            refund(mayor, currency, cost, "town-found-refund:" + townId);
-                            fb.accept(Result.fail("disband-no-town"));
+                            refund(mayor, currency, cost, "town-found-refund:" + townId + ":" + operationId);
+                            fb.accept(Result.fail("action-state-changed"));
                         }
-                    });
+                    }));
         } else if (activate(mayor, townId, 0)) {
             fb.accept(Result.ok("founded", Placeholder.unparsed("name", townName)));
+        } else {
+            fb.accept(Result.fail("action-state-changed"));
         }
     }
 
-    /** 置为 ACTIVE + 广播 + 发镇政厅。返回 false 表示小镇已不存在（调用方应退款）。 */
+    /** 扣款后重验小镇、镇长和人数，再置为 ACTIVE。 */
     private boolean activate(Player mayor, String townId, double charged) {
         String townName;
         try (TownRegistry.Guard ignored = registry.guard()) {
             Town town = registry.byId(townId);
-            if (town == null) {
+            if (town == null || town.state() != TownState.PENDING
+                    || !town.mayor().equals(mayor.getUniqueId())
+                    || town.members().size() < plugin.config().minMembers()) {
                 return false;
             }
             town.state(TownState.ACTIVE);
@@ -256,7 +265,7 @@ public final class TownService {
             requestSave();
         }
         if (charged > 0) {
-            mayor.sendMessage(messages.render("claim-charged",
+            notify(mayor.getUniqueId(), () -> messages.render("claim-charged",
                     Placeholder.unparsed("amount", trimAmount(charged)),
                     Placeholder.unparsed("symbol", wallet.symbolOf(
                             plugin.config().currencyCode(),
@@ -329,7 +338,7 @@ public final class TownService {
                 fb.accept(Result.fail("invite-target-has-town"));
                 return;
             }
-            if (town.invites().containsKey(target.getUniqueId())) {
+            if (registry.byInvited(target.getUniqueId()) != null) {
                 fb.accept(Result.fail("invite-target-invited"));
                 return;
             }
@@ -367,6 +376,23 @@ public final class TownService {
             Town town = registry.byInvited(player.getUniqueId());
             if (town == null) {
                 fb.accept(Result.fail("invite-none"));
+                return;
+            }
+            Long expiry = town.invites().get(player.getUniqueId());
+            if (expiry == null || expiry <= System.currentTimeMillis()) {
+                town.invites().remove(player.getUniqueId());
+                registry.unindexInvite(player.getUniqueId());
+                requestSave();
+                fb.accept(Result.fail("invite-expired"));
+                return;
+            }
+            Town existing = registry.byMember(player.getUniqueId());
+            if (existing != null) {
+                town.invites().remove(player.getUniqueId());
+                registry.unindexInvite(player.getUniqueId());
+                requestSave();
+                fb.accept(Result.fail("in-town-already",
+                        Placeholder.unparsed("town", existing.name())));
                 return;
             }
             int max = plugin.config().maxMembers();
@@ -462,10 +488,6 @@ public final class TownService {
 
     public void transfer(Player mayor, String targetName, Consumer<Result> fb) {
         Player target = Bukkit.getPlayerExact(targetName);
-        if (target == null) {
-            fb.accept(Result.fail("target-not-online"));
-            return;
-        }
         try (TownRegistry.Guard ignored = registry.guard()) {
             Town town = registry.byMember(mayor.getUniqueId());
             if (town == null) {
@@ -476,15 +498,21 @@ public final class TownService {
                 fb.accept(Result.fail("transfer-must-mayor"));
                 return;
             }
-            if (!town.members().containsKey(target.getUniqueId())) {
+            UUID targetId = target != null ? target.getUniqueId() : findMemberIdByName(town, targetName);
+            if (targetId == null || !town.members().containsKey(targetId)) {
                 fb.accept(Result.fail("target-not-member"));
                 return;
             }
-            town.mayor(target.getUniqueId());
+            if (targetId.equals(mayor.getUniqueId())) {
+                fb.accept(Result.fail("already-role"));
+                return;
+            }
+            town.mayor(targetId);
             requestSave();
             String townName = town.name();
-            fb.accept(Result.ok("transfer-done", Placeholder.unparsed("player", target.getName())));
-            notify(target.getUniqueId(), () -> messages.render("transfer-target",
+            String targetDisplay = nameOf(target, targetId);
+            fb.accept(Result.ok("transfer-done", Placeholder.unparsed("player", targetDisplay)));
+            notify(targetId, () -> messages.render("transfer-target",
                     Placeholder.unparsed("town", townName)));
         }
     }
@@ -546,9 +574,7 @@ public final class TownService {
             fb.accept(Result.fail("claim-world-denied"));
             return;
         }
-        boolean active;
-        boolean hasClaims;
-        boolean needPay;
+        String townId;
         double price;
         String currency;
         try (TownRegistry.Guard ignored = registry.guard()) {
@@ -561,14 +587,18 @@ public final class TownService {
                 fb.accept(Result.fail("must-be-active"));
                 return;
             }
+            Role role = town.members().get(actor.getUniqueId());
+            if (role == null || !role.canManage()) {
+                fb.accept(Result.fail("invite-must-member"));
+                return;
+            }
             Town existing = registry.byChunk(key);
             if (existing != null) {
                 fb.accept(Result.fail(existing.id().equals(town.id())
                         ? "claim-already-yours" : "claim-protected-other"));
                 return;
             }
-            hasClaims = !town.claims().isEmpty();
-            if (hasClaims && !hasAdjacentClaim(town, key)) {
+            if (!town.claims().isEmpty() && !hasAdjacentClaim(town, key)) {
                 fb.accept(Result.fail("claim-adjacent-required"));
                 return;
             }
@@ -578,48 +608,56 @@ public final class TownService {
                         Placeholder.unparsed("max", String.valueOf(maxChunks))));
                 return;
             }
+            townId = town.id();
             price = plugin.config().pricePerChunk();
             currency = wallet == null ? "" : wallet.resolveCurrency(plugin.config().currencyCode());
-            needPay = price > 0;
-            if (needPay && (wallet == null || currency.isBlank())) {
+            if (price > 0 && (wallet == null || currency.isBlank())) {
                 fb.accept(Result.fail("wallet-missing"));
                 return;
             }
         }
-        if (needPay) {
+        if (price > 0) {
             if (charging.putIfAbsent(actor.getUniqueId(), true) != null) {
                 fb.accept(Result.fail("action-busy"));
                 return;
             }
             String symbol = wallet.symbolOf(plugin.config().currencyCode(), currency);
+            String operationId = UUID.randomUUID().toString();
             wallet.debit(actor.getUniqueId(), actor.getName(), currency, price,
-                            "town-claim:" + key.encode() + ":" + System.currentTimeMillis(),
+                            "town-claim:" + townId + ":" + key.encode() + ":" + operationId,
                             "小镇圈地 " + key.encode())
-                    .whenComplete((pay, ex) -> {
+                    .whenComplete((pay, ex) -> afterWallet(actor, () -> {
                         charging.remove(actor.getUniqueId());
                         if (pay == null || !pay.ok()) {
                             fb.accept(Result.fail("wallet-failed"));
                             return;
                         }
-                        if (applyClaim(actor, key, fb)) {
-                            actor.sendMessage(messages.render("claim-charged",
+                        if (applyClaim(actor, townId, key, fb)) {
+                            notify(actor.getUniqueId(), () -> messages.render("claim-charged",
                                     Placeholder.unparsed("amount", trimAmount(price)),
                                     Placeholder.unparsed("symbol", symbol)));
                         } else {
-                            refund(actor, currency, price, "town-claim-refund:" + key.encode());
+                            refund(actor, currency, price,
+                                    "town-claim-refund:" + townId + ":" + key.encode() + ":" + operationId);
                         }
-                    });
+                    }));
         } else {
-            applyClaim(actor, key, fb);
+            applyClaim(actor, townId, key, fb);
         }
     }
 
-    /** 落账一个（待付费的）区块；状态已变时返回 false 并通过 fb 提示。 */
-    private boolean applyClaim(Player actor, ChunkKey key, Consumer<Result> fb) {
+    /** 落账前按原小镇重新检查操作者、世界、相邻、上限和占用。 */
+    private boolean applyClaim(Player actor, String townId, ChunkKey key, Consumer<Result> fb) {
+        String townName;
+        int claimCount;
         try (TownRegistry.Guard ignored = registry.guard()) {
             Town town = registry.byMember(actor.getUniqueId());
-            if (town == null || town.state() != TownState.ACTIVE || registry.byChunk(key) != null) {
-                fb.accept(Result.fail("claim-protected-other"));
+            Role role = town == null ? null : town.members().get(actor.getUniqueId());
+            if (town == null || !town.id().equals(townId) || town.state() != TownState.ACTIVE
+                    || role == null || !role.canManage() || !worldAllowed(key.world())
+                    || registry.byChunk(key) != null
+                    || (!town.claims().isEmpty() && !hasAdjacentClaim(town, key))) {
+                fb.accept(Result.fail("action-state-changed"));
                 return false;
             }
             int maxChunks = plugin.config().maxChunksPerTown();
@@ -631,19 +669,32 @@ public final class TownService {
             town.claims().add(key);
             registry.indexClaim(key, town.id());
             requestSave();
-            fb.accept(Result.ok("claim-success",
-                    Placeholder.unparsed("count", String.valueOf(town.claims().size()))));
-            events.fireClaim(town.id(), town.name(), actor.getUniqueId(), key);
-            return true;
+            townName = town.name();
+            claimCount = town.claims().size();
         }
+        fb.accept(Result.ok("claim-success", Placeholder.unparsed("count", String.valueOf(claimCount))));
+        events.fireClaim(townId, townName, actor.getUniqueId(), key);
+        return true;
     }
 
     private void refund(Player player, String currency, double amount, String businessNo) {
-        if (wallet != null) {
-            wallet.credit(player.getUniqueId(), player.getName(), currency, amount,
-                            businessNo + ":" + System.currentTimeMillis(), "操作失败退款")
-                    .exceptionally(e -> null);
+        if (wallet == null) {
+            return;
         }
+        wallet.credit(player.getUniqueId(), player.getName(), currency, amount,
+                        businessNo, "操作失败退款")
+                .thenAccept(pay -> {
+                    if (pay == null || !pay.ok()) {
+                        plugin.getLogger().severe("Town 退款失败：player=" + player.getUniqueId()
+                                + ", amount=" + amount + ", currency=" + currency
+                                + ", businessNo=" + businessNo);
+                    }
+                })
+                .exceptionally(e -> {
+                    plugin.getLogger().severe("Town 退款调用异常：player=" + player.getUniqueId()
+                            + ", businessNo=" + businessNo + ", error=" + e.getMessage());
+                    return null;
+                });
     }
 
     public void unclaim(Player actor, ChunkKey key, Consumer<Result> fb) {
@@ -690,12 +741,21 @@ public final class TownService {
                 fb.accept(Result.fail("hall-must-mayor"));
                 return;
             }
+            if (!block.getType().isAir()) {
+                fb.accept(Result.fail("hall-target-blocked"));
+                return;
+            }
             if (!worldAllowed(block.getWorld().getName())) {
                 fb.accept(Result.fail("hall-world-denied"));
                 return;
             }
             if (town.isHallSet()) {
                 fb.accept(Result.fail("hall-exists"));
+                return;
+            }
+            Town owner = registry.byChunk(ChunkKey.of(block.getLocation()));
+            if (owner != null && !owner.id().equals(town.id())) {
+                fb.accept(Result.fail("claim-protected-other"));
                 return;
             }
             block.setType(plugin.config().hallMaterial());
@@ -725,11 +785,15 @@ public final class TownService {
         }
     }
 
-    /** 市长挖掉镇政厅方块：收回道具并清除中心（领地保留）。 */
-    public void breakHall(Player player, Consumer<Result> fb) {
+    /** 只清除被挖方块实际对应的镇政厅，不能按破坏者当前小镇猜目标。 */
+    public void breakHall(Player player, Block block, Consumer<Result> fb) {
         try (TownRegistry.Guard ignored = registry.guard()) {
-            Town town = registry.byMember(player.getUniqueId());
-            if (town == null || !town.isHallSet()) {
+            Town town = registry.byChunk(ChunkKey.of(block.getLocation()));
+            if (town == null || !town.isHallSet()
+                    || !town.hallWorld().equals(block.getWorld().getName())
+                    || town.hallX() != block.getX() || town.hallY() != block.getY()
+                    || town.hallZ() != block.getZ()) {
+                fb.accept(Result.fail("hall-not-set"));
                 return;
             }
             if (!town.mayor().equals(player.getUniqueId())) {
@@ -792,6 +856,10 @@ public final class TownService {
                 fb.accept(Result.fail("not-in-town"));
                 return;
             }
+            if (town.state() != TownState.ACTIVE) {
+                fb.accept(Result.fail("must-be-active"));
+                return;
+            }
             Role role = town.members().get(manager.getUniqueId());
             if (role == null || !role.canManage()) {
                 fb.accept(Result.fail("invite-must-member"));
@@ -815,27 +883,27 @@ public final class TownService {
                 return;
             }
             String symbol = wallet.symbolOf(plugin.config().currencyCode(), currency);
+            String operationId = UUID.randomUUID().toString();
             wallet.debit(manager.getUniqueId(), manager.getName(), currency, definition.cost(),
-                            "town-buff:" + townId + ":" + buffId + ":" + System.currentTimeMillis(),
+                            "town-buff:" + townId + ":" + buffId + ":" + operationId,
                             "购买领地祝福 " + buffId)
-                    .whenComplete((pay, ex) -> {
+                    .whenComplete((pay, ex) -> afterWallet(manager, () -> {
                         charging.remove(manager.getUniqueId());
                         if (pay == null || !pay.ok()) {
                             fb.accept(Result.fail("wallet-failed"));
                             return;
                         }
-                        if (activateBuff(townId, definition)) {
+                        if (activateBuff(manager, townId, definition, fb)) {
                             fb.accept(Result.ok("buff-charged",
                                     Placeholder.unparsed("name", definition.displayMini()),
                                     Placeholder.unparsed("amount", trimAmount(definition.cost())),
                                     Placeholder.unparsed("symbol", symbol)));
                         } else {
                             refund(manager, currency, definition.cost(),
-                                    "town-buff-refund:" + townId + ":" + buffId);
-                            fb.accept(Result.fail("disband-no-town"));
+                                    "town-buff-refund:" + townId + ":" + buffId + ":" + operationId);
                         }
-                    });
-        } else if (activateBuff(townId, definition)) {
+                    }));
+        } else if (activateBuff(manager, townId, definition, fb)) {
             fb.accept(Result.ok("buff-charged",
                     Placeholder.unparsed("name", definition.displayMini()),
                     Placeholder.unparsed("amount", "0"),
@@ -843,16 +911,24 @@ public final class TownService {
         }
     }
 
-    private boolean activateBuff(String townId, TownConfig.BuffDef def) {
+    /** 永久祝福重复购买和付款期间换镇/失权都在落账前拦截。 */
+    private boolean activateBuff(Player manager, String townId, TownConfig.BuffDef def,
+                                 Consumer<Result> fb) {
         try (TownRegistry.Guard ignored = registry.guard()) {
-            Town town = registry.byId(townId);
-            if (town == null) {
+            Town town = registry.byMember(manager.getUniqueId());
+            Role role = town == null ? null : town.members().get(manager.getUniqueId());
+            if (town == null || !town.id().equals(townId) || town.state() != TownState.ACTIVE
+                    || role == null || !role.canManage()) {
+                fb.accept(Result.fail("action-state-changed"));
                 return false;
             }
             Long existing = town.buffs().get(def.id());
+            if (existing != null && existing == -1) {
+                fb.accept(Result.fail("buff-active"));
+                return false;
+            }
             long base = existing != null && existing > System.currentTimeMillis()
-                    ? existing
-                    : System.currentTimeMillis();
+                    ? existing : System.currentTimeMillis();
             town.buffs().put(def.id(), def.permanent() ? -1L : base + def.durationMillis());
             requestSave();
         }
@@ -916,6 +992,17 @@ public final class TownService {
     public void saveNow() {
         saveQueued.set(false);
         store.saveAll(registry);
+    }
+
+    /** Wallet 的 HTTP 回调不能直接发同步事件；离线玩家也要完成提交或退款。 */
+    private void afterWallet(Player player, Runnable task) {
+        if (Bukkit.isOwnedByCurrentRegion(player)) {
+            task.run();
+        } else if (player.isOnline()) {
+            player.getScheduler().run(plugin, t -> task.run(), () -> Threads.global(plugin, task));
+        } else {
+            Threads.global(plugin, task);
+        }
     }
 
     // ------------------------------------------------------------------

@@ -28,6 +28,14 @@ public final class TownStore {
 
     private final TownPlugin plugin;
     private final Path file;
+    private final Object fileIoLock = new Object();
+    /** 在 registry 锁内递增，序号顺序即快照的数据顺序。 */
+    private long nextSnapshotSequence;
+    /** 仅在 fileIoLock 内读写。 */
+    private long lastWrittenSequence;
+
+    private record SaveSnapshot(long sequence, YamlConfiguration yml) {
+    }
 
     public TownStore(TownPlugin plugin) {
         this.plugin = plugin;
@@ -81,6 +89,11 @@ public final class TownStore {
                 town.members().put(UUID.fromString(memberKey), role);
             }
         }
+        for (Map.Entry<UUID, Role> member : town.members().entrySet()) {
+            if (member.getValue() == Role.MAYOR && !member.getKey().equals(town.mayor())) {
+                member.setValue(Role.OFFICER);
+            }
+        }
         town.members().put(town.mayor(), Role.MAYOR);
 
         ConfigurationSection invites = s.getConfigurationSection("invites");
@@ -124,8 +137,8 @@ public final class TownStore {
         return town;
     }
 
-    /** 立即落盘（内部持 registry 锁取数；可在任意线程调用，文件 IO 仍在当前线程）。 */
-    public void saveAll(TownRegistry registry) {
+    /** 在 registry 锁内构建独立快照并分配递增序号。 */
+    private SaveSnapshot snapshot(TownRegistry registry) {
         YamlConfiguration yml = new YamlConfiguration();
         try (TownRegistry.Guard ignored = registry.guard()) {
             for (Town town : registry.all()) {
@@ -164,13 +177,29 @@ public final class TownStore {
                     yml.set("towns." + town.id() + ".spawn.pitch", town.spawnPitch());
                 }
             }
+            return new SaveSnapshot(++nextSnapshotSequence, yml);
         }
-        atomicWrite(yml);
     }
 
-    /** 异步落盘。 */
+    /** 同步写入最新快照；若已有异步 IO，会先等待其完成。 */
+    public void saveAll(TownRegistry registry) {
+        writeSnapshot(snapshot(registry));
+    }
+
+    /** 快照在调用时固定，仅文件 IO 交给异步线程。 */
     public void saveAllAsync(TownRegistry registry) {
-        Threads.async(plugin, () -> saveAll(registry));
+        SaveSnapshot snapshot = snapshot(registry);
+        Threads.async(plugin, () -> writeSnapshot(snapshot));
+    }
+
+    private void writeSnapshot(SaveSnapshot snapshot) {
+        synchronized (fileIoLock) {
+            if (snapshot.sequence() <= lastWrittenSequence) {
+                return;
+            }
+            atomicWrite(snapshot.yml());
+            lastWrittenSequence = snapshot.sequence();
+        }
     }
 
     private void atomicWrite(YamlConfiguration yml) {

@@ -37,7 +37,7 @@ claim:
   worlds: []
   # 斜角相邻是否算「相连」。
   diagonal-connected: true
-  # 每个小镇最多可购买的地块数（不含成立赠送）；0 = 不限。
+  # 每个小镇最多拥有的地块总数（含成立赠送）；0 = 不限。
   max-chunks: 256
 
 expansion:
@@ -112,9 +112,11 @@ messages:
   target-not-online: "<red>目标玩家不在线。"
   must-be-active: "<yellow>小镇还在筹备中，成立后才能圈地。"
   protection-denied: "<red>这里是别人的小镇领地。"
-  disband-need-confirm: "<yellow>解散不可恢复！再次输入 <white>/town disband confirm</white> 确认。"
+  disband-need-confirm: "<yellow>解散不可恢复！60 秒内再次执行 <white>/town disband</white> 确认。"
   hall-given: "<green>已补发镇政厅道具。"
   confirm-armed: "<yellow>即将{action}——再次执行同一操作（60 秒内）即确认。"
+  confirm-cancelled: "<gray>已取消待确认操作。"
+  action-state-changed: "<yellow>操作期间小镇状态已变化，请检查后重试；已扣费用将退款。"
   town-exists: "<red>已经有人注册了名字 <white><name></white> 的小镇。"
   name-invalid: "<red>小镇名只能包含中文、字母、数字、下划线。"
   name-too-short: "<red>小镇名至少需要 <min> 个字符。"
@@ -132,6 +134,7 @@ messages:
   invite-accepted: "<green><player> 加入了小镇！"
   invite-rejected: "<yellow><player> 拒绝了邀请。"
   invite-none: "<yellow>你没有待处理的邀请。"
+  invite-expired: "<yellow>这份邀请已过期，请让小镇重新邀请你。"
   invite-target-has-town: "<yellow>对方已经有小镇了。"
   invite-target-invited: "<yellow>对方已有待处理的邀请。"
   invite-town-full: "<red>小镇成员已满（<max> 人）。"
@@ -151,6 +154,7 @@ messages:
   mayor-cannot-leave: "<red>镇长不能退出，请先转让镇长之位或解散小镇。"
   pending-expired: "<red>小镇 <white><name></white> 筹备超时，已自动解散。"
   claim-protected-other: "<red>这里已经是别的领地了。"
+  claim-already-yours: "<yellow>这里已经是你的小镇领地了。"
   claim-adjacent-required: "<red>圈地必须与小镇现有领地相连。"
   claim-max-reached: "<red>已达到小镇地块上限（<max> 块）。"
   claim-world-denied: "<red>这个世界不允许圈地。"
@@ -165,6 +169,7 @@ messages:
   hall-placed: "<gold>镇政厅已落成！小镇中心与传送点已设定。"
   hall-free-claims: "<green>已为小镇免费圈下 <count> 块领地。"
   hall-exists: "<red>小镇已有镇政厅，先拆除旧的（市长可挖掉）再放置。"
+  hall-target-blocked: "<red>目标位置不是空气，不能放置镇政厅。"
   hall-must-mayor: "<red>只有镇长可以放置镇政厅。"
   hall-pending: "<red>小镇还在筹备中，成立后才能放置镇政厅。"
   hall-world-denied: "<red>这个世界不允许放置镇政厅。"

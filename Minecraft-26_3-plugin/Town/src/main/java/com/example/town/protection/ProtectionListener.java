@@ -5,6 +5,7 @@ import com.example.town.model.ChunkKey;
 import com.example.town.service.TownService;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import net.kyori.adventure.text.Component;
@@ -157,8 +158,7 @@ public final class ProtectionListener implements Listener {
         if (!plugin.config().protection().piston()) {
             return;
         }
-        if (pistonCrosses(event.getBlocks(), event.getDirection())
-                || inClaim(event.getBlock().getLocation())) {
+        if (pistonCrosses(event.getBlocks(), event.getDirection())) {
             event.setCancelled(true);
         }
     }
@@ -168,16 +168,18 @@ public final class ProtectionListener implements Listener {
         if (!plugin.config().protection().piston()) {
             return;
         }
-        if (pistonCrosses(event.getBlocks(), event.getDirection())
-                || inClaim(event.getBlock().getLocation())) {
+        if (pistonCrosses(event.getBlocks(), event.getDirection())) {
             event.setCancelled(true);
         }
     }
 
     private boolean pistonCrosses(List<Block> blocks, BlockFace direction) {
         for (Block block : blocks) {
-            if (inClaim(block.getLocation())
-                    || inClaim(block.getRelative(direction).getLocation())) {
+            var from = service.townAt(ChunkKey.of(block.getLocation()));
+            var to = service.townAt(ChunkKey.of(block.getRelative(direction).getLocation()));
+            String fromTownId = from == null ? null : from.id();
+            String toTownId = to == null ? null : to.id();
+            if (!Objects.equals(fromTownId, toTownId)) {
                 return true;
             }
         }
@@ -295,6 +297,9 @@ public final class ProtectionListener implements Listener {
         }
         if (holder instanceof DoubleChest chest) {
             return chest.getLocation();
+        }
+        if (holder instanceof Entity entity) {
+            return entity.getLocation();
         }
         return null;
     }

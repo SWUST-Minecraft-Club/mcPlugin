@@ -401,11 +401,10 @@ dependencies {
 | MainMenuRepair（fabric） | `1_0_0`（2026.10.18） | `Beta_1_0_1`（修 jar 元数据里的仓库地址） |
 | YudreamPlaytime | `1_0_0`（2026.10.19） | `Beta_1_1_0`（适配 Folia；台账缓存加锁） |
 | yudream-minecraft-server | `2_0_0`（2026.10.19） | `Beta_2_1_0`（反射适配 Folia，保持 Java 8 / 1.13.2 兼容） |
-| Town | — | `Beta_0_2_0`（小镇系统：筹备成立 / 点选圈地 / 保护 / buff，ArcMenu 鼠标模式 YAML 界面） |
+| Town | — | `Beta_0_3_0`（11 页 ArcMenu 重设计：在线邀请 / 成员详情 / 通用确认 / 圈地与祝福分页，并修复核心状态与扣费一致性） |
 | Wallet | —（还在测试版阶段） | `Beta_0_5_0`（新增本地测试模式 test-mode：不连官网、本地账本落盘，默认关闭；须手动开启并会打启动警告） |
 | ConcertoMenu | —（还在测试版阶段） | `Beta_0_2_0`（适配 Folia；首个版本：主菜单唱片机入口） |
 | JoinAnnounce | —（还在测试版阶段） | `Beta_0_2_0`（新增 dialog 弹窗显示与 `announce.display`；`Beta_0_1_0` 为首个版本） |
-| Town | —（还在测试版阶段） | `Beta_0_1_0`（首个版本：小镇成立 / 圈地 / 保护 / 领地 buff；ArcMenu 3D 界面 + Wallet 经济 + 镇政厅道具） |
 
 > 涨号规则（正式版之后再改动先回到测试版 `Beta_<第 1 位>_x_x`，转正时去掉 `Beta`、第 3 位归 0、第 2 位至少 +1，第 1 位不变）见
 > [`./docs/dev/版本与产物规范.md`](./docs/dev/版本与产物规范.md) §2；
@@ -414,6 +413,14 @@ dependencies {
 ## 版本历史
 
 `./release/<项目名>/` 里保留了每一版的产物；下面是对应的提交与改动（早期被同名覆盖的版本已用 `./scripts/rebuild-history.sh` 从 git 历史重建）。
+
+**Town（插件）**
+
+| 版本 | 提交 | 改动 |
+| --- | --- | --- |
+| `Beta_0_1_0` | `fc39d10` | 首个版本：筹备成立、邀请成员、镇政厅、圈地、保护、祝福与公开 API |
+| `Beta_0_2_0` | `cc789e7` | 界面重构为 ArcMenu 原生 YAML 并强制鼠标模式 |
+| `Beta_0_3_0` | 未提交 | 11 页菜单重设计、在线邀请/成员详情/通用确认/分页；修复指令、邀请、镇政厅、扣费与持久化一致性 |
 
 **MainMenu（插件）**
 

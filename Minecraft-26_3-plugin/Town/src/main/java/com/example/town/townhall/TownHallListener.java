@@ -65,7 +65,7 @@ public final class TownHallListener implements Listener {
             return;
         }
         event.setCancelled(true);
-        service.breakHall(event.getPlayer(), result -> {
+        service.breakHall(event.getPlayer(), event.getBlock(), result -> {
             service.deliver(event.getPlayer(), result);
             if (result.ok()) {
                 halls.clearBlock(event.getBlock());

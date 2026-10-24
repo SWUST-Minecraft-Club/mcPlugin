@@ -45,8 +45,28 @@ public final class TownRegistry {
     // ------------------------------------------------------------------
 
     public void register(Town town) {
+        Town existing = byId.get(town.id());
+        if (existing != null && existing != town) {
+            throw new IllegalArgumentException("小镇 ID 冲突：" + town.id() + " 已注册，不能登记不同实例");
+        }
+        String nameKey = town.name().toLowerCase(Locale.ROOT);
+        String nameOwner = idByNameLower.get(nameKey);
+        if (nameOwner != null && !nameOwner.equals(town.id())) {
+            throw new IllegalArgumentException("小镇名称冲突：" + town.name()
+                    + " 已属于 " + nameOwner + "，不能登记到 " + town.id());
+        }
+        for (UUID member : town.members().keySet()) {
+            checkConflict(townIdByMember.get(member), town.id(), "成员 " + member);
+        }
+        for (UUID invited : town.invites().keySet()) {
+            checkConflict(townIdByInvited.get(invited), town.id(), "邀请玩家 " + invited);
+        }
+        for (ChunkKey claim : town.claims()) {
+            checkConflict(townIdByChunk.get(claim), town.id(), "地块 " + claim.encode());
+        }
+
         byId.put(town.id(), town);
-        idByNameLower.put(town.name().toLowerCase(Locale.ROOT), town.id());
+        idByNameLower.put(nameKey, town.id());
         for (UUID member : town.members().keySet()) {
             townIdByMember.put(member, town.id());
         }
@@ -55,6 +75,13 @@ public final class TownRegistry {
         }
         for (ChunkKey claim : town.claims()) {
             townIdByChunk.put(claim, town.id());
+        }
+    }
+
+    private static void checkConflict(String existingTownId, String newTownId, String subject) {
+        if (existingTownId != null && !existingTownId.equals(newTownId)) {
+            throw new IllegalArgumentException(subject + " 已登记到小镇 " + existingTownId
+                    + "，不能同时登记到 " + newTownId);
         }
     }
 
@@ -108,6 +135,7 @@ public final class TownRegistry {
     // ------------------------------------------------------------------
 
     public void indexMember(UUID playerId, String townId) {
+        checkConflict(townIdByMember.get(playerId), townId, "成员 " + playerId);
         townIdByMember.put(playerId, townId);
     }
 
@@ -116,6 +144,7 @@ public final class TownRegistry {
     }
 
     public void indexInvite(UUID playerId, String townId) {
+        checkConflict(townIdByInvited.get(playerId), townId, "邀请玩家 " + playerId);
         townIdByInvited.put(playerId, townId);
     }
 
@@ -124,6 +153,7 @@ public final class TownRegistry {
     }
 
     public void indexClaim(ChunkKey key, String townId) {
+        checkConflict(townIdByChunk.get(key), townId, "地块 " + key.encode());
         townIdByChunk.put(key, townId);
     }
 

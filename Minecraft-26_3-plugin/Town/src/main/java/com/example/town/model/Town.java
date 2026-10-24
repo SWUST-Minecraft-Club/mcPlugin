@@ -72,6 +72,10 @@ public final class Town {
     }
 
     public void mayor(UUID mayor) {
+        UUID previous = this.mayor;
+        if (previous != null && !previous.equals(mayor)) {
+            this.members.put(previous, Role.OFFICER);
+        }
         this.mayor = mayor;
         this.members.put(mayor, Role.MAYOR);
     }

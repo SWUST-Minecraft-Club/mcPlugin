@@ -4,6 +4,7 @@ import com.example.town.TownPlugin;
 import com.example.town.model.ChunkKey;
 import com.example.town.service.TownService;
 import com.example.town.util.Threads;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
@@ -17,16 +18,29 @@ public final class BuffApplier {
 
     private final TownPlugin plugin;
     private final TownService service;
+    private ScheduledTask scheduledTask;
 
     public BuffApplier(TownPlugin plugin, TownService service) {
         this.plugin = plugin;
         this.service = service;
     }
 
-    public void start() {
+    public synchronized void start() {
+        stop();
         int interval = plugin.config().buffIntervalTicks();
-        Bukkit.getGlobalRegionScheduler().runAtFixedRate(plugin,
+        scheduledTask = Bukkit.getGlobalRegionScheduler().runAtFixedRate(plugin,
                 task -> tick(), interval, interval);
+    }
+
+    public synchronized void stop() {
+        if (scheduledTask != null) {
+            scheduledTask.cancel();
+            scheduledTask = null;
+        }
+    }
+
+    public synchronized void restart() {
+        start();
     }
 
     private void tick() {
