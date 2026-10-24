@@ -56,7 +56,7 @@
 插件 MainMenu（正式版 `1_0_1` / 测试中 `Beta_1_5_1`，管理页可添加功能占位符与自定义插件功能）· RealTime（`1_0_0` / `Beta_1_1_0`）· MainMenuRepair Fabric 模组（`1_0_0` / `Beta_1_0_1`）·
 YudreamPlaytime（正式版 `1_0_0` / 测试中 `Beta_1_1_0`，MainMenu 伴侣插件：菜单里显示查看者自己的在线时长）· Wallet（`Beta_0_5_0`，主菜单钱包；含本地测试模式 test-mode，默认关：货币/余额/流水 + 管理员可切换本服货币启停 + `/walletin` / `/walletout` 在线玩家调币指令 + 供后续插件依赖的 WalletApi）·
 ConcertoMenu（`Beta_0_2_0`，主菜单唱片机 → 发 `concerto:menu` 指令打开客户端 Concerto 主界面）·
-JoinAnnounce（`Beta_0_2_0`，进服公告：dialog 弹窗 / 聊天栏可切换 + 首次进服文案 / 进出服广播 + 主菜单「服务器公告」入口）· Town（`Beta_0_1_0`，小镇系统：筹备成立（最低人数可配）/ 邀请 / 扣费成立 / 镇政厅道具（CE 优先+原版回落）/ 免费+点选圈地（必须相连）/ 领地保护 / 领地 buff；界面走 ArcMenu 3.2 Application（未装时 /town 指令全量兜底），经济走 WalletApi，公开 TownApi+事件；第三方 ArcMenu API jar 在 `./libs/`（已入库），YAML 知识库在 `./docs/exp/arcmenu-yml知识库.md`，官方 wiki docs.myarc.icu）·
+JoinAnnounce（`Beta_0_2_0`，进服公告：dialog 弹窗 / 聊天栏可切换 + 首次进服文案 / 进出服广播 + 主菜单「服务器公告」入口）· Town（`Beta_0_2_0`，小镇系统：筹备成立（最低人数可配）/ 邀请 / 扣费成立 / 镇政厅道具（CE 优先+原版回落）/ 免费+点选圈地（必须相连）/ 领地保护 / 领地 buff；界面走 ArcMenu 3.2 Application 鼠标模式（服务器 mouse.policy=force-mouse，打开时 API 再兜底切换；未装时 /town 指令全量兜底），经济走 WalletApi，公开 TownApi+事件；第三方 ArcMenu API jar 在 `./libs/`（已入库），YAML 知识库在 `./docs/exp/arcmenu-yml知识库.md`，官方 wiki docs.myarc.icu）·
 yudream-minecraft-server（正式版 `2_0_0` / 测试中 `Beta_2_1_0`，反编译基线纳入本仓的 Bukkit 桥接插件，编译目标 spigot-api 1.13.2 + Java 8，含本地时长统计、断线补发与后端对齐；运行期反射适配 Folia）；
 结构 `./Minecraft-26_3-plugin/<插件名>/`（Folia 插件，沿用 `paper-plugin.yml`，MainMenu 提供功能注册 API）· `./fabric-26_3-mod/MainMenuRepair/`（独立 Gradle 工程）·
 `./templates/plugin-template/`（newPlugin 模板）· `./release/<项目名>/`（产物留档）· `./run/`（共用的 Folia 测试服）· `./docs/dev|exp|plan/`（规范 / 经验 / 计划）；

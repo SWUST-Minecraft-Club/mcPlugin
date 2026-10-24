@@ -2492,3 +2492,41 @@ ArcMenu 配置最重要的不是“YAML 能解析”，而是四种一致性同�
 AI 如果无法取得全目录、图片清单或依赖状态，只能保证单文件语法和局部逻辑，不应声称配置已经可以整库发布。最终判断以 `/arcmenu validate` 的结果和实际右键测试为准。
 
 
+
+## 25. 本仓联调实测：校验器报错速查（Town 生成器，2026-10-25）
+
+以下均为 `ArcMenuApi.menus().reload()` 实测返回的错误原文与修法（生成器：`Minecraft-26_3-plugin/Town/arcmenu/MenuBuilder`）。
+
+### 25.1 `xxx.tooltip: Must be a string or a list of strings`
+
+- **现象**：backend 命中区的 `tooltip` 写成了对象（`tooltip: {tooltip: [...]}`，助手函数二次包裹）。
+- **修法**：`tooltip` 字段直接放字符串或字符串数组；组装层拿到 `{tooltip:[...]}` 时先展平再挂。
+
+### 25.2 `frontend.xxx.condition: Unsupported field`
+
+- **现象**：给 frontend `text` 节点加 `condition` 想做文案切换。
+- **根因**：frontend 文本节点在当前阶段不支持 `condition`；条件分支只作用于 backend 命中区。
+- **修法**：文本用中性静态文案，把条件放在并排的两个 backend 命中区上（各自带 condition 与动作）。
+
+### 25.3 `Duplicate element ID: xxx (must be unique across frontend, backend, and all groups)`
+
+- **现象**：frontend 文本节点与 backend 命中区用了同一个 id（如 `b-leave`）。
+- **根因**：id 的唯一性是**跨 frontend/backend/所有分组全局**的，不是各节内部唯一。
+- **修法**：命名分层，如文本 `xxx-t`、命中区 `xxx`（本仓 `button()` 助手即是此约定）。
+
+### 25.4 `xxx.submit: Must reference an existing backend click region`
+
+- **现象**：Arcitx 文本输入节点的 `submit` 指向 `go-submit`，但按钮区域实际 id 是 `go`。
+- **修法**：`submit` 必须精确指向一个**已存在且带 actions** 的 backend 命中区 id。
+
+### 25.5 启动日志与 reload 报告的时序差
+
+- **现象**：每次重启，ArcMenu 在 M4 资源包 / startup 阶段报上一轮的旧错误，随后 Town 重写菜单并 API reload 成功，日志看起来自相矛盾。
+- **根因**：ArcMenu 自身 enable 早于 Town；它读到的是磁盘上**上一轮**生成的 yml。Town 的生成发生在自己 enable 阶段，之后 `reload()` 才是本轮文件的权威结果。
+- **修法**：判断菜单是否合法只看 Town 打印的 reload 报告（"共 N 个，无错误"）；重启一次后 startup 阶段读到的就是已修正文件。
+
+### 25.6 `Ambiguous plugin name 'Town' for files ...`（runServer 双 jar）
+
+- **现象**：Folia 报插件名歧义：`build/libs/Town-xxx.jar` 与 `plugins/Town-xxx.jar` 同时存在。
+- **根因**：`:Town:runServer` 会自动把 `build/libs` 的产物注入服务端 plugins；手动再拷贝一份同名 jar 就撞名。
+- **修法**：用 runServer 测试时**不要**手动往 `run/plugins/` 放本插件 jar，让任务注入；只有用别的启动方式才手动部署。

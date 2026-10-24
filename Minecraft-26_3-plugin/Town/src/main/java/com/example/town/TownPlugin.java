@@ -1,6 +1,6 @@
 package com.example.town;
 
-import com.example.town.arcui.ArcUiManager;
+import com.example.town.arcmenu.TownUi;
 import com.example.town.buff.BuffApplier;
 import com.example.town.command.TownCommand;
 import com.example.town.event.TownEvents;
@@ -9,12 +9,10 @@ import com.example.town.hook.MainMenuHook;
 import com.example.town.hook.WalletHook;
 import com.example.town.model.Town;
 import com.example.town.protection.ProtectionListener;
-import com.example.town.service.ChatInputs;
 import com.example.town.service.TownService;
 import com.example.town.store.TownStore;
 import com.example.town.townhall.TownHallListener;
 import com.example.town.townhall.TownHalls;
-import com.example.town.util.Threads;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import java.util.List;
 import org.bukkit.Bukkit;
@@ -23,8 +21,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * Town 小镇系统主类：成立 / 邀请 / 圈地 / 领地保护 / 领地 buff。
- * 界面走 ArcMenu（未安装时全部功能由 /town 指令等价提供）；
- * 经济走 Wallet；镇政厅道具支持 CraftEngine 自定义物品（缺失回落原版）。
+ * 界面 = 由插件生成 YAML 交给 ArcMenu 渲染（arcmenu-designing 技能规范）；
+ * 未装 ArcMenu 时全部功能由 /town 指令等价提供。经济走 Wallet；镇政厅道具支持 CraftEngine。
  */
 public final class TownPlugin extends JavaPlugin {
 
@@ -37,9 +35,8 @@ public final class TownPlugin extends JavaPlugin {
     private CraftEngineHook craftEngine;
     private TownHalls townHalls;
     private TownService service;
-    private ChatInputs chatInputs;
     private BuffApplier buffApplier;
-    private ArcUiManager arcUi;
+    private TownUi ui;
     private MainMenuHook menuHook;
 
     @Override
@@ -60,10 +57,8 @@ public final class TownPlugin extends JavaPlugin {
         townHalls = new TownHalls(this, craftEngine);
         service = new TownService(this, registry, store, messages, events, wallet);
         com.example.town.api.TownApi.install(service);
-        chatInputs = new ChatInputs(this);
         buffApplier = new BuffApplier(this, service);
 
-        getServer().getPluginManager().registerEvents(chatInputs, this);
         getServer().getPluginManager().registerEvents(
                 new TownHallListener(this, service, townHalls), this);
         getServer().getPluginManager().registerEvents(new ProtectionListener(this, service), this);
@@ -72,9 +67,9 @@ public final class TownPlugin extends JavaPlugin {
                 event.registrar().register(TownCommand.create(this),
                         "小镇系统", List.of()));
 
-        arcUi = ArcUiManager.create(this);
-        if (arcUi != null) {
-            arcUi.register();
+        ui = TownUi.create(this);
+        if (ui != null) {
+            ui.installMenus();
         }
         menuHook = MainMenuHook.create(this);
         if (menuHook != null) {
@@ -87,7 +82,7 @@ public final class TownPlugin extends JavaPlugin {
                 task -> service.maintenance(), 600L, 600L);
 
         getComponentLogger().info("Town 已启用：小镇 " + registry.all().size()
-                + " 个；界面=" + (arcUi != null ? "ArcMenu" : "指令")
+                + " 个；界面=" + (ui != null ? "ArcMenu" : "指令")
                 + "，经济=" + (wallet != null ? "Wallet" : "未接入")
                 + "，镇政厅=" + (craftEngine != null ? "CraftEngine" : "原版"));
     }
@@ -97,22 +92,22 @@ public final class TownPlugin extends JavaPlugin {
         if (menuHook != null) {
             menuHook.unregister();
         }
-        if (arcUi != null) {
-            arcUi.unregister();
-        }
         if (service != null) {
             service.saveNow();
         }
         com.example.town.api.TownApi.uninstall();
     }
 
-    /** 重载配置（/town admin reload）：配置快照整体替换，菜单入口重挂。 */
+    /** 重载配置（/town admin reload）：配置快照整体替换，菜单重新生成并让 ArcMenu 重载。 */
     public void reloadEverything() {
         reloadConfig();
         config = TownConfig.load(getConfig(), getLogger());
         if (menuHook != null) {
             menuHook.unregister();
             menuHook.register();
+        }
+        if (ui != null) {
+            ui.installMenus();
         }
     }
 
@@ -140,19 +135,15 @@ public final class TownPlugin extends JavaPlugin {
         return townHalls;
     }
 
-    public ChatInputs chatInputs() {
-        return chatInputs;
+    /** ArcMenu 界面粘合层；未安装 ArcMenu 时为 null。 */
+    public TownUi ui() {
+        return ui;
     }
 
-    /** ArcMenu 界面管理器；未安装 ArcMenu 时为 null。 */
-    public ArcUiManager arcUi() {
-        return arcUi;
-    }
-
-    /** 给玩家打开小镇界面；ArcMenu 缺失时降级为提示。 */
+    /** 给玩家打开小镇主页；ArcMenu 缺失时降级为提示。 */
     public void openUi(Player player) {
-        if (arcUi != null) {
-            arcUi.open(player);
+        if (ui != null) {
+            ui.openHome(player);
         } else {
             player.sendMessage(messages.render("arcmenu-missing"));
         }

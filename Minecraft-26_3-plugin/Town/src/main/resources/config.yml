@@ -114,6 +114,7 @@ messages:
   protection-denied: "<red>这里是别人的小镇领地。"
   disband-need-confirm: "<yellow>解散不可恢复！再次输入 <white>/town disband confirm</white> 确认。"
   hall-given: "<green>已补发镇政厅道具。"
+  confirm-armed: "<yellow>即将{action}——再次执行同一操作（60 秒内）即确认。"
   town-exists: "<red>已经有人注册了名字 <white><name></white> 的小镇。"
   name-invalid: "<red>小镇名只能包含中文、字母、数字、下划线。"
   name-too-short: "<red>小镇名至少需要 <min> 个字符。"

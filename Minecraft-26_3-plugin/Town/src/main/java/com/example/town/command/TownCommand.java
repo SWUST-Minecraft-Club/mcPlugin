@@ -3,19 +3,25 @@ package com.example.town.command;
 import com.example.town.TownPlugin;
 import com.example.town.model.ChunkKey;
 import com.example.town.service.TownService;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.entity.Player;
 
 /**
- * /town 指令：GUI 的全量等价通道（也服务于无 ArcMenu 环境）。
+ * /town 指令：ArcMenu 界面的全量等价通道（无 ArcMenu 环境下即完整功能），
+ * 同时是菜单按钮的后端（按钮动作就是这里的子命令）。
  * 通过 LifecycleEvents.COMMANDS 注册；权限 town.use / town.admin。
  */
 public final class TownCommand {
@@ -49,7 +55,7 @@ public final class TownCommand {
                                         return 0;
                                     }
                                     service.create(player, StringArgumentType.getString(ctx, "name"),
-                                            result -> service.deliver(player, result));
+                                            feedback(plugin, player));
                                     return 1;
                                 })))
                 .then(Commands.literal("found").executes(ctx -> {
@@ -57,33 +63,15 @@ public final class TownCommand {
                     if (player == null) {
                         return 0;
                     }
-                    service.found(player, result -> service.deliver(player, result));
+                    service.found(player, feedback(plugin, player));
                     return 1;
                 }))
-                .then(Commands.literal("disband")
-                        .executes(ctx -> {
-                            Player player = needPlayer(plugin, ctx);
-                            if (player == null) {
-                                return 0;
-                            }
-                            player.sendMessage(plugin.messages().render("disband-need-confirm"));
-                            return 1;
-                        })
-                        .then(Commands.literal("confirm").executes(ctx -> {
-                            Player player = needPlayer(plugin, ctx);
-                            if (player == null) {
-                                return 0;
-                            }
-                            service.disband(player, result -> service.deliver(player, result));
-                            return 1;
-                        })))
-                .then(playerArg(plugin, "invite", "invite"))
                 .then(Commands.literal("accept").executes(ctx -> {
                     Player player = needPlayer(plugin, ctx);
                     if (player == null) {
                         return 0;
                     }
-                    service.acceptInvite(player, result -> service.deliver(player, result));
+                    service.acceptInvite(player, feedback(plugin, player));
                     return 1;
                 }))
                 .then(Commands.literal("reject").executes(ctx -> {
@@ -91,31 +79,28 @@ public final class TownCommand {
                     if (player == null) {
                         return 0;
                     }
-                    service.rejectInvite(player, result -> service.deliver(player, result));
+                    service.rejectInvite(player, feedback(plugin, player));
                     return 1;
                 }))
+                .then(nameArg(plugin, "invite", "invite"))
+                .then(nameArg(plugin, "kick", "kick"))
+                .then(nameArg(plugin, "transfer", "transfer"))
+                .then(nameArg(plugin, "promote", "promote"))
+                .then(nameArg(plugin, "demote", "demote"))
                 .then(Commands.literal("leave").executes(ctx -> {
                     Player player = needPlayer(plugin, ctx);
                     if (player == null) {
                         return 0;
                     }
-                    service.leave(player, result -> service.deliver(player, result));
+                    service.leave(player, feedback(plugin, player));
                     return 1;
                 }))
-                .then(playerArg(plugin, "kick", "kick"))
-                .then(playerArg(plugin, "transfer", "transfer"))
-                .then(playerArg(plugin, "promote", "promote"))
-                .then(playerArg(plugin, "demote", "demote"))
-                .then(Commands.literal("info").executes(ctx -> {
+                .then(Commands.literal("disband").executes(ctx -> {
                     Player player = needPlayer(plugin, ctx);
                     if (player == null) {
                         return 0;
                     }
-                    sendInfo(plugin, player, null);
-                    return 1;
-                }))
-                .then(Commands.literal("list").executes(ctx -> {
-                    sendList(plugin, ctx.getSource().getSender());
+                    service.disband(player, feedback(plugin, player));
                     return 1;
                 }))
                 .then(Commands.literal("spawn").executes(ctx -> {
@@ -123,7 +108,7 @@ public final class TownCommand {
                     if (player == null) {
                         return 0;
                     }
-                    service.townSpawn(player, result -> service.deliver(player, result));
+                    service.townSpawn(player, feedback(plugin, player));
                     return 1;
                 }))
                 .then(Commands.literal("claim").executes(ctx -> {
@@ -132,7 +117,7 @@ public final class TownCommand {
                         return 0;
                     }
                     service.claim(player, ChunkKey.of(player.getLocation()),
-                            result -> service.deliver(player, result));
+                            feedback(plugin, player));
                     return 1;
                 }))
                 .then(Commands.literal("unclaim").executes(ctx -> {
@@ -141,7 +126,94 @@ public final class TownCommand {
                         return 0;
                     }
                     service.unclaim(player, ChunkKey.of(player.getLocation()),
-                            result -> service.deliver(player, result));
+                            feedback(plugin, player));
+                    return 1;
+                }))
+                // ---- 菜单后端：圈地地图格（右键购买 / Shift+右键放弃，坐标为格偏移）----
+                .then(Commands.literal("claimmap")
+                        .then(Commands.argument("row", IntegerArgumentType.integer(0, 8))
+                                .then(Commands.argument("col", IntegerArgumentType.integer(0, 8))
+                                        .executes(ctx -> {
+                                            Player player = needPlayer(plugin, ctx);
+                                            if (player == null) {
+                                                return 0;
+                                            }
+                                            service.claim(player, cellAt(player, ctx),
+                                                    feedback(plugin, player));
+                                            return 1;
+                                        })))
+                        .then(Commands.literal("center").executes(ctx -> {
+                            Player player = needPlayer(plugin, ctx);
+                            if (player == null) {
+                                return 0;
+                            }
+                            if (plugin.ui() != null) {
+                                plugin.ui().openClaim(player);
+                            }
+                            return 1;
+                        })))
+                .then(Commands.literal("unclaimat")
+                        .then(Commands.argument("row", IntegerArgumentType.integer(0, 8))
+                                .then(Commands.argument("col", IntegerArgumentType.integer(0, 8))
+                                        .executes(ctx -> {
+                                            Player player = needPlayer(plugin, ctx);
+                                            if (player == null) {
+                                                return 0;
+                                            }
+                                            service.unclaim(player, cellAt(player, ctx),
+                                                    feedback(plugin, player));
+                                            return 1;
+                                        }))))
+                // ---- 菜单后端：成员翻页（重写 meta 并刷新）----
+                .then(Commands.literal("members")
+                        .then(Commands.argument("page", IntegerArgumentType.integer(1))
+                                .executes(ctx -> {
+                                    Player player = needPlayer(plugin, ctx);
+                                    if (player == null) {
+                                        return 0;
+                                    }
+                                    if (plugin.ui() != null) {
+                                        plugin.ui().openMembers(player,
+                                                IntegerArgumentType.getInteger(ctx, "page"));
+                                    }
+                                    return 1;
+                                })))
+                // ---- 菜单后端：buff 购买 ----
+                .then(Commands.literal("buff")
+                        .then(Commands.literal("buy")
+                                .then(Commands.argument("id", StringArgumentType.word())
+                                        .executes(ctx -> {
+                                            Player player = needPlayer(plugin, ctx);
+                                            if (player == null) {
+                                                return 0;
+                                            }
+                                            service.buyBuff(player,
+                                                    StringArgumentType.getString(ctx, "id"),
+                                                    feedback(plugin, player));
+                                            return 1;
+                                        }))))
+                // ---- 危险操作二次确认（菜单按钮连点两次即确认）----
+                .then(Commands.literal("confirm")
+                        .then(Commands.argument("action", StringArgumentType.greedyString())
+                                .executes(ctx -> {
+                                    Player player = needPlayer(plugin, ctx);
+                                    if (player == null) {
+                                        return 0;
+                                    }
+                                    doConfirm(plugin, player,
+                                            StringArgumentType.getString(ctx, "action").trim());
+                                    return 1;
+                                })))
+                .then(Commands.literal("info").executes(ctx -> {
+                    Player player = needPlayer(plugin, ctx);
+                    if (player == null) {
+                        return 0;
+                    }
+                    sendInfo(plugin, player);
+                    return 1;
+                }))
+                .then(Commands.literal("list").executes(ctx -> {
+                    sendList(plugin, ctx.getSource().getSender());
                     return 1;
                 }))
                 .then(Commands.literal("map").executes(ctx -> {
@@ -158,27 +230,6 @@ public final class TownCommand {
                         return 0;
                     }
                     sendBuffs(plugin, player);
-                    return 1;
-                }))
-                .then(Commands.literal("buff")
-                        .then(Commands.literal("buy")
-                                .then(Commands.argument("id", StringArgumentType.word())
-                                        .executes(ctx -> {
-                                            Player player = needPlayer(plugin, ctx);
-                                            if (player == null) {
-                                                return 0;
-                                            }
-                                            service.buyBuff(player,
-                                                    StringArgumentType.getString(ctx, "id"),
-                                                    result -> service.deliver(player, result));
-                                            return 1;
-                                        }))))
-                .then(Commands.literal("cancel").executes(ctx -> {
-                    Player player = needPlayer(plugin, ctx);
-                    if (player == null) {
-                        return 0;
-                    }
-                    plugin.chatInputs().cancel(player);
                     return 1;
                 }))
                 .then(Commands.literal("admin")
@@ -205,9 +256,9 @@ public final class TownCommand {
     // 参数辅助
     // ------------------------------------------------------------------
 
-    /** 在线玩家名参数（带补全）。 */
+    /** 在线玩家名参数（带补全），执行对应成员操作。 */
     private static com.mojang.brigadier.builder.RequiredArgumentBuilder<CommandSourceStack, String>
-            playerArg(TownPlugin plugin, String literal, String op) {
+            nameArg(TownPlugin plugin, String literal, String op) {
         return Commands.argument(literal, StringArgumentType.word())
                 .suggests((ctx, builder) -> {
                     for (Player online : plugin.getServer().getOnlinePlayers()) {
@@ -223,16 +274,11 @@ public final class TownCommand {
                     String target = StringArgumentType.getString(ctx, literal);
                     TownService service = plugin.service();
                     switch (op) {
-                        case "invite" -> service.invite(player, target,
-                                result -> service.deliver(player, result));
-                        case "kick" -> service.kick(player, target,
-                                result -> service.deliver(player, result));
-                        case "transfer" -> service.transfer(player, target,
-                                result -> service.deliver(player, result));
-                        case "promote" -> service.promote(player, target,
-                                result -> service.deliver(player, result));
-                        case "demote" -> service.demote(player, target,
-                                result -> service.deliver(player, result));
+                        case "invite" -> service.invite(player, target, feedback(plugin, player));
+                        case "kick" -> service.kick(player, target, feedback(plugin, player));
+                        case "transfer" -> service.transfer(player, target, feedback(plugin, player));
+                        case "promote" -> service.promote(player, target, feedback(plugin, player));
+                        case "demote" -> service.demote(player, target, feedback(plugin, player));
                         default -> {
                         }
                     }
@@ -252,6 +298,71 @@ public final class TownCommand {
         return player;
     }
 
+    /** 圈地地图格 → 区块键（行/列偏移以玩家当前区块为中心，与 TownUi 写入的格一致）。 */
+    private static ChunkKey cellAt(Player player, CommandContext<CommandSourceStack> ctx) {
+        ChunkKey center = ChunkKey.of(player.getLocation());
+        int row = IntegerArgumentType.getInteger(ctx, "row");
+        int col = IntegerArgumentType.getInteger(ctx, "col");
+        return new ChunkKey(center.world(), center.x() + col - 4, center.z() + row - 4);
+    }
+
+    /** 统一回调：投递结果消息 + 刷新当前菜单的动态值。 */
+    private static Consumer<TownService.Result> feedback(TownPlugin plugin, Player player) {
+        return result -> {
+            plugin.service().deliver(player, result);
+            if (plugin.ui() != null) {
+                plugin.ui().refresh(player);
+            }
+        };
+    }
+
+    // ------------------------------------------------------------------
+    // 危险操作二次确认（菜单按钮连点两次 = 确认）
+    // ------------------------------------------------------------------
+
+    private static final Map<UUID, PendingConfirm> PENDING = new ConcurrentHashMap<>();
+    private static final long CONFIRM_WINDOW_MS = 60_000L;
+
+    private record PendingConfirm(String action, long expireAt) {
+    }
+
+    private static void doConfirm(TownPlugin plugin, Player player, String action) {
+        TownService service = plugin.service();
+        PendingConfirm pending = PENDING.get(player.getUniqueId());
+        boolean armed = pending != null && pending.action().equals(action)
+                && pending.expireAt() > System.currentTimeMillis();
+        if (!armed) {
+            PENDING.put(player.getUniqueId(), new PendingConfirm(action,
+                    System.currentTimeMillis() + CONFIRM_WINDOW_MS));
+            plugin.messages().send(player, "confirm-armed",
+                    Placeholder.unparsed("action", confirmLabel(action)));
+            return;
+        }
+        PENDING.remove(player.getUniqueId());
+        Consumer<TownService.Result> fb = feedback(plugin, player);
+        String[] parts = action.split(" ");
+        String head = parts[0];
+        String argument = parts.length > 1 ? parts[1] : "";
+        switch (head) {
+            case "leave" -> service.leave(player, fb);
+            case "disband" -> service.disband(player, fb);
+            case "kick" -> service.kick(player, argument, fb);
+            case "transfer" -> service.transfer(player, argument, fb);
+            default -> plugin.messages().sendRaw(player,
+                    "<red>未知的确认操作：" + head);
+        }
+    }
+
+    private static String confirmLabel(String action) {
+        return switch (action.split(" ")[0]) {
+            case "leave" -> "退出小镇";
+            case "disband" -> "解散小镇";
+            case "kick" -> "踢出成员";
+            case "transfer" -> "转让镇长";
+            default -> action;
+        };
+    }
+
     // ------------------------------------------------------------------
     // 文本输出
     // ------------------------------------------------------------------
@@ -265,7 +376,7 @@ public final class TownCommand {
                 "<gold>/town accept | reject</gold> <gray>接受 / 拒绝邀请",
                 "<gold>/town kick | promote | demote | transfer <玩家></gold> <gray>成员管理",
                 "<gold>/town leave</gold> <gray>退出小镇",
-                "<gold>/town disband</gold> <gray>解散小镇（confirm 确认）",
+                "<gold>/town disband</gold> <gray>解散小镇",
                 "<gold>/town claim | unclaim</gold> <gray>圈下 / 放弃脚下区块",
                 "<gold>/town map</gold> <gray>文本地图",
                 "<gold>/town spawn</gold> <gray>回小镇传送点",
@@ -276,36 +387,24 @@ public final class TownCommand {
         }
     }
 
-    private static void sendInfo(TownPlugin plugin, Player player, String name) {
-        TownService service = plugin.service();
-        var view = name == null ? service.townOf(player.getUniqueId()) : null;
-        if (view == null && name != null) {
-            for (var candidate : service.listTowns()) {
-                if (candidate.name().equalsIgnoreCase(name)) {
-                    view = candidate;
-                    break;
-                }
-            }
-        }
+    private static void sendInfo(TownPlugin plugin, Player player) {
+        var view = plugin.service().townOf(player.getUniqueId());
         if (view == null) {
             player.sendMessage(plugin.messages().render("not-in-town"));
             return;
         }
         String mayorName = org.bukkit.Bukkit.getOfflinePlayer(view.mayor()).getName();
-        player.sendMessage(plugin.messages().renderPlain("<gold>─── <white>" + view.name()
-                + "</white> ───"));
+        player.sendMessage(plugin.messages().renderPlain(
+                "<gold>──── <white>" + view.name() + "</white> ────"));
         player.sendMessage(plugin.messages().renderPlain("<gray>状态：<white>"
                 + (view.active() ? "已成立" : "筹备中")));
         player.sendMessage(plugin.messages().renderPlain("<gray>镇长：<white>"
                 + (mayorName == null ? "?" : mayorName)));
-        player.sendMessage(plugin.messages().renderPlain("<gray>成员：<white>"
-                + view.memberCount()));
-        player.sendMessage(plugin.messages().renderPlain("<gray>领地：<white>"
-                + view.claimCount() + " 块"));
+        player.sendMessage(plugin.messages().renderPlain("<gray>成员：<white>" + view.memberCount()));
+        player.sendMessage(plugin.messages().renderPlain("<gray>领地：<white>" + view.claimCount() + " 块"));
         player.sendMessage(plugin.messages().renderPlain("<gray>祝福：<white>"
                 + view.buffs().size() + " 个生效中"));
-        player.sendMessage(plugin.messages().renderPlain("<gray>成立于：<white>"
-                + view.createdDate()));
+        player.sendMessage(plugin.messages().renderPlain("<gray>成立于：<white>" + view.createdDate()));
     }
 
     private static void sendList(TownPlugin plugin, org.bukkit.command.CommandSender to) {
@@ -315,7 +414,7 @@ public final class TownCommand {
             return;
         }
         to.sendMessage(plugin.messages().renderPlain(
-                "<gold>─── 小镇列表（" + towns.size() + "）───"));
+                "<gold>── 小镇列表（" + towns.size() + "）──"));
         for (var view : towns) {
             String mayorName = org.bukkit.Bukkit.getOfflinePlayer(view.mayor()).getName();
             to.sendMessage(plugin.messages().renderPlain("<gray>- <white>" + view.name()
@@ -329,7 +428,7 @@ public final class TownCommand {
 
     private static void sendBuffs(TownPlugin plugin, Player player) {
         var view = plugin.service().townOf(player.getUniqueId());
-        player.sendMessage(plugin.messages().renderPlain("<gold>─── 领地祝福 ───"));
+        player.sendMessage(plugin.messages().renderPlain("<gold>── 领地祝福 ──"));
         long now = System.currentTimeMillis();
         for (var def : plugin.config().buffs()) {
             Long expiry = view == null ? null : view.buffs().get(def.id());
@@ -354,8 +453,8 @@ public final class TownCommand {
     private static void sendChatMap(TownPlugin plugin, Player player) {
         ChunkKey center = ChunkKey.of(player.getLocation());
         var view = plugin.service().townAt(center);
-        player.sendMessage(plugin.messages().renderPlain("<gold>─── 领地地图 "
-                + "<gray>(" + center.x() + ", " + center.z() + ")"));
+        player.sendMessage(plugin.messages().renderPlain("<gold>── 领地地图 <gray>("
+                + center.x() + ", " + center.z() + ")"));
         for (int dz = -5; dz <= 5; dz++) {
             StringBuilder row = new StringBuilder();
             for (int dx = -5; dx <= 5; dx++) {

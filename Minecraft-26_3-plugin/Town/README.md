@@ -29,7 +29,7 @@ Minecraft 26.3（Folia）小镇系统：筹备成立 → 邀请成员 → 扣费
 
 ## 指令与权限
 
-`/town` 打开界面（无 ArcMenu 时为帮助）。子命令：`create <名>`、`found`、`disband [confirm]`、`invite <玩家>`、`accept`、`reject`、`leave`、`kick|transfer|promote|demote <玩家>`、`info [名]`、`list`、`spawn`、`claim`、`unclaim`、`map`、`buffs`、`buff buy <id>`、`cancel`；管理：`/town admin reload | givehall`。
+`/town` 打开界面（无 ArcMenu 时为帮助）。子命令：`create <名>`、`found`、`confirm <action>`（leave/disband/kick/transfer 二次确认）、`disband`、`invite <玩家>`、`accept`、`reject`、`leave`、`kick|transfer|promote|demote <玩家>`、`info [名]`、`list`、`spawn`、`claim`、`unclaim`、`map`、`members [页]`（成员界面）、`claimmap <行> <列>`（点选圈地，地图格左键购买/右键放弃）、`claimmap center`（重开圈地界面）、`unclaimat <行> <列>`、`buffs`、`buff buy <id>`；管理：`/town admin reload | givehall`。
 
 | 权限 | 默认 | 说明 |
 | --- | --- | --- |
@@ -41,10 +41,15 @@ Minecraft 26.3（Folia）小镇系统：筹备成立 → 邀请成员 → 扣费
 
 - 运行期数据：`plugins/Town/config.yml`（全键兜底）+ `plugins/Town/towns.yml`（原子写、异步落盘）。
 - ArcMenu 集成：编译期依赖 `./libs/arcmenu-api-3.2.0.jar`（gitignore 白名单已放行入库；运行期由服务器的 ArcMenu 提供实现）。社区版/高级版运行时 jar **不入库**。
+- **输入模式必须为鼠标模式**（[官方文档](https://docs.myarc.icu/gong-neng-pei-zhi/input-modes)）：
+  ArcMenu `config.yml` 设 `mouse.policy: "force-mouse"`（全服统一光标交互；装了 ArcMenu Editor 的客户端可自行升 Vision）。
+  本插件打开菜单时还会调 `ArcMenuApi.setPointerMode(player, MOUSE)` 兜底，服务器策略即便被改回触控也不受影响。
+  界面按鼠标直觉设计：圈地地图格 **左键购买 / 右键放弃**；鼠标模式需要客户端接收 ArcMenu 资源包（光标贴图）。
 - ArcMenu YAML 菜单知识库（供后续写静态菜单用）：[`./docs/exp/arcmenu-yml知识库.md`](../../docs/exp/arcmenu-yml知识库.md)；官方 wiki：<https://docs.myarc.icu>。
 
-## 已知限制（Beta_0_1_0）
+## 已知限制（Beta_0_2_0）
 
-- 贴图素材（HTML→PNG 自制 + CC0 收集）尚未接入：当前界面用混凝土压扁面板 + 文字实体渲染，功能完整、观感朴素；素材管线落地后在 `Beta_0_2_0` 增强。
-- 文字尺寸 / 锚点常量（`arcui/UiMetrics`）是经验值，需进服按 `arcmenu-designing` 技能的校准流程微调。
+- 界面为 ArcMenu 原生 YAML 菜单（插件启动时生成到 `plugins/ArcMenu/menus/town-*.yml`），几何全部按
+  `arcmenu-designing` 技能实测补偿生成（800×450、ppb 42.7、G/ZK 缩放、rectangle 顶部补偿等）；未接入贴图素材（HTML→PNG）前观感为纯色块 + 文字，后续版本增强。
+- 界面内按钮动作即 `/town` 子命令（命令通道），危险操作（退出/解散/踢出/转让）采用「连点两次 = 确认」的 60 秒窗口。
 - 扣费的幂等键含时间戳：极端情况下（扣费后、落账前服务器崩溃）可能多扣一次，可用 Wallet 流水（remark 含小镇/区块）人工对账。
