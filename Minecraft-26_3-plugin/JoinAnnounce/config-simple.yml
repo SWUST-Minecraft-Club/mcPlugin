@@ -1,0 +1,34 @@
+# JoinAnnounce 最小配置示例：进服后只弹一个简单的公告
+#
+# 用法：把本文件内容复制到 <服务端根>/plugins/JoinAnnounce/config.yml，
+#       然后执行 /joinannounce reload（或重启服务器）。
+#       没有写到的配置项会自动使用插件内置默认值（标题/音效默认关闭、广播默认开启）。
+#
+# 想改成聊天栏一行、不弹窗：把 display 改成 chat。
+# 想弹窗和聊天栏都要：把 display 改成 both。
+
+announce:
+  enabled: true
+  display: dialog
+  delay-ticks: 20
+  lines:
+    - "<gold>欢迎 <player> 来到本服！</gold>"
+  dialog:
+    title: "<gold>服务器公告</gold>"
+    button: "知道了"
+    can-close-with-escape: true
+
+# 首次进服不再追加额外文案
+first-join:
+  enabled: false
+
+# 不接管原版进服 / 退服消息
+broadcast:
+  join:
+    enabled: false
+  quit:
+    enabled: false
+
+# 不在主菜单里加入口
+menu:
+  enabled: false
