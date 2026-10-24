@@ -25,6 +25,8 @@ bin/
 *.class
 *.jar
 !gradle/wrapper/gradle-wrapper.jar
+# 第三方 API jar 允许入库（运行时 jar 仍不入库）
+!libs/*.jar
 # 构建产物留档目录：每次小改版的产物都要保留，所以这里例外放行
 !release/**/*.jar
 

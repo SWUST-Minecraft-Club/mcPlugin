@@ -401,6 +401,7 @@ dependencies {
 | Wallet | —（还在测试版阶段） | `Beta_0_4_0`（适配 Folia：界面回调走实体调度器；`/walletin` / `/walletout`；管理员可切换本服货币启停） |
 | ConcertoMenu | —（还在测试版阶段） | `Beta_0_2_0`（适配 Folia；首个版本：主菜单唱片机入口） |
 | JoinAnnounce | —（还在测试版阶段） | `Beta_0_2_0`（新增 dialog 弹窗显示与 `announce.display`；`Beta_0_1_0` 为首个版本） |
+| Town | —（还在测试版阶段） | `Beta_0_1_0`（首个版本：小镇成立 / 圈地 / 保护 / 领地 buff；ArcMenu 3D 界面 + Wallet 经济 + 镇政厅道具） |
 
 > 涨号规则（正式版之后再改动先回到测试版 `Beta_<第 1 位>_x_x`，转正时去掉 `Beta`、第 3 位归 0、第 2 位至少 +1，第 1 位不变）见
 > [`./docs/dev/版本与产物规范.md`](./docs/dev/版本与产物规范.md) §2；

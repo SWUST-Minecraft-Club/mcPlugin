@@ -1,0 +1,42 @@
+# Paper / Folia 插件描述文件（Folia 沿用 paper-plugin.yml）
+# 注意：Paper / Folia 插件不在 yml 中声明命令，命令通过代码里的 LifecycleEvents.COMMANDS 注册
+name: Town
+version: '${version}'
+main: com.example.town.TownPlugin
+api-version: '26.3'
+# 声明支持 Folia；没有这一项的插件会被 Folia 拒绝加载
+folia-supported: true
+description: 小镇系统：成立 / 邀请 / 圈地 / 领地保护 / 领地 buff，ArcMenu 界面 + Wallet 经济
+authors: [zhou-BZDDX]
+website: https://github.com/zhou-BZDDX/mcPlugin
+
+# 权限声明；default 可取 true / false / op / not_op
+permissions:
+  town.use:
+    description: 使用小镇基础功能（/town 打开界面等）
+    default: true
+  town.admin:
+    description: 小镇管理指令（/town admin）
+    default: op
+  town.bypass:
+    description: 无视小镇领地保护
+    default: op
+  town.reload:
+    description: 重载小镇配置
+    default: op
+
+# 全部软依赖：缺谁都能加载，只是对应能力降级（见 README 降级说明）
+dependencies:
+  server:
+    MainMenu:
+      load: BEFORE
+      required: false
+    Wallet:
+      load: BEFORE
+      required: false
+    ArcMenu:
+      load: BEFORE
+      required: false
+    CraftEngine:
+      load: BEFORE
+      required: false

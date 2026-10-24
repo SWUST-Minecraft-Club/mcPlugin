@@ -1,0 +1,180 @@
+# ============================================================================
+# Town 小镇系统配置
+# 全部键都有兜底值；热重载 /town admin reload 或 /town reload。
+# 文案全部为 MiniMessage（<gold> 等标签直接生效）。
+# ============================================================================
+
+# ---------------------------- 小镇基础 ----------------------------
+town:
+  # 成立所需最低人数（含镇长本人）。筹备中的小镇达到该人数后才能「成立」扣费。
+  min-members: 2
+  # 小镇成员上限（含镇长）；0 = 不限。
+  max-members: 0
+  # 小镇名称长度与字符限制。
+  name-min-length: 2
+  name-max-length: 12
+  # 小镇名允许的字符（Java 正则）。
+  name-regex: "[0-9A-Za-z_\\u4e00-\\u9fa5]+"
+  # 筹备中超时自动解散（小时）；0 = 不超时。
+  pending-expire-hours: 72
+  # 邀请有效期（分钟）。
+  invite-expire-minutes: 30
+
+# ---------------------------- 经济（Wallet）----------------------------
+economy:
+  # 本服使用的 Wallet 货币 asset code；留空 = 自动取官网第一个启用货币。
+  currency: ""
+
+# ---------------------------- 成立与圈地 ----------------------------
+founding:
+  # 成立费用（扣费发生在人数达标、点击「成立」时）。
+  cost: 1000
+  # 成立后免费自动以镇政厅为中心圈地的半径（区块数）。1 = 3×3，0 = 只圈中心 1 块。
+  free-claim-radius: 1
+
+claim:
+  # 允许圈地的世界名列表；留空 = 所有世界都允许。
+  worlds: []
+  # 斜角相邻是否算「相连」。
+  diagonal-connected: true
+  # 每个小镇最多可购买的地块数（不含成立赠送）；0 = 不限。
+  max-chunks: 256
+
+expansion:
+  # 扩张购买价格（每次 1 个区块）。
+  price-per-chunk: 50
+
+# ---------------------------- 镇政厅 ----------------------------
+townhall:
+  # CraftEngine 自定义物品 id（如 mypack:town_hall）；留空或 CE 未装/物品不存在时
+  # 自动回落到下面的原版材质。放置落地时统一转为原版方块（见 README）。
+  craftengine-id: ""
+  # 原版回落材质（也是落地方块）。
+  fallback-material: LODESTONE
+
+# ---------------------------- 领地保护 ----------------------------
+protection:
+  break: true          # 禁止 outsiders 破坏方块
+  place: true          # 禁止 outsiders 放置方块
+  container: true      # 禁止 outsiders 打开容器（箱子/木桶/潜影盒/矿车箱等）
+  interact: true       # 禁止 outsiders 交互方块（门/按钮/拉杆/工作台/铁砧等）
+  bucket: true         # 禁止 outsiders 使用桶
+  explosion: true      # 爆炸不伤及领地方块
+  piston: true         # 活塞不得跨领地边界推拉
+  fire: true           # 火焰不蔓延进领地
+  hanging: true        # 画/展示框/盔甲架的放置与破坏
+  entity-grief: true   # 末影人搬方块、恶魂/凋灵等实体破坏
+
+# ---------------------------- 领地 buff ----------------------------
+# 对身处小镇领地内的成员周期施加的药水效果。
+# duration-seconds: -1 = 永久；购买后立即生效（可叠加时长）。
+# type 为 Bukkit PotionEffectType 枚举名（如 HASTE / SPEED / REGENERATION / NIGHT_VISION）。
+# amplifier: 0 = 一级。
+buffs:
+  # 效果施加刷新间隔（tick）；效果时长会自动设为间隔的 2 倍以平滑进出。
+  apply-interval-ticks: 40
+  entries:
+    - id: haste
+      display: "<green>祝福·急迫"
+      cost: 500
+      duration-seconds: 3600
+      effects:
+        - { type: HASTE, amplifier: 0 }
+    - id: regen
+      display: "<light_purple>祝福·再生"
+      cost: 800
+      duration-seconds: 1800
+      effects:
+        - { type: REGENERATION, amplifier: 0 }
+    - id: glow
+      display: "<aqua>祝福·辉光"
+      cost: 200
+      duration-seconds: -1
+      effects:
+        - { type: GLOWING, amplifier: 0 }
+
+# ---------------------------- 界面 ----------------------------
+menu:
+  # 主菜单（MainMenu）里小镇入口的排序值，越小越靠前。
+  entry-order: 10
+
+# ---------------------------- 消息 ----------------------------
+messages:
+  prefix: "<gold>[小镇] <gray>"
+  no-permission: "<red>你没有权限这么做。"
+  players-only: "<red>该操作只能由玩家执行。"
+  reloaded: "<green>配置已重载。"
+  not-in-town: "<yellow>你还没有加入小镇。"
+  in-town-already: "<yellow>你已经在小镇 <white><town></white> 里了。"
+  already-active: "<yellow>小镇 <white><town></white> 已经成立了。"
+  action-busy: "<yellow>上一次操作还在处理中，请稍候。"
+  invite-self: "<yellow>不能邀请自己。"
+  target-not-online: "<red>目标玩家不在线。"
+  must-be-active: "<yellow>小镇还在筹备中，成立后才能圈地。"
+  protection-denied: "<red>这里是别人的小镇领地。"
+  disband-need-confirm: "<yellow>解散不可恢复！再次输入 <white>/town disband confirm</white> 确认。"
+  hall-given: "<green>已补发镇政厅道具。"
+  town-exists: "<red>已经有人注册了名字 <white><name></white> 的小镇。"
+  name-invalid: "<red>小镇名只能包含中文、字母、数字、下划线。"
+  name-too-short: "<red>小镇名至少需要 <min> 个字符。"
+  name-too-long: "<red>小镇名最多 <max> 个字符。"
+  created: "<green>小镇 <white><name></white> 筹备中！邀请 <min> 名成员后即可成立。"
+  founded: "<gold>小镇 <white><name></white> 正式成立！领取镇政厅并放置它来划定中心。"
+  found-broadcast: "<gold><player> 的小镇 <white><name></white> 成立了！"
+  found-min-members: "<yellow>成员不足：成立至少需要 <min> 人（当前 <count> 人）。"
+  disbanded: "<red>小镇 <white><name></white> 已解散。"
+  disband-no-town: "<yellow>没有可以解散的小镇。"
+  invite-sent: "<green>已向 <white><player></white> 发出邀请。"
+  invited-you: "<gold>[小镇] <gray>你收到了小镇 <white><town></white> 的邀请，点击"
+  invited-you-accept: "<green>[接受]"
+  invited-you-reject: "<red>[拒绝]"
+  invite-accepted: "<green><player> 加入了小镇！"
+  invite-rejected: "<yellow><player> 拒绝了邀请。"
+  invite-none: "<yellow>你没有待处理的邀请。"
+  invite-target-has-town: "<yellow>对方已经有小镇了。"
+  invite-target-invited: "<yellow>对方已有待处理的邀请。"
+  invite-town-full: "<red>小镇成员已满（<max> 人）。"
+  invite-must-member: "<red>只有镇长或官员可以邀请。"
+  kicked-you: "<red>你被踢出了小镇 <white><town></white>。"
+  kicked: "<red>你把 <white><player></white> 踢出了小镇。"
+  kicked-broadcast: "<red><player> 被踢出了小镇。"
+  left: "<yellow>你退出了小镇 <white><town></white>。"
+  left-broadcast: "<yellow><player> 退出了小镇。"
+  transfer-done: "<gold>镇长之位已移交 <player>。"
+  transfer-target: "<gold>你现在是 <white><town></white> 的镇长了！"
+  transfer-must-mayor: "<red>只有镇长可以转让镇长之位。"
+  promote-done: "<green>已将 <player> 提升为官员。"
+  demote-done: "<green>已将 <player> 降为成员。"
+  already-role: "<yellow>对方已经是这个职位了。"
+  target-not-member: "<red>对方不是本镇成员。"
+  mayor-cannot-leave: "<red>镇长不能退出，请先转让镇长之位或解散小镇。"
+  pending-expired: "<red>小镇 <white><name></white> 筹备超时，已自动解散。"
+  claim-protected-other: "<red>这里已经是别的领地了。"
+  claim-adjacent-required: "<red>圈地必须与小镇现有领地相连。"
+  claim-max-reached: "<red>已达到小镇地块上限（<max> 块）。"
+  claim-world-denied: "<red>这个世界不允许圈地。"
+  claim-success: "<green>圈地成功！本镇现有 <count> 块领地。"
+  claim-charged: "<green>花费 <amount> <symbol> 圈下这块地。"
+  unclaimed: "<yellow>已放弃这块领地。"
+  unclaim-hall-blocked: "<red>镇政厅所在的区块不能放弃。"
+  buff-not-found: "<red>没有这个 buff。"
+  buff-active: "<yellow>该祝福正在生效中（永久祝福不可重复购买）。"
+  buff-charged: "<green>祝福 <name> 已激活，花费 <amount> <symbol>。"
+  hall-received: "<green>获得道具 <gold>镇政厅</gold>，放置它来设定小镇中心与传送点。"
+  hall-placed: "<gold>镇政厅已落成！小镇中心与传送点已设定。"
+  hall-free-claims: "<green>已为小镇免费圈下 <count> 块领地。"
+  hall-exists: "<red>小镇已有镇政厅，先拆除旧的（市长可挖掉）再放置。"
+  hall-must-mayor: "<red>只有镇长可以放置镇政厅。"
+  hall-pending: "<red>小镇还在筹备中，成立后才能放置镇政厅。"
+  hall-world-denied: "<red>这个世界不允许放置镇政厅。"
+  hall-broken: "<yellow>镇政厅已收回为道具（领地保留）。"
+  hall-not-set: "<yellow>小镇还没有放置镇政厅。"
+  spawn-teleported: "<green>已传送回小镇。"
+  wallet-missing: "<red>钱包服务不可用，暂时无法扣费。"
+  wallet-failed: "<red>扣费失败（余额不足或服务异常）。"
+  arcmenu-missing: "<yellow>未安装 ArcMenu（或 ProtocolLib），图形界面不可用；请使用 /town help 查看指令。"
+  chat-input-prompt: "<gold>请在聊天栏输入小镇名称</gold> <gray>（30 秒内，输入「取消」放弃）"
+  chat-input-cancelled: "<yellow>已取消输入。"
+  chat-input-timeout: "<yellow>输入超时，已取消。"
+  town-info-header: "<gold>───── <white><name></white> ─────"
+  town-not-found: "<red>没有找到这个小镇。"

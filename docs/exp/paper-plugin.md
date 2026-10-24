@@ -68,3 +68,10 @@
 - **规避/解决**：只有**功能区以外**的格子才算自定义位置；声明在功能区、或超出 0~53 一律按"没声明位置"处理，
   直接按排序值进功能区。规则详见 `docs/dev/功能插件接入规范.md` §3.2。
 - **来源**：2026.10.18，MainMenu 正式版 `1_0_1`。
+
+### 26.3 里 `DARK_GRAY_CONCRETE` 等深灰材质名不存在
+
+- **现象**：代码引用 `Material.DARK_GRAY_CONCRETE` 编译报「找不到符号」，但 `GRAY_CONCRETE` / `LIGHT_GRAY_CONCRETE` 都在。
+- **根因**：26.3 的 Material 枚举调整了颜色命名，深灰系混凝土只剩 GRAY / LIGHT_GRAY 两档。
+- **规避/解决**：界面材质先 `javap -classpath <folia-api.jar> org.bukkit.Material | grep CONCRETE` 核对常量名再写；不要凭旧版本记忆手写材质名。
+- **来源**：2026.10.24，Town 界面首次编译。
