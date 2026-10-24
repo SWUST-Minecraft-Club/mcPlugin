@@ -76,11 +76,18 @@ class TownMenusTest {
     }
 
     @Test
-    void claimHasEightyOneCellsWithConfirmAndDragButtons() {
-        JsonObject backend = doc(TownMenus.CLAIM).getAsJsonObject("backend");
-        assertEquals(81, backend.keySet().stream().filter(id -> id.startsWith("cellgo-")).count());
-        for (int r = 0; r < 9; r++) {
-            for (int c = 0; c < 9; c++) {
+    void claimHasFortyNineCellsWithRealMapImageAndDragButtons() {
+        JsonObject doc = doc(TownMenus.CLAIM);
+        JsonObject backend = doc.getAsJsonObject("backend");
+        JsonObject frontend = doc.getAsJsonObject("frontend");
+        assertEquals(49, backend.keySet().stream().filter(id -> id.startsWith("cellgo-")).count());
+        assertEquals(49, frontend.keySet().stream().filter(id -> id.startsWith("cellmark-")).count(),
+                "每格都要有状态角标");
+        JsonObject mapImage = frontend.getAsJsonObject("map-image");
+        assertEquals("image", mapImage.get("type").getAsString());
+        assertEquals("/town/map/%arcmenu_meta_map_key%.png", mapImage.get("source").getAsString());
+        for (int r = 0; r < 7; r++) {
+            for (int c = 0; c < 7; c++) {
                 JsonObject actions = backend.getAsJsonObject("cellgo-" + r + "-" + c)
                         .getAsJsonObject("actions");
                 assertEquals("command: town confirm claimmap " + r + " " + c,

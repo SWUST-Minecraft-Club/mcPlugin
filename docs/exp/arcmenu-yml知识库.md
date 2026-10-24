@@ -2553,3 +2553,15 @@ AI 如果无法取得全目录、图片清单或依赖状态，只能保证单�
 - **规避**：用 YamlConfiguration 读取后只写自己的键（`transitions.<id>`、`tracks.<id>`、`menus.<菜单id>`），
   已存在则跳过；首次写入前把原文件备份成 `animations.town-backup.yml` 之类，再随 `menus().reload()` 生效。
   校验是整库事务式的，合并写错会导致整套菜单不发布，所以合并后必须看 reload 报告。
+
+### 25.10 `menus().reload()` 不重建图片索引，新 PNG 必须走 `arcmenu resources`
+
+- **现象**：插件把 PNG 写进 `plugins/ArcMenu/images/...` 后调用 `api.menus().reload()`，菜单里 `image` 元素整块渲染为空（全黑），
+  连占位图都不显示；日志只有「菜单已重载：共 N 个，无错误」。
+- **根因**：`menus().reload()` 只校验并发布菜单文档，**不重建图片/九宫格资源索引**；图片不在索引里，`image` 就没有可显示内容，
+  而且这种缺失不会计入菜单校验错误。
+- **规避**：先重建资源再发布菜单，顺序不能反：
+  `Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "arcmenu resources")` → 再 `api.menus().reload()`。
+  两个动作都要在区域线程调度里执行（插件 enable 期间同步派发会抛 `Dispatching command async`）。
+  运行时新增图片同理：重建后延迟约 40 tick 再 `refresh(player)`；重建按 30 秒节流，并用「文件名+大小」签名记录索引状态，只在变化时重建。
+- **来源**：2026-10-25 Town 圈地小地图（`TownMapRenderer`）。

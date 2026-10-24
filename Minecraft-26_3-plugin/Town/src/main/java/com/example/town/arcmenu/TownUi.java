@@ -34,7 +34,8 @@ public final class TownUi {
     public static final int MEMBER_ROWS = 8;
     public static final int INVITE_ROWS = 8;
     public static final int BUFF_ROWS = 6;
-    public static final int CLAIM_GRID = 9;
+    /** 圈地地图边长（7×7 区块，44 单位格在 70% 缩放下仍可读）。 */
+    public static final int CLAIM_GRID = 7;
 
     private final TownPlugin plugin;
     private final ArcMenuApi api;
@@ -49,6 +50,7 @@ public final class TownUi {
     private final Map<UUID, ChunkKey> chunkPreviews = new ConcurrentHashMap<>();
     private final Set<UUID> balanceLoading = ConcurrentHashMap.newKeySet();
     private final AtomicBoolean assetsLoading = new AtomicBoolean();
+    private TownMapRenderer mapRenderer;
 
     private record ConfirmSession(String action, String returnScreen) {
     }
@@ -79,21 +81,33 @@ public final class TownUi {
     public void installMenus() {
         final Path dir = plugin.getDataFolder().toPath().getParent()
                 .resolve("ArcMenu").resolve("menus");
+        mapRenderer = new TownMapRenderer(plugin, dir.getParent());
+        mapRenderer.ensurePlaceholder();
+        mapRenderer.warmSpawn();
+        final boolean needResourceRebuild;
         try {
             final List<TownMenus.Written> written = TownMenus.writeAll(plugin.config(), dir);
             plugin.getLogger().info("已生成 " + written.size() + " 个小镇菜单文件到 " + dir);
             mergeAnimations(dir.getParent());
+            // menus().reload() 只发布菜单、不重建图片索引：必须先 resources，再 reload，image 元素才有图可显示
+            needResourceRebuild = mapRenderer.imagesChangedSinceLastIndex();
         } catch (final IOException | RuntimeException e) {
             plugin.getLogger().warning("小镇菜单写入失败：" + e.getMessage());
             return;
         }
-        final ArcMenuReloadReport report = api.menus().reload();
-        if (report.isApplied()) {
-            plugin.getLogger().info("ArcMenu 菜单已重载：共 " + report.getMenuCount() + " 个，无错误。");
-        } else {
-            plugin.getLogger().warning("ArcMenu 菜单重载失败（" + report.getErrors().size() + " 个错误）：");
-            report.getErrors().stream().limit(10).forEach(line -> plugin.getLogger().warning("  · " + line));
-        }
+        Threads.global(plugin, () -> {
+            if (needResourceRebuild) {
+                plugin.getLogger().info("检测到小地图图片变化，先重建 ArcMenu 资源包。");
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "arcmenu resources");
+            }
+            final ArcMenuReloadReport report = api.menus().reload();
+            if (report.isApplied()) {
+                plugin.getLogger().info("ArcMenu 菜单已重载：共 " + report.getMenuCount() + " 个，无错误。");
+            } else {
+                plugin.getLogger().warning("ArcMenu 菜单重载失败（" + report.getErrors().size() + " 个错误）：");
+                report.getErrors().stream().limit(10).forEach(line -> plugin.getLogger().warning("  · " + line));
+            }
+        });
     }
 
     /**
@@ -437,24 +451,30 @@ public final class TownUi {
         }
     }
 
-    /** 确认页打开期间在世界里高亮目标区块边界，随确认/取消自动消失。 */
+    /** 地图页常显中心区块轮廓；确认页改为高亮目标区块（买绿 / 弃红）。 */
     private void drawChunkPreview(final Player player) {
         final UUID id = player.getUniqueId();
-        if (!TownMenus.CONFIRM.equals(current.get(id))) {
+        final String screen = current.get(id);
+        ChunkKey chunk = null;
+        org.bukkit.Color color = null;
+        if (TownMenus.CONFIRM.equals(screen)) {
+            final ConfirmSession session = confirmations.get(id);
+            if (session != null && chunkPreviews.containsKey(id)) {
+                chunk = chunkPreviews.get(id);
+                final boolean buying = session.action().startsWith("claimmap")
+                        || session.action().startsWith("claimpos");
+                color = buying ? org.bukkit.Color.fromRGB(0x52, 0xC4, 0x8B)
+                        : org.bukkit.Color.fromRGB(0xD9, 0x76, 0x76);
+            }
+        } else if (TownMenus.CLAIM.equals(screen)) {
+            chunk = claimCenter.get(id);
+            color = org.bukkit.Color.fromRGB(0xD8, 0xAE, 0x63);
+        }
+        if (chunk == null || color == null) {
             chunkPreviews.remove(id);
             return;
         }
-        final ChunkKey chunk = chunkPreviews.get(id);
-        if (chunk == null) {
-            return;
-        }
-        final boolean buying = confirmations.get(id) != null
-                && (confirmations.get(id).action().startsWith("claimmap")
-                || confirmations.get(id).action().startsWith("claimpos"));
-        final org.bukkit.Particle.DustOptions dust = new org.bukkit.Particle.DustOptions(
-                buying ? org.bukkit.Color.fromRGB(0x52, 0xC4, 0x8B)
-                        : org.bukkit.Color.fromRGB(0xD9, 0x76, 0x76),
-                1.4f);
+        final org.bukkit.Particle.DustOptions dust = new org.bukkit.Particle.DustOptions(color, 1.4f);
         final int baseY = player.getLocation().getBlockY() + 1;
         final int minX = chunk.x() << 4;
         final int minZ = chunk.z() << 4;
@@ -718,20 +738,33 @@ public final class TownUi {
         }
         final TownSnapshotView own = plugin.service().townOf(player.getUniqueId());
         set(player, "claim_center", center.world() + " · " + center.x() + ", " + center.z());
-        final int half = CLAIM_GRID / 2;
+        final String key = TownMapRenderer.fileKey(center);
+        if (mapRenderer != null && mapRenderer.fileFor(key).toFile().exists()) {
+            set(player, "map_key", key);
+        } else {
+            set(player, "map_key", "default");
+            if (mapRenderer != null) {
+                mapRenderer.ensureRendered(center, () -> {
+                    if (!TownMenus.CLAIM.equals(current.get(player.getUniqueId()))
+                            || !center.equals(claimCenter.get(player.getUniqueId()))) {
+                        return;
+                    }
+                    set(player, "map_key", key);
+                    api.refresh(player);
+                });
+            }
+        }
         for (int r = 0; r < CLAIM_GRID; r++) {
             for (int c = 0; c < CLAIM_GRID; c++) {
-                final ChunkKey key = new ChunkKey(center.world(),
-                        center.x() + c - half, center.z() + r - half);
-                set(player, "cell_" + r + "_" + c, cellGlyph(key, own));
+                final ChunkKey cell = new ChunkKey(center.world(),
+                        center.x() + c - CLAIM_GRID / 2, center.z() + r - CLAIM_GRID / 2);
+                set(player, "cellmark_" + r + "_" + c, stateMarkOf(cell, own));
             }
         }
     }
 
-    private String cellGlyph(final ChunkKey key, final TownSnapshotView own) {
-        if (!plugin.service().worldAllowed(key.world())) {
-            return "&#C08A5A×";
-        }
+    /** 状态角标：本镇/可买/他镇/不相连/镇政厅；真实地形图之外的状态层。 */
+    private String stateMarkOf(final ChunkKey key, final TownSnapshotView own) {
         final TownSnapshotView owner = plugin.service().townAt(key);
         if (owner != null) {
             if (own != null && owner.id().equals(own.id()) && key.equals(own.hallChunk())) {

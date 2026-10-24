@@ -3,7 +3,7 @@
 Minecraft 26.3（Folia）小镇系统：筹备成立 → 邀请成员 → 扣费成立 → 放置镇政厅 → 免费圈地 / 点选扩张 → 领地保护 → 领地祝福。
 界面使用 [ArcMenu](https://docs.myarc.icu) 原生 YAML，经济走本仓 Wallet，镇政厅道具支持 CraftEngine 自定义物品（缺失回落原版）。
 
-- 版本：`Beta_0_3_0`（见 `./Town-mc26_3-plugin-ChangeLog-Beta.md`）
+- 版本：`Beta_0_4_0`（见 `./Town-mc26_3-plugin-ChangeLog-Beta.md`）
 - 主类：`com.example.town.TownPlugin`（包名 `com.example.town`）
 
 ## 依赖与降级矩阵
@@ -30,9 +30,9 @@ Minecraft 26.3（Folia）小镇系统：筹备成立 → 邀请成员 → 扣费
 菜单由插件在启动和重载时生成到 `plugins/ArcMenu/menus/town-*.yml`，动态内容使用每玩家 META，不依赖 PlaceholderAPI。
 
 - **输入模式默认鼠标（客户端 Mod 本地渲染光标，最跟手）**：ArcMenu `config.yml` 建议 `mouse.policy: "player-choice"`、`mouse.default: "mouse"`；玩家可 `/arcmenu mode` 自选 touch / vision。Town 不再强制切换模式。
-- 光标大小与跟手感由 ArcMenu 全局配置控制：`mouse.cursor.size`（建议 3.0）、`sensitivity-x/y`（建议 3.0）、`sample-rate`（建议 60）；与菜单缩放无关。
+- 光标大小与跟手感由 ArcMenu 全局配置控制：`mouse.cursor.size`（建议 4.0）、`sensitivity-x/y`（建议 3.0）；与菜单缩放无关。鼠标模式光标依赖客户端接收 ArcMenu 资源包——服务器重启后资源包变化，玩家重连时需重新接收，否则光标贴图会消失。
 - 文本输入（小镇名称 / 邀请玩家名）点击输入框后由 `ArcMenuTextInput` API 唤起，回车即提交。
-- 圈地地图左键购买、右键放弃，均先进入确认页；确认期间目标区块边界会在世界中用光点标出（购买绿色 / 放弃红色）。地图支持四向拖动（每次 3 块）与「回到我的位置」。
+- 圈地地图为**真实渲染小地图**（7×7 区块、大格）：按原版地图风格逐方块采样生成 PNG（颜色随生物群系、水深、高度变化），菜单以动态图片显示；新区域首次渲染时自动重建 ArcMenu 资源包（先 `arcmenu resources` 再发布菜单，否则 image 渲染为空），客户端会自动重收。角落角标表示领地状态（本镇■ / 可买□ / 他镇■ / 不相连· / 镇政厅★）；打开地图期间 ★ 中心区块在世界中有金色轮廓，确认购买/放弃时目标区块按绿/红高亮。地图支持四向拖动（每次 3 块）与「回到我的位置」。
 - 成立、圈地、放弃领地、祝福购买、踢人、转让、退出、解散都有明确确认页；无 ArcMenu 时改为 60 秒内重复同一指令确认，`/town confirm-cancel` 取消。
 - 页面关闭后通过 ArcMenu 会话快照清理本地状态；同页翻页和重新居中不会被误认为关闭。
 - Town 的过渡与标题微动画以 `town-` 前缀**增量合并**进 ArcMenu 全局 `animations.yml`（首次写入自动备份为 `animations.town-backup.yml`），不覆盖默认菜单的既有绑定。

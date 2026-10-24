@@ -206,6 +206,22 @@ public final class MenuBuilder {
         putFrontend(id, o);
     }
 
+    /** 图片元素（source 为含占位符的虚拟路径；update 为重解析周期 tick）。 */
+    public void image(final String id, final String source, final double l, final double t,
+                      final double w, final double h, final int layer, final int updateTicks) {
+        bounds(id, l, t, w, h);
+        final double scale = s(layer);
+        final JsonObject o = new JsonObject();
+        o.addProperty("type", "image");
+        o.addProperty("source", source);
+        o.addProperty("width", r3(G * w / scale));
+        o.addProperty("height", r3(G * h / scale));
+        o.addProperty("opacity", 255);
+        o.addProperty("update", updateTicks);
+        o.add("offset", offset(l + w / 2 - W / 2.0, H / 2.0 - (t + h / 2), layer));
+        putFrontend(id, o);
+    }
+
     public void region(final String id, final double l, final double t, final double w, final double h,
                        final JsonObject spec) {
         bounds(id, l, t, w, h);

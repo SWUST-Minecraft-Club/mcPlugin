@@ -336,18 +336,25 @@ public final class TownMenus {
     // ------------------------------------------------------------------ 圈地与祝福
 
     public static MenuBuilder claim() {
-        final MenuBuilder m = chrome("领地地图", "左键购买 · 右键放弃 · 确认时会在世界中高亮目标区块", true);
-        final double cell = 32;
+        final MenuBuilder m = chrome("领地地图", "真实渲染地形 · 角标=领地状态 · 确认时目标区块会标出", true);
+        final int n = TownUi.CLAIM_GRID;
+        final double cell = 44;
         final double gap = 3;
         final double l0 = 20;
-        final double t0 = 76;
-        for (int r = 0; r < 9; r++) {
-            for (int c = 0; c < 9; c++) {
+        final double t0 = 68;
+        final double grid = n * cell + (n - 1) * gap;
+        // 真实渲染地形图：PNG 由 TownMapRenderer 按 7×7 区块生成，路径走玩家 META
+        m.image("map-image", "/town/map/%arcmenu_meta_map_key%.png",
+                l0, t0, grid, grid, 1, 20);
+        m.frame("cell-mark", l0 + (n / 2) * (cell + gap) - 1, t0 + (n / 2) * (cell + gap) - 1,
+                cell + 2, cell + 2, ACC, 3, 1);
+        for (int r = 0; r < n; r++) {
+            for (int c = 0; c < n; c++) {
                 final double l = l0 + c * (cell + gap);
                 final double t = t0 + r * (cell + gap);
-                m.rect("cell-bg-" + r + "-" + c, l, t, cell, cell, RAISE, 1);
-                m.text("cell-" + r + "-" + c, "{meta:cell_" + r + "_" + c + "}",
-                        l + cell / 2, t + cell / 2, 18, 5, CENTER, dyn());
+                // 大号角标：状态直接压在格子右下角，44 格下可读
+                m.text("cellmark-" + r + "-" + c, "{meta:cellmark_" + r + "_" + c + "}",
+                        l + cell - 11, t + cell - 12, 14, 5, CENTER, dyn());
                 final JsonObject actions = new JsonObject();
                 actions.add("left", MenuBuilder.actions("command: town confirm claimmap " + r + " " + c));
                 actions.add("right", MenuBuilder.actions("command: town confirm unclaimat " + r + " " + c));
@@ -355,37 +362,33 @@ public final class TownMenus {
                         MenuBuilder.spec(MenuBuilder.tooltip("&f左键：购买该区块", "&f右键：放弃本镇区块"), actions));
             }
         }
-        m.frame("cell-mark", l0 + 4 * (cell + gap) - 1, t0 + 4 * (cell + gap) - 1,
-                cell + 2, cell + 2, ACC, 3, 1);
-        m.rect("side", 348, 64, 432, 324, PANEL, 1);
-        m.text("side-town", "&#F0EBDD{meta:town_name}", 564, 92, 15, 5, CENTER, dyn());
-        m.text("side-center", "&#9AADA4中心 {meta:claim_center}", 564, 118, 9, 5, CENTER, dyn());
+        m.rect("side", l0 + grid + 10, 64, 780 - (l0 + grid + 10), 330, PANEL, 1);
+        final double sx = l0 + grid + 28;
+        final double sw = 780 - sx - 12;
+        m.text("side-town", "&#F0EBDD{meta:town_name}", sx + sw / 2, 90, 15, 5, CENTER, dyn());
+        m.text("side-center", "&#9AADA4中心 {meta:claim_center}", sx + sw / 2, 116, 9, 5, CENTER, dyn());
         m.text("side-count", "&#9AADA4领地 &#F0EBDD{meta:claim_count} / {meta:claim_max}",
-                564, 142, 10, 5, CENTER, dyn());
-        legend(m, "own", 390, 172, "&#52C48B■", "本镇领地");
-        legend(m, "open", 584, 172, "&#76B7C6□", "可购买");
-        legend(m, "other", 390, 196, "&#D97676■", "他镇领地");
-        legend(m, "far", 584, 196, "&#62736B·", "不相连");
-        legend(m, "center", 390, 220, "&#D8AE63▣", "地图中心");
-        legend(m, "denied", 584, 220, "&#C08A5A×", "禁圈世界");
-        infoRow(m, "claim-price", "圈地单价", "{meta:claim_price}", 254, 384, 622);
-        button(m, "move-left", 372, 278, 184, 30, RAISE, "&#F0EBDD◀ 左移 3 块",
+                sx + sw / 2, 140, 10, 5, CENTER, dyn());
+        m.text("legend-terrain-title", "&#D8AE63真实地形", sx, 172, 9, 5, LEFT, null);
+        m.text("legend-terrain-1", "&#9AADA4逐方块渲染，颜色随群系 / 水深 / 高度变化",
+                sx, 194, 8, 5, LEFT, null);
+        m.text("legend-terrain-2", "&#9AADA4深绿=林地　蓝=水　黄=沙　灰=岩　白=雪",
+                sx, 214, 8, 5, LEFT, null);
+        m.text("legend-state-title", "&#D8AE63状态角标", sx, 244, 9, 5, LEFT, null);
+        m.text("legend-state", "&#52C48B●本镇　&#76B7C6○可买　&#D97676●他镇　&#D8AE63★镇政厅",
+                sx, 266, 9, 5, LEFT, null);
+        infoRow(m, "claim-price", "圈地单价", "{meta:claim_price}", 298, sx, sx + sw - 40);
+        button(m, "move-left", sx, 322, 88, 26, RAISE, "&#F0EBDD◀ 左移",
                 "command: town claimmap move -3 0");
-        button(m, "move-right", 576, 278, 184, 30, RAISE, "&#F0EBDD右移 3 块 ▶",
+        button(m, "move-right", sx + 94, 322, 88, 26, RAISE, "&#F0EBDD右移 ▶",
                 "command: town claimmap move 3 0");
-        button(m, "move-up", 372, 314, 184, 30, RAISE, "&#F0EBDD▲ 上移 3 块",
+        button(m, "move-up", sx, 354, 88, 26, RAISE, "&#F0EBDD▲ 上移",
                 "command: town claimmap move 0 -3");
-        button(m, "move-down", 576, 314, 184, 30, RAISE, "&#F0EBDD下移 3 块 ▼",
+        button(m, "move-down", sx + 94, 354, 88, 26, RAISE, "&#F0EBDD下移 ▼",
                 "command: town claimmap move 0 3");
-        button(m, "recenter", 372, 352, 388, 28, RAISE, "&#F0EBDD回到我的位置",
+        button(m, "recenter", sx + 188, 322, sw - 188, 58, RAISE, "&#F0EBDD回到我的位置",
                 "command: town claimmap center");
         return m;
-    }
-
-    private static void legend(final MenuBuilder m, final String id, final double x, final double cy,
-                               final String mark, final String label) {
-        m.text("lg-" + id + "-m", mark, x, cy, 12, 5, CENTER, null);
-        m.text("lg-" + id, "&#9AADA4" + label, x + 16, cy, 9, 5, LEFT, null);
     }
 
     public static MenuBuilder buffs() {
