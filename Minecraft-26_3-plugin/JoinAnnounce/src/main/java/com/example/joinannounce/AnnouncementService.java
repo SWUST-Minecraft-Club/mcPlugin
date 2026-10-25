@@ -48,11 +48,11 @@ public final class AnnouncementService {
         deliver(player, false, this.plugin.settings().display());
     }
 
-    /** 立即给发送者预览一遍：玩家看聊天栏 + 弹窗 + 标题 + 音效，控制台只打印文本 */
+    /** 立即按 {@code announce.display} 预览一遍：默认只弹窗；控制台只打印文本 */
     public void previewTo(final CommandSender sender) {
         final AnnouncementSettings settings = this.plugin.settings();
         if (sender instanceof Player player) {
-            deliver(player, false, AnnouncementSettings.DisplayMode.BOTH);
+            deliver(player, false, settings.display());
             return;
         }
         sender.sendMessage(this.plugin.message("messages.preview-console",

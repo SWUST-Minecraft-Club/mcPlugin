@@ -49,14 +49,15 @@ first-join:
     - "<light_purple>这是你第一次来到本服，欢迎加入！</light_purple>"
     - "<gray>输入 <white>/cd</white> 可以打开服务器主菜单。</gray>"
 
-# 全服广播：替换原版进服 / 退服消息
-# enabled: false 时完全不干预原版消息；message 留空字符串则关闭这条广播
+# 全服广播：默认关闭 —— 进服公告只在弹窗里显示，不往聊天栏发任何消息
+# 需要接管原版进服 / 退服消息时再打开；enabled: false 时完全不干预原版消息，
+# message 留空字符串则关闭这条广播（原版消息也不再显示）
 broadcast:
   join:
-    enabled: true
+    enabled: false
     message: "<yellow><player></yellow><gray> 加入了游戏</gray>"
   quit:
-    enabled: true
+    enabled: false
     message: "<gray><player> 离开了游戏</gray>"
 
 # 主菜单里的「服务器公告」入口（需要 MainMenu；没装时自动跳过，不影响进服公告）
