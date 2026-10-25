@@ -31,3 +31,4 @@
 - [folia.md](./folia.md) — Folia 服务端：区域化调度器、背包/实体线程归属、`folia-supported`、反射兼容旧服务端
 - [fabric-mod.md](./fabric-mod.md) — Fabric 模组侧：Mixin 不生效的排查与替代通道、注解桩手工编译
 - [build-and-repo.md](./build-and-repo.md) — 构建与仓库环境：工具链 fork、下载镜像、绝对路径、产物可复现
+- [arcmenu-yml知识库.md](./arcmenu-yml知识库.md) — ArcMenu YAML 菜单配置知识库（AI 可直读的完整语法 / 动作 / 自检清单；基于 0.1.0 快照整理，运行时已升 3.2.0，以 <https://docs.myarc.icu> 为准）

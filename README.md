@@ -7,13 +7,15 @@
 
 Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-26_3-plugin/<插件名>/`，由仓库根目录的一个 Gradle 工程统一管理：共享构建配置和服务端版本，每个插件又能单独打包、单独启动测试服。
 
-目前仓库里有 8 个插件：**[MainMenu](./Minecraft-26_3-plugin/MainMenu)**（主菜单框架，其它插件以它为依赖注册功能）、
+目前仓库里有 9 个插件：**[MainMenu](./Minecraft-26_3-plugin/MainMenu)**（主菜单框架，其它插件以它为依赖注册功能）、
 **[RealTime](./Minecraft-26_3-plugin/RealTime)**（在主菜单里显示当前时间）、
 **[YudreamPlaytime](./Minecraft-26_3-plugin/YudreamPlaytime)**（主菜单里显示查看者自己的在线时长，MainMenu 的伴侣插件）、
 **[Wallet](./Minecraft-26_3-plugin/Wallet)**（主菜单里的钱包：货币 / 余额 / 流水 + `/walletin` / `/walletout`）、
 **[ConcertoMenu](./Minecraft-26_3-plugin/ConcertoMenu)**（主菜单唱片机 → 打开客户端 Concerto 界面）、
 **[JoinAnnounce](./Minecraft-26_3-plugin/JoinAnnounce)**（进服公告：dialog 弹窗 / 聊天栏可切换 + 首次进服文案 / 进出服广播 + 主菜单公告入口）、
 **[ChatPrivacy](./Minecraft-26_3-plugin/ChatPrivacy)**（聊天防举报：把公开聊天改写为无签名系统消息，客户端无法把它作为举报证据）、
+**[Town](./Minecraft-26_3-plugin/Town)**（小镇系统：筹备成立 / 邀请 / 扣费成立 / 镇政厅 / 点选圈地 / 领地保护 / 领地 buff，
+界面走 ArcMenu 鼠标模式，经济走 WalletApi）、
 **[yudream-minecraft-server](./Minecraft-26_3-plugin/yudream-minecraft-server)**（把玩家动态上报给 YuDream Admin 的 Bukkit 桥接插件，
 自带本地时长统计与断线补发，运行期反射兼容 Folia）。新增插件用 `./gradlew newPlugin -PpluginName=你的插件名`。
 
@@ -71,6 +73,7 @@ Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-2
 │   ├── ConcertoMenu/               # 主菜单里的 Concerto 音乐入口（唱片机 → 打开客户端 Concerto 界面）
 │   ├── JoinAnnounce/               # 进服公告（本人公告 / 首次进服文案 / 进出服广播 + 主菜单公告入口）
 │   ├── ChatPrivacy/                # 聊天防举报（公开聊天改写为无签名系统消息）
+│   ├── Town/                       # 小镇系统（ArcMenu 鼠标模式界面 + WalletApi 经济 + TownApi 扩展口）
 │   └── yudream-minecraft-server/   # YuDream Admin 桥接插件：上报 + 本地时长统计 + 断线补发（Java 8 / Bukkit 1.13.2 目标）
 ├── fabric-26_3-mod/                # Fabric 客户端模组（独立 Gradle 工程，不参与上面的插件构建）
 │   └── MainMenuRepair/             # 清理 ESC 暂停菜单的界面修复模组
@@ -400,7 +403,8 @@ dependencies {
 | MainMenuRepair（fabric） | `1_0_0`（2026.10.18） | `Beta_1_0_1`（修 jar 元数据里的仓库地址） |
 | YudreamPlaytime | `1_0_0`（2026.10.19） | `Beta_1_1_0`（适配 Folia；台账缓存加锁） |
 | yudream-minecraft-server | `2_0_0`（2026.10.19） | `Beta_2_1_0`（反射适配 Folia，保持 Java 8 / 1.13.2 兼容） |
-| Wallet | —（还在测试版阶段） | `Beta_0_4_0`（适配 Folia：界面回调走实体调度器；`/walletin` / `/walletout`；管理员可切换本服货币启停） |
+| Town | — | `Beta_0_4_0`（11 页 ArcMenu 重设计 + 真实渲染圈地小地图；修复核心状态与扣费一致性） |
+| Wallet | —（还在测试版阶段） | `Beta_0_5_0`（新增本地测试模式 test-mode：不连官网、本地账本落盘，默认关闭；须手动开启并会打启动警告） |
 | ConcertoMenu | —（还在测试版阶段） | `Beta_0_2_0`（适配 Folia；首个版本：主菜单唱片机入口） |
 | JoinAnnounce | —（还在测试版阶段） | `Beta_0_2_0`（新增 dialog 弹窗显示与 `announce.display`；`Beta_0_1_0` 为首个版本） |
 | ChatPrivacy | —（还在测试版阶段） | `Beta_0_1_0`（首个版本：公开聊天改写为无签名系统消息，客户端无法举报） |
@@ -412,6 +416,15 @@ dependencies {
 ## 版本历史
 
 `./release/<项目名>/` 里保留了每一版的产物；下面是对应的提交与改动（早期被同名覆盖的版本已用 `./scripts/rebuild-history.sh` 从 git 历史重建）。
+
+**Town（插件）**
+
+| 版本 | 提交 | 改动 |
+| --- | --- | --- |
+| `Beta_0_1_0` | `fc39d10` | 首个版本：筹备成立、邀请成员、镇政厅、圈地、保护、祝福与公开 API |
+| `Beta_0_2_0` | `cc789e7` | 界面重构为 ArcMenu 原生 YAML 并强制鼠标模式 |
+| `Beta_0_3_0` | `7986ae9` | 11 页菜单重设计、在线邀请/成员详情/通用确认/分页；修复指令、邀请、镇政厅、扣费与持久化一致性 |
+| `Beta_0_4_0` | 未提交 | 圈地页改为真实渲染小地图（逐方块采样 PNG）、7×7 大格、地图拖动与区块预览 |
 
 **MainMenu（插件）**
 

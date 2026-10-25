@@ -41,3 +41,17 @@
 - **规避/解决**：构建前记下 `git status`，构建后确认仍为空即可；重建脚本（`./scripts/rebuild-history.sh`）补档同样安全。
   2026.10.18 实测：脚本重建出的历史 jar 与仓库里已提交的同名 jar 字节一致。
 - **来源**：2026.10.18 环境验证；`./scripts/rebuild-history.sh`、`./build.gradle` 的 `archiveArtifact`。
+
+### 本机装了 JDK 25 但 Gradle 工具链找不到（foojay 远程解析失败）
+
+- **现象**：`compileJava` 报 `Cannot find a Java installation ... matching: languageVersion=25`，并伴随 foojay resolver `Remote host terminated the handshake`。
+- **根因**：Gradle 工具链自动探测只扫标准目录与 JAVA_HOME；本机 JDK 25 装在自定义目录（如 `D:/dev/envs/jdk-25.x`），foojay 远程下载又被网络环境拦掉。
+- **规避/解决**：命令行显式注入 `-Dorg.gradle.java.installations.paths=<本机JDK25目录>`；不写进仓库配置（机器相关路径不入库）。
+- **来源**：2026.10.24，Town 首次构建。
+
+### 用户级 Gradle 代理失效 → 所有远程仓库 TLS 握手失败（直连却通）
+
+- **现象**：`Could not GET https://repo.maven.apache.org/...`，`Remote host terminated the handshake`；`curl` 直连同地址返回 200。
+- **根因**：`~/.gradle/gradle.properties` 里配置的本地代理（127.0.0.1:7897）进程活着但隧道握手失败；Gradle 走该代理全军覆没，curl 没走代理反而通。
+- **规避/解决**：注释掉代理两行并加 `systemProp.http.nonProxyHosts=*` 旁路（原配置备份 `gradle.properties.bak-*`），`./gradlew --stop` 后重跑；网络恢复后可还原。
+- **来源**：2026.10.24，Town 首次构建。

@@ -1,0 +1,182 @@
+package com.example.town;
+
+import com.example.town.arcmenu.TownUi;
+import com.example.town.arcmenu.TownUiListener;
+import com.example.town.buff.BuffApplier;
+import com.example.town.command.TownCommand;
+import com.example.town.event.TownEvents;
+import com.example.town.hook.CraftEngineHook;
+import com.example.town.hook.MainMenuHook;
+import com.example.town.hook.WalletHook;
+import com.example.town.model.Town;
+import com.example.town.protection.ProtectionListener;
+import com.example.town.service.TownService;
+import com.example.town.store.TownStore;
+import com.example.town.townhall.TownHallListener;
+import com.example.town.townhall.TownHalls;
+import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
+import java.util.List;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
+
+/**
+ * Town 小镇系统主类：成立 / 邀请 / 圈地 / 领地保护 / 领地 buff。
+ * 界面 = 由插件生成 YAML 交给 ArcMenu 渲染（arcmenu-designing 技能规范）；
+ * 未装 ArcMenu 时全部功能由 /town 指令等价提供。经济走 Wallet；镇政厅道具支持 CraftEngine。
+ */
+public final class TownPlugin extends JavaPlugin {
+
+    private volatile TownConfig config;
+    private TownRegistry registry;
+    private TownStore store;
+    private Messages messages;
+    private TownEvents events;
+    private WalletHook wallet;
+    private CraftEngineHook craftEngine;
+    private TownHalls townHalls;
+    private TownService service;
+    private BuffApplier buffApplier;
+    private TownUi ui;
+    private MainMenuHook menuHook;
+
+    @Override
+    public void onEnable() {
+        saveDefaultConfig();
+        // 旧安装的 config.yml 缺少新版本新增键（如 claim-already-yours）时补齐默认值，避免「缺少消息」
+        getConfig().options().copyDefaults(true);
+        saveConfig();
+        config = TownConfig.load(getConfig(), getLogger());
+        messages = new Messages(this);
+
+        registry = new TownRegistry();
+        store = new TownStore(this);
+        for (Town town : store.load()) {
+            try {
+                registry.register(town);
+            } catch (final IllegalArgumentException e) {
+                getLogger().severe("小镇 " + town.id() + "（" + town.name() + "）索引冲突，已跳过加载："
+                        + e.getMessage());
+            }
+        }
+
+        events = new TownEvents();
+        wallet = WalletHook.create(this);
+        craftEngine = CraftEngineHook.create(this);
+        townHalls = new TownHalls(this, craftEngine);
+        service = new TownService(this, registry, store, messages, events, wallet);
+        if (wallet != null) {
+            wallet.preloadAssets();
+        }
+        com.example.town.api.TownApi.install(service);
+        buffApplier = new BuffApplier(this, service);
+
+        getServer().getPluginManager().registerEvents(
+                new TownHallListener(this, service, townHalls), this);
+        getServer().getPluginManager().registerEvents(new ProtectionListener(this, service), this);
+        getServer().getPluginManager().registerEvents(new TownUiListener(this), this);
+
+        getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event ->
+                event.registrar().register(TownCommand.create(this),
+                        "小镇系统", List.of()));
+
+        ui = TownUi.create(this);
+        if (ui != null) {
+            ui.installMenus();
+        }
+        menuHook = MainMenuHook.create(this);
+        if (menuHook != null) {
+            menuHook.register();
+        }
+
+        buffApplier.start();
+        // 维护任务：邀请过期 / 筹备超时 / 过期 buff 惰性清理（30 秒一次）
+        Bukkit.getGlobalRegionScheduler().runAtFixedRate(this,
+                task -> service.maintenance(), 600L, 600L);
+        Bukkit.getGlobalRegionScheduler().runAtFixedRate(this,
+                task -> {
+                    if (ui != null) {
+                        ui.tick();
+                    }
+                }, 40L, 40L);
+
+        getComponentLogger().info("Town 已启用：小镇 " + registry.all().size()
+                + " 个；界面=" + (ui != null ? "ArcMenu" : "指令")
+                + "，经济=" + (wallet != null ? "Wallet" : "未接入")
+                + "，镇政厅=" + (craftEngine != null ? "CraftEngine" : "原版"));
+    }
+
+    @Override
+    public void onDisable() {
+        if (menuHook != null) {
+            menuHook.unregister();
+        }
+        if (service != null) {
+            service.saveNow();
+        }
+        if (buffApplier != null) {
+            buffApplier.stop();
+        }
+        if (ui != null) {
+            ui.shutdown();
+        }
+        com.example.town.api.TownApi.uninstall();
+    }
+
+    /** 重载配置（/town admin reload）：配置快照整体替换，菜单重新生成并让 ArcMenu 重载。 */
+    public void reloadEverything() {
+        reloadConfig();
+        config = TownConfig.load(getConfig(), getLogger());
+        if (wallet != null) {
+            wallet.preloadAssets();
+        }
+        if (buffApplier != null) {
+            buffApplier.restart();
+        }
+        if (menuHook != null) {
+            menuHook.unregister();
+            menuHook.register();
+        }
+        if (ui != null) {
+            ui.installMenus();
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // 访问器（供组件互相引用）
+    // ------------------------------------------------------------------
+
+    public TownConfig config() {
+        return config;
+    }
+
+    public TownRegistry registry() {
+        return registry;
+    }
+
+    public Messages messages() {
+        return messages;
+    }
+
+    public TownService service() {
+        return service;
+    }
+
+    public TownHalls townHalls() {
+        return townHalls;
+    }
+
+    /** ArcMenu 界面粘合层；未安装 ArcMenu 时为 null。 */
+    public TownUi ui() {
+        return ui;
+    }
+
+    /** 给玩家打开小镇主页；ArcMenu 缺失时降级为提示。 */
+    public void openUi(Player player) {
+        if (ui != null) {
+            ui.openHome(player);
+        } else {
+            player.sendMessage(messages.render("arcmenu-missing"));
+        }
+    }
+}
