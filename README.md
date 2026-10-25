@@ -520,7 +520,7 @@ dependencies {
 
 | 版本 | 提交 | 改动 |
 | --- | --- | --- |
-| `Beta_0_1_0` | 未提交 | 首个版本：监听 `AsyncChatEvent`，把公开聊天改写为无签名系统消息（客户端无法举报）；Folia 实体调度器发送；`/chatprivacy status\|reload` |
+| `Beta_0_1_0` | `8ad3f05` | 首个版本：监听 `AsyncChatEvent`，把公开聊天改写为无签名系统消息（客户端无法举报）；Folia 实体调度器发送；`/chatprivacy status\|reload` |
 
 ## 常见问题
 
