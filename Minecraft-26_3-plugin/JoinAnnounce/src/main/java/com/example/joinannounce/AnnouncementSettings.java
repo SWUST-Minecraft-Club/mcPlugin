@@ -108,6 +108,10 @@ public final class AnnouncementSettings {
             logger.warn(Component.text(
                     "announce.dialog.icon.source 为 pack，但 resource-pack 未启用：弹窗图标会是没有贴图的物品"));
         }
+        if (dialog.iconSource() == IconSource.PACK && dialog.iconSize() != 64) {
+            logger.warn(Component.text(
+                    "announce.dialog.icon.source 为 pack 时图标固定 64 像素（资源包模型已放大 4 倍），建议 size: 64"));
+        }
 
         final BroadcastSettings joinBroadcast = broadcast(config, logger, "broadcast.join", true);
         final BroadcastSettings quitBroadcast = broadcast(config, logger, "broadcast.quit", true);

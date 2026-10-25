@@ -2,5 +2,11 @@
   "parent": "minecraft:item/generated",
   "textures": {
     "layer0": "swustmc:item/badge"
+  },
+  "display": {
+    "gui": {
+      "scale": [4, 4, 4],
+      "translation": [1.5, -1.5, 0]
+    }
   }
 }

@@ -47,3 +47,10 @@
 3.新增：弹窗图标来源 `announce.dialog.icon.source`（`head` 皮肤头颅 / `pack` 资源包贴图，默认 head）；
    选 pack 但资源包未启用时告警
 4.调整：`config-simple.yml` 徽章改为 pack 高清来源（size 64）并启用资源包强制下发
+
+[Beta_0_4_0 -> Beta_0_4_1] 2026.10.25 15:17:51
+1.修复：弹窗徽章只有 16 像素大 —— dialog 物品正文永远按原版物品大小绘制（`width`/`height` 只是布局框），
+   在资源包徽章模型上加 GUI display 变换（`scale [4,4,4]` + 平移居中 `translation [1.5, -1.5, 0]`），
+   徽章放大到 64 像素并居中；资源包 zip 与 SHA-1 同步更新
+2.调整：`announce.dialog.icon.source` 为 pack 时 `size` 固定 64，配置成其它值会告警
+3.文档：说明弹窗里的白色方框是物品控件获得键盘焦点时的原版描边，不是贴图

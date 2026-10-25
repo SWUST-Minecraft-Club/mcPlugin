@@ -29,6 +29,7 @@ announce:
     icon:
       enabled: true
       # pack = 用资源包里的高清徽章贴图（需要下面的 resource-pack）
+      # 资源包模型已放大 4 倍，图标固定 64 像素，size 请保持 64
       source: pack
       size: 64
 
