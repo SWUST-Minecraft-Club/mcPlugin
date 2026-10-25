@@ -1,0 +1,14 @@
+name: ChatPrivacy
+version: '${version}'
+main: com.example.chatprivacy.ChatPrivacyPlugin
+api-version: '26.3'
+# 声明支持 Folia；没有这一项的插件会被 Folia 拒绝加载
+folia-supported: true
+description: 把玩家公开聊天改写为无签名系统消息，使客户端无法把它作为聊天举报证据
+authors: [zhou-BZDDX]
+website: https://github.com/zhou-BZDDX/mcPlugin
+
+permissions:
+  chatprivacy.admin:
+    description: 允许使用 /chatprivacy status|reload
+    default: op

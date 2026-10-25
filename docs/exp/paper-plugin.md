@@ -60,6 +60,18 @@
   - 再兜底 catch `LinkageError`，类不可用时只告警，核心功能照常运行。
 - **来源**：2026.10.24，JoinAnnounce `Beta_0_1_0`；`runServer` 未装 MainMenu 时的启动日志。
 
+## `getDataFolder()` 是相对路径时，往上推两级拿服务端根目录会得到 null
+
+- **现象**：插件用 `plugin.getDataFolder().getParentFile().getParentFile()` 推服务端根目录再读 `server.properties`，
+  `getAbsolutePath()` 打印出来是对的，但实际读不到文件；`runServer` 下 `server.properties` 明明存在。
+- **根因**：run-paper 启动时 `JavaPlugin#getDataFolder()` 返回的是相对路径 `plugins/ChatPrivacy`。
+  `File#getAbsolutePath()` 只是按当前工作目录拼出显示用的绝对路径，父级链仍按相对路径字符串计算：
+  `plugins/ChatPrivacy` → `plugins` → `null`，于是再拼 `server.properties` 就落到错误位置。
+- **规避/解决**：优先用 `plugin.getServer().getWorldContainer()`（绝对路径）或 `new File("server.properties")`
+  （相对服务端工作目录）；如果必须从 dataFolder 推，先 `getAbsoluteFile()` 再 `getParentFile()`。
+  实现见 `./Minecraft-26_3-plugin/ChatPrivacy/src/main/java/com/example/chatprivacy/SecureProfileSupport.java`。
+- **来源**：2026.10.25，ChatPrivacy `Beta_0_1_0`；`runServer` 启动日志显示 `dataRoot=null`。
+
 ## `preferredSlot` 写在功能区或越界，被误判成位置冲突
 
 - **现象**：功能声明 `preferredSlot(19)`（功能区格子）或 `preferredSlot(99)`（越界）时，被当作"位置冲突"处理：

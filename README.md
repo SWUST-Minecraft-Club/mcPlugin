@@ -7,12 +7,13 @@
 
 Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-26_3-plugin/<插件名>/`，由仓库根目录的一个 Gradle 工程统一管理：共享构建配置和服务端版本，每个插件又能单独打包、单独启动测试服。
 
-目前仓库里有 7 个插件：**[MainMenu](./Minecraft-26_3-plugin/MainMenu)**（主菜单框架，其它插件以它为依赖注册功能）、
+目前仓库里有 8 个插件：**[MainMenu](./Minecraft-26_3-plugin/MainMenu)**（主菜单框架，其它插件以它为依赖注册功能）、
 **[RealTime](./Minecraft-26_3-plugin/RealTime)**（在主菜单里显示当前时间）、
 **[YudreamPlaytime](./Minecraft-26_3-plugin/YudreamPlaytime)**（主菜单里显示查看者自己的在线时长，MainMenu 的伴侣插件）、
 **[Wallet](./Minecraft-26_3-plugin/Wallet)**（主菜单里的钱包：货币 / 余额 / 流水 + `/walletin` / `/walletout`）、
 **[ConcertoMenu](./Minecraft-26_3-plugin/ConcertoMenu)**（主菜单唱片机 → 打开客户端 Concerto 界面）、
 **[JoinAnnounce](./Minecraft-26_3-plugin/JoinAnnounce)**（进服公告：dialog 弹窗 / 聊天栏可切换 + 首次进服文案 / 进出服广播 + 主菜单公告入口）、
+**[ChatPrivacy](./Minecraft-26_3-plugin/ChatPrivacy)**（聊天防举报：把公开聊天改写为无签名系统消息，客户端无法把它作为举报证据）、
 **[yudream-minecraft-server](./Minecraft-26_3-plugin/yudream-minecraft-server)**（把玩家动态上报给 YuDream Admin 的 Bukkit 桥接插件，
 自带本地时长统计与断线补发，运行期反射兼容 Folia）。新增插件用 `./gradlew newPlugin -PpluginName=你的插件名`。
 
@@ -69,6 +70,7 @@ Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-2
 │   ├── Wallet/                     # 主菜单里的钱包（货币 / 余额 / 流水）+ 供后续插件依赖的钱包 API
 │   ├── ConcertoMenu/               # 主菜单里的 Concerto 音乐入口（唱片机 → 打开客户端 Concerto 界面）
 │   ├── JoinAnnounce/               # 进服公告（本人公告 / 首次进服文案 / 进出服广播 + 主菜单公告入口）
+│   ├── ChatPrivacy/                # 聊天防举报（公开聊天改写为无签名系统消息）
 │   └── yudream-minecraft-server/   # YuDream Admin 桥接插件：上报 + 本地时长统计 + 断线补发（Java 8 / Bukkit 1.13.2 目标）
 ├── fabric-26_3-mod/                # Fabric 客户端模组（独立 Gradle 工程，不参与上面的插件构建）
 │   └── MainMenuRepair/             # 清理 ESC 暂停菜单的界面修复模组
@@ -401,6 +403,7 @@ dependencies {
 | Wallet | —（还在测试版阶段） | `Beta_0_4_0`（适配 Folia：界面回调走实体调度器；`/walletin` / `/walletout`；管理员可切换本服货币启停） |
 | ConcertoMenu | —（还在测试版阶段） | `Beta_0_2_0`（适配 Folia；首个版本：主菜单唱片机入口） |
 | JoinAnnounce | —（还在测试版阶段） | `Beta_0_2_0`（新增 dialog 弹窗显示与 `announce.display`；`Beta_0_1_0` 为首个版本） |
+| ChatPrivacy | —（还在测试版阶段） | `Beta_0_1_0`（首个版本：公开聊天改写为无签名系统消息，客户端无法举报） |
 
 > 涨号规则（正式版之后再改动先回到测试版 `Beta_<第 1 位>_x_x`，转正时去掉 `Beta`、第 3 位归 0、第 2 位至少 +1，第 1 位不变）见
 > [`./docs/dev/版本与产物规范.md`](./docs/dev/版本与产物规范.md) §2；
@@ -512,6 +515,12 @@ dependencies {
 | --- | --- | --- |
 | `Beta_0_1_0` | 未提交 | 首个版本：进服公告（延迟 / 多行 / 占位符）、首次进服文案、可选标题与音效、进出服全服广播、主菜单「服务器公告」入口、`/joinannounce reload\|preview` |
 | `Beta_0_2_0` | 未提交 | 新增：进服公告改为 dialog 弹窗（运行时 `Dialog.create` + `player.showDialog`），`announce.display` 可切 dialog / chat / both；主菜单入口与 preview 同步 |
+
+**ChatPrivacy（插件）**
+
+| 版本 | 提交 | 改动 |
+| --- | --- | --- |
+| `Beta_0_1_0` | 未提交 | 首个版本：监听 `AsyncChatEvent`，把公开聊天改写为无签名系统消息（客户端无法举报）；Folia 实体调度器发送；`/chatprivacy status\|reload` |
 
 ## 常见问题
 

@@ -1,0 +1,27 @@
+# ChatPrivacy 配置文件
+# 文本使用 MiniMessage 格式：https://docs.advntr.dev/minimessage/format.html
+# 修改后可用 /chatprivacy reload 热重载。
+
+# 总开关。开启后，玩家公开发言会以「系统消息」转发给其他玩家：
+#   - 消息不再携带 Mojang 聊天签名，客户端无法把它作为举报证据；
+#   - 聊天格式仍然保留（通过 Paper 的 ChatRenderer 渲染）；
+#   - 指令输出、/msg 等非公开聊天不受影响。
+# 关闭后完全恢复原版签名聊天（可以被举报）。
+enabled: true
+
+# 只处理基岩版（Geyser 转发）玩家，Java 玩家保持原版签名聊天。
+# 适用于「Java 保留社交界面功能，只保护基岩版玩家」的场景。
+bedrock-only: false
+
+# 是否在控制台保留一份玩家聊天内容。
+# 关闭后本插件不会主动把改写后的聊天发给控制台；其它插件或原版仍可能记录聊天。
+log-chat: true
+
+# 启动与重载时检查 server.properties 的 enforce-secure-profile。
+# 为 true 时，未签名客户端（例如装了 No Chat Reports 的客户端）可能无法进入服务器；
+# 本插件只告警，不自动修改该文件。
+warn-on-secure-profile: true
+
+messages:
+  prefix: "<gray>[<aqua>聊天隐私</aqua>]</gray> "
+  reloaded: "<green>配置已重新加载。</green>"
