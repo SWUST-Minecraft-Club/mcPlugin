@@ -30,3 +30,11 @@
 1.调整：进出服广播默认关闭 —— 进服公告只在 dialog 弹窗里显示，插件默认不往聊天栏发任何消息
 2.调整：`/joinannounce preview` 改为严格按 `announce.display` 预览（默认只弹窗，不再强制发聊天栏文本）
 3.调整：`config-simple.yml` 说明同步（缺省值里广播已是关闭）
+
+[Beta_0_2_1 -> Beta_0_3_0] 2026.10.25 14:03:58
+1.新增：dialog 弹窗支持徽章 / 图标（`announce.dialog.icon`）——把徽章画进 64x64 皮肤「面部」，
+   以 PLAYER_HEAD 物品正文展示（`showDecorations(false)`，尺寸可配 8~256，默认 48）；
+   皮肤贴图通过 textures 属性 URL 由客户端下载，URL 非法时启动 / reload 告警并跳过
+2.新增：仓库内置社团徽章皮肤 `./assets/swust-badge-skin.png`（徽章量化成蓝 / 灰 / 白三色 8x8 像素画）
+3.调整：`config-simple.yml` 改为 SWUST MINECRAFT 社团公告示例（社团配色文案 + 徽章图标）
+4.调整：头颅 Profile 改用 Paper 的 `createProfile` + `ProfileProperty`（`Bukkit.createPlayerProfile` 已过时）

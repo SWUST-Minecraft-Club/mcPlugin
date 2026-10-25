@@ -1,5 +1,9 @@
 package com.example.joinannounce;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -93,11 +97,7 @@ public final class AnnouncementSettings {
             }
         }
 
-        final DialogSettings dialog = new DialogSettings(
-                text(config, "announce.dialog.title", "<gold>服务器公告</gold>"),
-                (int) ranged(config, "announce.dialog.width", 260.0D, 60.0D, 600.0D),
-                text(config, "announce.dialog.button", "知道了"),
-                config.getBoolean("announce.dialog.can-close-with-escape", true));
+        final DialogSettings dialog = dialog(config, logger);
 
         final BroadcastSettings joinBroadcast = broadcast(config, logger, "broadcast.join", true);
         final BroadcastSettings quitBroadcast = broadcast(config, logger, "broadcast.quit", true);
@@ -180,6 +180,42 @@ public final class AnnouncementSettings {
         }
     }
 
+    private static DialogSettings dialog(final FileConfiguration config, final ComponentLogger logger) {
+        boolean iconEnabled = config.getBoolean("announce.dialog.icon.enabled", false);
+        URL iconUrl = null;
+        if (iconEnabled) {
+            final String rawUrl = text(config, "announce.dialog.icon.texture-url", "").trim();
+            if (rawUrl.isEmpty()) {
+                logger.warn(Component.text("announce.dialog.icon.enabled 已开启但 texture-url 为空：弹窗不放徽章图标"));
+                iconEnabled = false;
+            } else {
+                try {
+                    final URI uri = new URI(rawUrl);
+                    final String scheme = uri.getScheme();
+                    if (scheme == null || !(scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https"))) {
+                        logger.warn(Component.text(
+                                "announce.dialog.icon.texture-url 需要是 http/https 地址：" + rawUrl));
+                        iconEnabled = false;
+                    } else {
+                        iconUrl = uri.toURL();
+                    }
+                } catch (final URISyntaxException | MalformedURLException ex) {
+                    logger.warn(Component.text("announce.dialog.icon.texture-url 无效："
+                            + rawUrl + "（" + ex.getMessage() + "）"));
+                    iconEnabled = false;
+                }
+            }
+        }
+        return new DialogSettings(
+                text(config, "announce.dialog.title", "<gold>服务器公告</gold>"),
+                (int) ranged(config, "announce.dialog.width", 260.0D, 60.0D, 600.0D),
+                text(config, "announce.dialog.button", "知道了"),
+                config.getBoolean("announce.dialog.can-close-with-escape", true),
+                iconEnabled,
+                iconUrl,
+                (int) ranged(config, "announce.dialog.icon.size", 48.0D, 8.0D, 256.0D));
+    }
+
     private static BroadcastSettings broadcast(
             final FileConfiguration config, final ComponentLogger logger, final String path, final boolean fallback) {
         final boolean enabled = config.getBoolean(path + ".enabled", fallback);
@@ -239,8 +275,10 @@ public final class AnnouncementSettings {
         BOTH
     }
 
-    /** dialog 弹窗 */
-    public record DialogSettings(String title, int width, String button, boolean canCloseWithEscape) {
+    /** dialog 弹窗；{@code iconUrl} 为 null 表示不放徽章图标 */
+    public record DialogSettings(
+            String title, int width, String button, boolean canCloseWithEscape,
+            boolean iconEnabled, URL iconUrl, int iconSize) {
     }
 
     /** 标题与淡入 / 停留 / 淡出时长（tick） */

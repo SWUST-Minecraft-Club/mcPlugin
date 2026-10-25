@@ -7,6 +7,7 @@
 | --- | --- | --- |
 | 进服公告 | `announce` | 延迟 N tick（默认 20 = 1 秒）发送；`display` 决定 channel |
 | 公告弹窗 | `announce.dialog` | dialog 的标题、正文宽度、按钮文字、ESC 关闭开关；正文就是 `announce.lines` |
+| 徽章图标 | `announce.dialog.icon` | 弹窗顶部的自定义头颅图标（把徽章画进皮肤「面部」），可配皮肤 URL 与显示尺寸 |
 | 标题 / 音效 | `announce.title` / `announce.sound` | 可选，默认关闭；音效键写错只告警并跳过 |
 | 首次进服文案 | `first-join` | 接在正文后面，只对第一次进服的玩家生效 |
 | 进服 / 退服广播 | `broadcast.join` / `broadcast.quit` | 默认关闭；打开后才替换原版 join / quit 消息 |
@@ -28,6 +29,27 @@
 dialog 用的是 26.3 的运行时 API（`Dialog.create(...)` + `player.showDialog(...)`），
 **不需要 bootstrapper、内置数据包或注册表项**，也不会出现在 ESC 暂停菜单里。
 
+## 徽章 / 图标
+
+dialog 里只能放**文字**和**物品图标**，不能直接贴图片。要显示社团徽章，做法是把徽章画进一张
+64x64 皮肤的「面部」区域（(8,8)-(16,16)，8x8 像素），用 `PLAYER_HEAD` 物品正文展示：
+
+```yaml
+announce:
+  dialog:
+    icon:
+      enabled: true
+      texture-url: "https://.../swust-badge-skin.png"   # 皮肤 PNG 地址
+      size: 48                                          # 显示尺寸（像素，8~256）
+```
+
+- 皮肤贴图由**玩家客户端**从 `texture-url` 下载，服务端只下发 textures 属性；地址必须能让玩家访问到，
+  否则图标回退为默认头颅（弹窗其它内容不受影响）。仓库内置了社团徽章皮肤：
+  `./assets/swust-badge-skin.png`（对应 GitHub 直链见 `./config-simple.yml`）。
+- 8x8 面部放不下细节，皮肤是**量化成蓝 / 灰 / 白三色的像素画**（蓝底环带 + 白色徽标），
+  中文环字展示不了；社团名等文字写在公告正文里。
+- 图标不需要时 `enabled: false` 即可，`texture-url` 非法会在启动 / reload 时告警并跳过。
+
 ## 命令与权限
 
 | 命令 | 权限 | 说明 |
@@ -43,6 +65,7 @@ dialog 用的是 26.3 的运行时 API（`Dialog.create(...)` + `player.showDial
 - `announce.enabled: false`：关闭进服公告（弹窗、聊天栏、标题、音效一并关闭），但进出服广播与主菜单入口不受影响。
 - `announce.lines`：弹窗正文与聊天栏文本共用；`first-join.lines` 排队追加在后面。
 - `announce.dialog.width` 单位为像素（60~600，默认 260），过长的行建议自己拆成多行。
+- `announce.dialog.icon.size` 是图标显示尺寸（8~256，默认 48，原版物品为 16）。
 - `broadcast.*` 默认关闭：进服公告不碰聊天栏；打开后才接管原版进服 / 退服消息，`message` 留空则关闭该条（原版消息也不再显示）。
 - `menu.enabled: false`：不注册主菜单入口；`menu.order` 是功能区排序值（越小越靠前）。
 - `menu.material` 无效时回退 `WRITTEN_BOOK` 并在控制台告警。
@@ -64,7 +87,7 @@ dialog 用的是 26.3 的运行时 API（`Dialog.create(...)` + `player.showDial
 
 ```bash
 ./gradlew :JoinAnnounce:build
-# 产物：./Minecraft-26_3-plugin/JoinAnnounce/build/libs/JoinAnnounce-mc26_3-plugin-Beta_0_2_0.jar
+# 产物：./Minecraft-26_3-plugin/JoinAnnounce/build/libs/JoinAnnounce-mc26_3-plugin-Beta_0_3_0.jar
 ```
 
 测试服：`./gradlew :JoinAnnounce:runServer`（共用仓库根目录的 `./run/`）。
