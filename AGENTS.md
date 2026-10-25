@@ -58,7 +58,7 @@ YudreamPlaytime（正式版 `1_0_0` / 测试中 `Beta_1_1_0`，MainMenu 伴侣�
 ConcertoMenu（`Beta_0_2_0`，主菜单唱片机 → 发 `concerto:menu` 指令打开客户端 Concerto 主界面）·
 JoinAnnounce（`Beta_0_2_0`，进服公告：dialog 弹窗 / 聊天栏可切换 + 首次进服文案 / 进出服广播 + 主菜单「服务器公告」入口）·
 ChatPrivacy（`Beta_0_1_0`，聊天防举报：把玩家公开聊天改写为无签名系统消息，客户端无法把它作为举报证据；纯 API、不依赖 NMS）·
-Town（`Beta_0_4_0`，小镇系统：筹备成立 / 邀请 / 扣费成立 / 镇政厅 / 圈地 / 保护 / 领地 buff；ArcMenu 3.2 原生 YAML 11 页市政档案风界面（在线邀请、成员详情、通用确认、祝福分页、真实渲染圈地小地图），强制鼠标模式，未装时 /town 指令全量兜底；经济走 WalletApi，公开 TownApi+事件；第三方 ArcMenu API jar 在 `./libs/`（已入库），YAML 知识库在 `./docs/exp/arcmenu-yml知识库.md`，官方 wiki docs.myarc.icu）·
+Town（`Beta_0_5_0`，小镇系统：筹备成立 / 邀请 / 扣费成立 / 镇政厅 / 圈地 / 保护 / 领地 buff；ArcMenu 3.2 原生 YAML 11 页浅灰像素卡片风界面（在线邀请、成员详情、通用确认、祝福分页、真实渲染圈地小地图），输入模式玩家自选（默认 Mouse，保留 Touch/Vision），未装时 /town 指令全量兜底；经济走 WalletApi，公开 TownApi+事件；第三方 ArcMenu API jar 在 `./libs/`（已入库），YAML 知识库在 `./docs/exp/arcmenu-yml知识库.md`，官方 wiki docs.myarc.icu）·
 yudream-minecraft-server（正式版 `2_0_0` / 测试中 `Beta_2_1_0`，反编译基线纳入本仓的 Bukkit 桥接插件，编译目标 spigot-api 1.13.2 + Java 8，含本地时长统计、断线补发与后端对齐；运行期反射适配 Folia）；
 结构 `./Minecraft-26_3-plugin/<插件名>/`（Folia 插件，沿用 `paper-plugin.yml`，MainMenu 提供功能注册 API）· `./fabric-26_3-mod/MainMenuRepair/`（独立 Gradle 工程）·
 `./templates/plugin-template/`（newPlugin 模板）· `./release/<项目名>/`（产物留档）· `./run/`（共用的 Folia 测试服）· `./docs/dev|exp|plan/`（规范 / 经验 / 计划）；

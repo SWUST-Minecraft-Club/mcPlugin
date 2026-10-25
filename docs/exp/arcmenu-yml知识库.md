@@ -2563,5 +2563,14 @@ AI 如果无法取得全目录、图片清单或依赖状态，只能保证单�
 - **规避**：先重建资源再发布菜单，顺序不能反：
   `Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "arcmenu resources")` → 再 `api.menus().reload()`。
   两个动作都要在区域线程调度里执行（插件 enable 期间同步派发会抛 `Dispatching command async`）。
-  运行时新增图片同理：重建后延迟约 40 tick 再 `refresh(player)`；重建按 30 秒节流，并用「文件名+大小」签名记录索引状态，只在变化时重建。
+  运行时新增图片不能只靠固定 40 tick 延迟：要等本次重建真正完成并验证资源包包含目标图片后再刷新；
+  30 秒节流必须保留尾随重建，失败不得写入“已索引”标记。启动时可用「文件名+大小」签名辅助判断，运行时要区分写盘与已入包两种状态。
 - **来源**：2026-10-25 Town 圈地小地图（`TownMapRenderer`）。
+
+### 25.11 ArcMenu 玩家 META / refresh 必须回到玩家区域线程
+
+- **现象**：异步生成图片或查询完成后，`api.state().set()` 抛 `ArcMenu entity operations require the owning player/region thread`。
+- **根因**：`Bukkit.getGlobalRegionScheduler()` 的全局任务不属于任何玩家；ArcMenu 的玩家状态操作要求该玩家所属区域线程。
+- **规避**：异步任务只准备数据；最后通过 `player.getScheduler()`（本仓 `Threads.forPlayer`）写 META、refresh 和打开菜单，并再次核对当前页面/参数未变化。
+  同 key 请求共享等待，资源包重建失败继续使用占位内容，不能把文件存在当作已入包。
+- **来源**：2026-10-25 Town 小地图 `world_-3_2.png` 回调异常与修复。

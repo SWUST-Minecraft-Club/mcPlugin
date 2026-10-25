@@ -9,86 +9,137 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
+import java.util.zip.ZipFile;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
 /**
- * 原版地图风格的小地图渲染器：每个区块按 16×16 逐列采样（地表材质 + 生物群系草色 + 水深 + 高度明暗），
- * 画成 288×288 PNG 放入 ArcMenu images 目录，由菜单的动态 image 元素显示。
- * 新图写入后用控制台身份触发 ArcMenu 资源重建（节流），并预渲染邻域中心减少重建次数。
+ * 原版地图风格的小地图渲染器。真实 key 只有在 PNG 写盘且本次资源包重建验证成功后才会标记为 ready，
+ * 防止“文件存在但资源包里没有”导致 image 空白。所有回调仅表达结果，ArcMenu META 由 TownUi 在玩家线程写入。
  */
 public final class TownMapRenderer {
 
-    /** 7×7 区块：格子在 16:9 菜单里能到 44 设计单位，标签才看得清。 */
     public static final int CHUNKS = 7;
     private static final int SCALE = 2;
+    private static final int MAX_MAPS = 512;
     private static final long REBUILD_THROTTLE_MS = 30_000L;
+    private static final String RENDER_VERSION = "v3";
 
     private final TownPlugin plugin;
     private final Path imageDir;
-    private final Set<String> inFlight = ConcurrentHashMap.newKeySet();
-    private volatile long lastRebuild;
+    private final Path packFile;
+    private final Set<String> inFlight = new HashSet<>();
+    private final Set<String> pendingIndex = new HashSet<>();
+    private final Set<String> indexed = new HashSet<>();
+    private final Map<String, List<CompletableFuture<Boolean>>> waiters = new HashMap<>();
+    private boolean rebuildRunning;
+    private boolean rebuildScheduled;
+    private boolean rebuildAgain;
+    private long lastRebuild;
 
     public TownMapRenderer(final TownPlugin plugin, final Path arcMenuDir) {
         this.plugin = plugin;
         this.imageDir = arcMenuDir.resolve("images").resolve("town").resolve("map");
+        this.packFile = arcMenuDir.resolve("generated").resolve("arcmenu-resourcepack.zip");
     }
 
-    /** world_x_z 形式的图片键（ArcMenu 图片路径只允许小写字母数字下划线连字符点）。 */
+    /** 只生成合法的小写路径；版本前缀让旧渲染算法的缓存自然失效。 */
     public static String fileKey(final ChunkKey center) {
-        return center.world().toLowerCase(java.util.Locale.ROOT)
-                + "_" + center.x() + "_" + center.z();
+        String world = Normalizer.normalize(center.world(), Normalizer.Form.NFKD)
+                .toLowerCase(java.util.Locale.ROOT)
+                .replaceAll("[^a-z0-9_-]+", "_")
+                .replaceAll("_+", "_")
+                .replaceAll("^_+|_+$", "");
+        if (world.isBlank()) {
+            world = "world";
+        }
+        return RENDER_VERSION + "_" + world + "_" + center.x() + "_" + center.z();
     }
 
     public Path fileFor(final String key) {
         return imageDir.resolve(key + ".png");
     }
 
-    /** 启动 / 重载时保证占位图存在（未生成的区域显示这张）。 */
+    /** 只有本次资源包已经包含该 key 时才允许菜单切换过去。 */
+    public synchronized boolean isReady(final String key) {
+        return indexed.contains(key) && Files.exists(fileFor(key));
+    }
+
+    public synchronized boolean hasPendingIndex() {
+        return !pendingIndex.isEmpty();
+    }
+
+    /** 启动时写入浅灰占位图，并让它参与首次资源索引。 */
     public void ensurePlaceholder() {
         try {
             Files.createDirectories(imageDir);
-            final Path file = fileFor("default");
-            if (Files.exists(file)) {
-                return;
-            }
+            pruneOldMaps();
             final BufferedImage img = new BufferedImage(
                     CHUNKS * 16 * SCALE, CHUNKS * 16 * SCALE, BufferedImage.TYPE_INT_RGB);
             final Graphics2D g = img.createGraphics();
-            g.setColor(new Color(0x18, 0x29, 0x23));
+            g.setColor(new Color(0xE3, 0xE3, 0xE3));
             g.fillRect(0, 0, img.getWidth(), img.getHeight());
-            g.setColor(new Color(0x2B, 0x3C, 0x35));
+            g.setColor(new Color(0x8A, 0x8A, 0x8A));
             for (int i = 0; i <= CHUNKS * 16; i += 16) {
                 g.fillRect(i * SCALE, 0, SCALE, img.getHeight());
                 g.fillRect(0, i * SCALE, img.getWidth(), SCALE);
             }
             g.dispose();
-            javax.imageio.ImageIO.write(img, "png", file.toFile());
+            javax.imageio.ImageIO.write(img, "png", fileFor("default").toFile());
+            synchronized (this) {
+                pendingIndex.add("default");
+            }
         } catch (final IOException e) {
             plugin.getLogger().warning("小地图占位图写入失败：" + e.getMessage());
         }
     }
 
-    /** PNG 已在磁盘则直接回调；否则异步渲染后触发资源重建再回调。 */
-    public void ensureRendered(final ChunkKey center, final Runnable onReady) {
+    /** 启动预热出生点；返回的 Future 只有在资源包验证成功后才完成 true。 */
+    public void warmSpawn() {
+        final World world = Bukkit.getWorlds().isEmpty() ? null : Bukkit.getWorlds().get(0);
+        if (world != null) {
+            ensureRendered(ChunkKey.of(world.getSpawnLocation()));
+        }
+    }
+
+    /**
+     * 同 key 共享等待者；已经 ready 立即完成，已写盘但未入包只补资源索引，不重复渲染。
+     * 失败返回 false，调用方继续显示 default，不会因提前切换而白屏。
+     */
+    public CompletableFuture<Boolean> ensureRendered(final ChunkKey center) {
         final String key = fileKey(center);
-        if (Files.exists(fileFor(key)) || !inFlight.add(key)) {
-            onReady.run();
+        final CompletableFuture<Boolean> result = new CompletableFuture<>();
+        synchronized (this) {
+            if (isReady(key)) {
+                result.complete(true);
+                return result;
+            }
+            waiters.computeIfAbsent(key, ignored -> new ArrayList<>()).add(result);
+            if (inFlight.add(key)) {
+                startRender(center, key);
+            }
+        }
+        return result;
+    }
+
+    private void startRender(final ChunkKey center, final String key) {
+        if (Files.exists(fileFor(key))) {
+            markWritten(key);
             return;
         }
         final World world = Bukkit.getWorld(center.world());
         if (world == null) {
-            inFlight.remove(key);
-            onReady.run();
+            fail(key);
             return;
         }
         final BufferedImage img = new BufferedImage(
@@ -116,81 +167,205 @@ public final class TownMapRenderer {
                 }));
             }
         }
-        CompletableFuture.allOf(jobs.toArray(new CompletableFuture[0])).thenRun(() -> {
-            Threads.async(plugin, () -> {
-                try {
-                    Files.createDirectories(imageDir);
-                    javax.imageio.ImageIO.write(img, "png", fileFor(key).toFile());
-                } catch (final IOException e) {
-                    plugin.getLogger().warning("小地图 " + key + " 写入失败：" + e.getMessage());
-                } finally {
-                    inFlight.remove(key);
+        CompletableFuture.allOf(jobs.toArray(new CompletableFuture[0])).thenRun(() ->
+                Threads.async(plugin, () -> {
+                    try {
+                        Files.createDirectories(imageDir);
+                        javax.imageio.ImageIO.write(img, "png", fileFor(key).toFile());
+                        pruneOldMaps();
+                        markWritten(key);
+                    } catch (final IOException | RuntimeException e) {
+                        plugin.getLogger().warning("小地图 " + key + " 写入失败：" + e.getMessage());
+                        fail(key);
+                    }
+                })).exceptionally(error -> {
+                    fail(key);
+                    return null;
+                });
+    }
+
+    private void markWritten(final String key) {
+        synchronized (this) {
+            inFlight.remove(key);
+            pendingIndex.add(key);
+        }
+        requestResourceRebuild();
+    }
+
+    private void fail(final String key) {
+        final List<CompletableFuture<Boolean>> failed;
+        synchronized (this) {
+            inFlight.remove(key);
+            failed = waiters.remove(key);
+        }
+        complete(failed, false);
+    }
+
+    /** 30 秒节流有尾随重建：运行中收到新图一定会再安排一次，不会丢批次。 */
+    public void requestResourceRebuild() {
+        final long delay;
+        synchronized (this) {
+            if (rebuildRunning) {
+                rebuildAgain = true;
+                return;
+            }
+            if (pendingIndex.isEmpty() || rebuildScheduled) {
+                return;
+            }
+            delay = lastRebuild + REBUILD_THROTTLE_MS - System.currentTimeMillis();
+            if (delay > 0) {
+                rebuildScheduled = true;
+            } else {
+                rebuildRunning = true;
+            }
+        }
+        if (delay > 0) {
+            Threads.globalLater(plugin, Math.max(1L, delay / 50L), () -> {
+                synchronized (this) {
+                    rebuildScheduled = false;
                 }
                 requestResourceRebuild();
-                // 等资源包重建完成再刷新界面，否则玩家拿到的还是旧索引
-                Threads.globalLater(plugin, 40, onReady);
             });
-        });
+        } else {
+            Threads.global(plugin, this::doRebuild);
+        }
     }
 
-    /** 控制台身份重建 ArcMenu 资源包；30 秒内只触发一次。 */
-
-    /**
-     * 图片文件集合有变化时返回 true（并写回签名），调用方据此触发一次资源重建。
-     * ArcMenu 的 menus().reload() 只发布菜单、不重建图片索引，新 PNG 必须走 resources 才会进包。
-     */
-    public boolean imagesChangedSinceLastIndex() {
-        try {
-            Files.createDirectories(imageDir);
-            final StringBuilder sig = new StringBuilder();
-            try (var stream = Files.list(imageDir)) {
-                stream.filter(p -> p.getFileName().toString().endsWith(".png"))
-                        .sorted()
-                        .forEach(p -> {
-                            try {
-                                sig.append(p.getFileName()).append(':').append(Files.size(p)).append(';');
-                            } catch (final IOException ignored) {
-                            }
-                        });
-            }
-            final String current = sig.toString();
-            final Path marker = imageDir.resolve("..").resolve("map-index.marker").normalize();
-            if (Files.exists(marker) && current.equals(Files.readString(marker).trim())) {
+    /** 启动/重载时在全局区域线程同步执行，完成后再由调用方发布菜单。 */
+    public boolean rebuildNow() {
+        final Set<String> batch;
+        synchronized (this) {
+            if (rebuildRunning) {
                 return false;
             }
-            Files.writeString(marker, current);
+            if (pendingIndex.isEmpty()) {
+                return true;
+            }
+            rebuildRunning = true;
+            batch = takeBatch();
+        }
+        return executeBatch(batch);
+    }
+
+    private Set<String> takeBatch() {
+        final Set<String> batch = new HashSet<>(pendingIndex);
+        pendingIndex.removeAll(batch);
+        return batch;
+    }
+
+    private void doRebuild() {
+        final Set<String> batch;
+        synchronized (this) {
+            batch = takeBatch();
+        }
+        executeBatch(batch);
+    }
+
+    private boolean executeBatch(final Set<String> batch) {
+        if (batch.isEmpty()) {
+            synchronized (this) {
+                rebuildRunning = false;
+            }
             return true;
-        } catch (final IOException e) {
-            plugin.getLogger().warning("小地图索引签名失败：" + e.getMessage());
+        }
+        final long startedAt = System.currentTimeMillis();
+        boolean ok = false;
+        try {
+            final boolean commandOk = Bukkit.dispatchCommand(
+                    Bukkit.getConsoleSender(), "arcmenu resources");
+            ok = commandOk && verifyPack(batch, startedAt);
+        } catch (final RuntimeException e) {
+            plugin.getLogger().warning("ArcMenu 资源包重建失败：" + e.getMessage());
+        }
+        final boolean again;
+        final Map<String, List<CompletableFuture<Boolean>>> done = new HashMap<>();
+        synchronized (this) {
+            if (ok) {
+                indexed.addAll(batch);
+            } else {
+                pendingIndex.addAll(batch);
+            }
+            lastRebuild = System.currentTimeMillis();
+            rebuildRunning = false;
+            for (final String key : batch) {
+                final List<CompletableFuture<Boolean>> callbacks = waiters.remove(key);
+                if (callbacks != null) {
+                    done.put(key, callbacks);
+                }
+            }
+            again = rebuildAgain;
+            rebuildAgain = false;
+        }
+        final boolean success = ok;
+        done.forEach((key, callbacks) -> complete(callbacks, success));
+        if (again) {
+            requestResourceRebuild();
+        }
+        if (!ok) {
+            plugin.getLogger().warning("ArcMenu 资源包未包含本批小地图，继续使用占位图（" + batch.size() + " 张）。");
+        }
+        return ok;
+    }
+
+    /** 必须看到本次生成包且包内真的有每个 key，不能把固定延迟当成成功。 */
+    private boolean verifyPack(final Set<String> batch, final long startedAt) {
+        try {
+            if (!Files.exists(packFile)
+                    || Files.getLastModifiedTime(packFile).toMillis() < startedAt - 1000L) {
+                return false;
+            }
+            try (ZipFile zip = new ZipFile(packFile.toFile())) {
+                for (final String key : batch) {
+                    final String suffix = "town/map/" + key + ".png";
+                    final boolean found = zip.stream().anyMatch(entry -> entry.getName().endsWith(suffix));
+                    if (!found) {
+                        return false;
+                    }
+                }
+            }
             return true;
+        } catch (final IOException | RuntimeException e) {
+            return false;
         }
     }
 
-    /** 启动预热：为世界出生点渲染一张地图，玩家常去区域打开即秒显示。 */
-    public void warmSpawn() {
-        final org.bukkit.World world = Bukkit.getWorlds().isEmpty() ? null : Bukkit.getWorlds().get(0);
-        if (world == null) {
-            return;
+    private static void complete(final List<CompletableFuture<Boolean>> callbacks, final boolean value) {
+        if (callbacks != null) {
+            callbacks.forEach(callback -> callback.complete(value));
         }
-        final ChunkKey center = ChunkKey.of(world.getSpawnLocation());
-        if (!Files.exists(fileFor(fileKey(center)))) {
-            ensureRendered(center, () -> {
+    }
+
+    /** 只清理本插件生成的旧地图，限制 ArcMenu 图片数量与资源包体积。 */
+    private void pruneOldMaps() {
+        try {
+            final List<Path> maps = new ArrayList<>();
+            try (var stream = Files.list(imageDir)) {
+                stream.filter(path -> path.getFileName().toString().endsWith(".png"))
+                        .filter(path -> !path.getFileName().toString().equals("default.png"))
+                        .forEach(maps::add);
+            }
+            maps.sort((a, b) -> {
+                try {
+                    return Long.compare(Files.getLastModifiedTime(a).toMillis(),
+                            Files.getLastModifiedTime(b).toMillis());
+                } catch (final IOException e) {
+                    return 0;
+                }
             });
+            while (maps.size() > MAX_MAPS) {
+                final Path old = maps.remove(0);
+                final String key = old.getFileName().toString().replaceFirst("\\.png$", "");
+                Files.deleteIfExists(old);
+                synchronized (this) {
+                    indexed.remove(key);
+                    pendingIndex.remove(key);
+                }
+            }
+        } catch (final IOException e) {
+            plugin.getLogger().warning("小地图缓存清理失败：" + e.getMessage());
         }
     }
 
-    /** 控制台身份重建 ArcMenu 资源包；30 秒内只触发一次。 */
-    public void requestResourceRebuild() {
-        final long now = System.currentTimeMillis();
-        if (now - lastRebuild < REBUILD_THROTTLE_MS) {
-            return;
-        }
-        lastRebuild = now;
-        Threads.global(plugin, () ->
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "arcmenu resources"));
-    }
-
-    /** 单列颜色：地表类别 + 生物群系草色 + 水深 + 高度明暗，风格对齐原版地图。 */
     private Color columnColor(final World world, final int x, final int z) {
         try {
             final Block top = world.getHighestBlockAt(x, z);
@@ -212,10 +387,8 @@ public final class TownMapRenderer {
             if (name.contains("LEAVES") || name.contains("LOG") || name.contains("WOOD")
                     || name.contains("CACTUS")) {
                 final Color grass = grassColor(top.getBiome().name());
-                return shade(new Color(
-                        grass.getRed() * 70 / 100,
-                        grass.getGreen() * 75 / 100,
-                        grass.getBlue() * 70 / 100), y);
+                return shade(new Color(grass.getRed() * 70 / 100,
+                        grass.getGreen() * 75 / 100, grass.getBlue() * 70 / 100), y);
             }
             if (name.contains("GRASS_BLOCK") || name.contains("PODZOL") || name.contains("MYCELIUM")
                     || name.contains("MOSS") || name.contains("DIRT")) {
@@ -227,7 +400,6 @@ public final class TownMapRenderer {
         }
     }
 
-    /** 常见生物群系的草色近似（原版地图以群系着色）。 */
     private static Color grassColor(final String biome) {
         if (biome.contains("DESERT") || biome.contains("BEACH")) {
             return new Color(0xBF, 0xB7, 0x55);
@@ -256,7 +428,6 @@ public final class TownMapRenderer {
         return new Color(0x91, 0xBD, 0x59);
     }
 
-    /** 水深渐变：越深越暗，贴近原版地图的海洋分层。 */
     private static Color waterColor(final int surfaceY) {
         if (surfaceY >= 62) {
             return new Color(0x43, 0x7B, 0xE0);
@@ -270,7 +441,6 @@ public final class TownMapRenderer {
         return new Color(0x1F, 0x3B, 0x99);
     }
 
-    /** 高度明暗：高原亮、低谷暗，制造原版地图的起伏感。 */
     private static Color shade(final Color base, final int y) {
         final double factor;
         if (y >= 100) {
