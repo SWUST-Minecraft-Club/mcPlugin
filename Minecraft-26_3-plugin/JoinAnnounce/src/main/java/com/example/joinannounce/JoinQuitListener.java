@@ -27,6 +27,8 @@ public final class JoinQuitListener implements Listener {
         final Player player = event.getPlayer();
         final AnnouncementSettings settings = this.plugin.settings();
 
+        this.plugin.resourcePacks().offer(player);
+
         if (settings.joinBroadcast().enabled()) {
             event.joinMessage(broadcastText(settings.joinBroadcast().message(), player));
         }

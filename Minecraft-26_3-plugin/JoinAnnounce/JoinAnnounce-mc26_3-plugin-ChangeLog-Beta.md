@@ -38,3 +38,12 @@
 2.新增：仓库内置社团徽章皮肤 `./assets/swust-badge-skin.png`（徽章量化成蓝 / 灰 / 白三色 8x8 像素画）
 3.调整：`config-simple.yml` 改为 SWUST MINECRAFT 社团公告示例（社团配色文案 + 徽章图标）
 4.调整：头颅 Profile 改用 Paper 的 `createProfile` + `ProfileProperty`（`Bukkit.createPlayerProfile` 已过时）
+
+[Beta_0_3_0 -> Beta_0_4_0] 2026.10.25 14:51:35
+1.新增：进服自动下发资源包（`resource-pack`：url / sha1 / force / prompt）——
+   `Player#setResourcePack(uuid, url, sha1, prompt, force)`，`force: true` 即强制安装；带 sha1 按 hash 缓存
+2.新增：社团徽章资源包 `./assets/swust-badge-pack.zip`（源文件 `./assets/pack/`）——
+   覆盖 `structure_void` 物品模型为 256x256 圆形透明徽章贴图；`pack.mcmeta` 用 26.3 资源包 format 97
+3.新增：弹窗图标来源 `announce.dialog.icon.source`（`head` 皮肤头颅 / `pack` 资源包贴图，默认 head）；
+   选 pack 但资源包未启用时告警
+4.调整：`config-simple.yml` 徽章改为 pack 高清来源（size 64）并启用资源包强制下发

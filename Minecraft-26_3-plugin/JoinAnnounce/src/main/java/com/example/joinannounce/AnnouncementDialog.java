@@ -66,15 +66,32 @@ final class AnnouncementDialog {
         player.showDialog(dialog);
     }
 
-    /** 徽章图标：自定义头颅物品正文；未启用 / URL 无效时返回 null */
+    /** 徽章图标：按 icon.source 决定走资源包贴图还是皮肤头颅；未启用时返回 null */
     private DialogBody iconBody(final AnnouncementSettings.DialogSettings settings) {
-        if (!settings.iconEnabled() || settings.iconUrl() == null) {
+        if (!settings.iconEnabled()) {
             return null;
         }
+        final ItemStack item = switch (settings.iconSource()) {
+            case PACK -> new ItemStack(Material.STRUCTURE_VOID);
+            case HEAD -> headItem(settings);
+        };
+        return DialogBody.item(item)
+                .showDecorations(false)
+                .showTooltip(false)
+                .width(settings.iconSize())
+                .height(settings.iconSize())
+                .build();
+    }
+
+    /**
+     * pack 来源：资源包把 STRUCTURE_VOID 的模型覆盖成徽章贴图（见
+     * {@code assets/pack/assets/minecraft/items/structure_void.json}），没装资源包时是没有贴图的物品。
+     */
+    private ItemStack headItem(final AnnouncementSettings.DialogSettings settings) {
         final ItemStack head = new ItemStack(Material.PLAYER_HEAD);
         final ItemMeta meta = head.getItemMeta();
         if (!(meta instanceof final SkullMeta skull)) {
-            return null;
+            return head;
         }
         final UUID profileId = UUID.nameUUIDFromBytes(BADGE_ID.getBytes(StandardCharsets.UTF_8));
         final String textures = "{\"timestamp\":0,\"profileId\":\"" + profileId.toString().replace("-", "")
@@ -85,12 +102,7 @@ final class AnnouncementDialog {
                 Base64.getEncoder().encodeToString(textures.getBytes(StandardCharsets.UTF_8))));
         skull.setPlayerProfile(profile);
         head.setItemMeta(skull);
-        return DialogBody.item(head)
-                .showDecorations(false)
-                .showTooltip(false)
-                .width(settings.iconSize())
-                .height(settings.iconSize())
-                .build();
+        return head;
     }
 
     /** 空回调：按钮点击本身不做服务端操作，界面由 afterAction(CLOSE) 关闭 */

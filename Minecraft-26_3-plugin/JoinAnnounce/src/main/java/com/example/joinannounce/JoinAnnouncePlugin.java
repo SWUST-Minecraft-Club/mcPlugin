@@ -26,12 +26,14 @@ public final class JoinAnnouncePlugin extends JavaPlugin {
 
     private AnnouncementService announcements;
     private AnnouncementDialog dialogs;
+    private ResourcePackService resourcePacks;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         this.settings = AnnouncementSettings.load(getConfig(), getComponentLogger());
         this.dialogs = new AnnouncementDialog();
+        this.resourcePacks = new ResourcePackService(this);
         this.announcements = new AnnouncementService(this);
 
         getServer().getPluginManager().registerEvents(new JoinQuitListener(this), this);
@@ -78,6 +80,10 @@ public final class JoinAnnouncePlugin extends JavaPlugin {
 
     AnnouncementDialog dialogs() {
         return this.dialogs;
+    }
+
+    ResourcePackService resourcePacks() {
+        return this.resourcePacks;
     }
 
     /** 读取并渲染一条配置消息（用于命令回执） */

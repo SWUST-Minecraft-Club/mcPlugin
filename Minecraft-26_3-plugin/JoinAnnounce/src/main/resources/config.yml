@@ -25,10 +25,13 @@ announce:
     button: "知道了"
     # 是否允许按 ESC 关闭
     can-close-with-escape: true
-    # 弹窗顶部的徽章 / 图标：用「画了图的自定义头颅」实现（客户端自行下载皮肤贴图）
+    # 弹窗顶部的徽章 / 图标
     icon:
       enabled: false
-      # 64x64 皮肤 PNG 的 http/https 地址，徽章画在「面部」区域（(8,8)-(16,16)）
+      # 图标来源：head = 皮肤头颅（无需资源包，8x8 像素画）；pack = 资源包自定义物品贴图（高清）
+      # 选 pack 时需要打开 resource-pack，否则图标是没有贴图的物品
+      source: head
+      # head 来源专用：64x64 皮肤 PNG 的 http/https 地址，徽章画在「面部」区域（(8,8)-(16,16)）
       # 客户端必须能访问该地址；写错或不可达时图标显示为默认头颅，不影响弹窗其它内容
       texture-url: ""
       # 图标显示尺寸（像素，8~256；原版物品为 16）
@@ -79,6 +82,16 @@ menu:
     - "<dark_gray>当前在线：<online>/<max></dark_gray>"
   # 功能区排序值（越小越靠前）
   order: 20
+
+# 进服下发的资源包（社团徽章等界面素材）
+# 资源包 zip 放在玩家能访问的 http/https 地址；带 sha1 时客户端按 hash 缓存，不会重复下载
+# force: true = 强制安装（玩家必须接受才能进服）
+resource-pack:
+  enabled: false
+  url: ""
+  sha1: ""
+  force: true
+  prompt: "<gray>本服务器使用了界面资源包（社团徽章等），请接受下载。</gray>"
 
 messages:
   reloaded: "<green>JoinAnnounce 配置已重新加载。</green>"
