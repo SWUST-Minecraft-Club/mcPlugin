@@ -6,7 +6,7 @@
   "display": {
     "gui": {
       "scale": [4, 4, 4],
-      "translation": [1.5, -1.5, 0]
+      "translation": [24, -24, 0]
     }
   }
 }

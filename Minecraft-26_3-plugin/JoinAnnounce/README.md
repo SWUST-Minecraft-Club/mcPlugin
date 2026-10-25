@@ -37,7 +37,8 @@ dialog 里只能放**文字**和**物品图标**，不能直接贴图片。徽�
 ### `pack`：资源包贴图（推荐，高清）
 
 dialog 的物品正文**永远按原版 16 像素绘制**（`width`/`height` 只是布局框），所以资源包把
-`structure_void` 的模型放大了 4 倍（GUI display 变换，`scale [4,4,4]` + 平移居中），
+`structure_void` 的模型放大了 4 倍并用 GUI display 平移（26.3 里 translation 单位是 **1 像素**）
+居中：`scale [4,4,4]` + `translation [24, -24, 0]`，
 弹窗里放一个 `STRUCTURE_VOID` 物品就是 **64 像素**的高清徽章（256x256、圆形裁剪、四角透明）：
 
 ```yaml
@@ -50,7 +51,7 @@ announce:
 resource-pack:
   enabled: true
   url: "https://.../swust-badge-pack.zip"
-  sha1: "ec647e09c422e8e3639fabc0951ccd356ffa7120"   # 可选，40 位十六进制
+  sha1: "aec757f40c075a70024c483520c5d0d2573e3ab7"   # 可选，40 位十六进制
   force: true                                        # 强制安装：必须接受才能进服
   prompt: "<gray>社团资源包，请接受下载。</gray>"
 ```
@@ -126,7 +127,7 @@ announce:
 
 ```bash
 ./gradlew :JoinAnnounce:build
-# 产物：./Minecraft-26_3-plugin/JoinAnnounce/build/libs/JoinAnnounce-mc26_3-plugin-Beta_0_4_1.jar
+# 产物：./Minecraft-26_3-plugin/JoinAnnounce/build/libs/JoinAnnounce-mc26_3-plugin-Beta_0_4_2.jar
 ```
 
 测试服：`./gradlew :JoinAnnounce:runServer`（共用仓库根目录的 `./run/`）。

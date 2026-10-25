@@ -60,6 +60,6 @@ menu:
 resource-pack:
   enabled: true
   url: "https://raw.githubusercontent.com/zhou-BZDDX/mcPlugin/main/Minecraft-26_3-plugin/JoinAnnounce/assets/swust-badge-pack.zip"
-  sha1: "1b5f1156409d673b75b56b5da0246bd13394acc2"
+  sha1: "aec757f40c075a70024c483520c5d0d2573e3ab7"
   force: true
   prompt: "<#2E4A6B><bold>SWUST MINECRAFT</bold></#2E4A6B><gray> 社团资源包（徽章等界面素材），请接受下载。</gray>"
