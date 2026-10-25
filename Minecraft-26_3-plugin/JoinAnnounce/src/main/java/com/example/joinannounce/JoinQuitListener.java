@@ -7,6 +7,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 
 /**
  * 进服 / 退服事件：替换原版广播，并在进服后按配置延迟发送公告。
@@ -33,7 +34,19 @@ public final class JoinQuitListener implements Listener {
             event.joinMessage(broadcastText(settings.joinBroadcast().message(), player));
         }
 
-        if (settings.announceEnabled()) {
+        if (!settings.announceEnabled()) {
+            return;
+        }
+
+        if (settings.resourcePack().enabled()) {
+            // 等资源包装载完成（或 10 秒兜底）再发公告，保证弹窗弹出时徽章贴图已就位
+            this.plugin.resourcePacks().holdAnnouncement(player);
+            final long fallbackTicks = Math.max(settings.delayTicks(), 200L);
+            player.getScheduler().runDelayed(this.plugin,
+                    task -> this.plugin.resourcePacks().flushIfWaiting(player),
+                    null,
+                    fallbackTicks);
+        } else {
             player.getScheduler().runDelayed(this.plugin,
                     task -> this.plugin.announcements().announce(player, true),
                     null,
@@ -41,8 +54,14 @@ public final class JoinQuitListener implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onResourcePackStatus(final PlayerResourcePackStatusEvent event) {
+        this.plugin.resourcePacks().onStatus(event.getPlayer(), event.getID(), event.getStatus());
+    }
+
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerQuit(final PlayerQuitEvent event) {
+        this.plugin.resourcePacks().discard(event.getPlayer());
         final AnnouncementSettings.BroadcastSettings quit = this.plugin.settings().quitBroadcast();
         if (quit.enabled()) {
             event.quitMessage(broadcastText(quit.message(), event.getPlayer()));
