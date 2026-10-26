@@ -76,7 +76,8 @@ Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-2
 │   ├── Town/                       # 小镇系统（ArcMenu 鼠标模式界面 + WalletApi 经济 + TownApi 扩展口）
 │   └── yudream-minecraft-server/   # YuDream Admin 桥接插件：上报 + 本地时长统计 + 断线补发（Java 8 / Bukkit 1.13.2 目标）
 ├── fabric-26_3-mod/                # Fabric 客户端模组（独立 Gradle 工程，不参与上面的插件构建）
-│   └── MainMenuRepair/             # 清理 ESC 暂停菜单的界面修复模组
+│   ├── MainMenuRepair/             # 清理 ESC 暂停菜单的界面修复模组
+│   └── MinecraftMcp/               # MCP 客户端测试能力；共享核心 + 独立游戏版本适配器
 ├── release/                        # 各版本的构建产物留档（提交进仓库）
 ├── scripts/                        # 仓库维护脚本（如 rebuild-history.sh）
 ├── run/                            # 共用的测试服目录（服务端、世界、插件配置都在这里，已 gitignore）
@@ -347,6 +348,17 @@ Folia 适配：延迟公告与弹窗都在 `player.getScheduler()` 里执行；�
 > 本工程因此不依赖 fabric-loom（`maven.fabricmc.net` 在部分网络下被限速到 KB 级，loom 会卡在下载上），
 > 只下载官方客户端 jar + 用 `src/mixin-stubs/java` 里的 Mixin 注解桩编译，细节见模组自己的 README。
 
+## 客户端测试模组：MinecraftMcp
+
+`./fabric-26_3-mod/MinecraftMcp/` 为 **Minecraft 26.3 的 Fabric 客户端测试 Mod**，通过本机 MCP 提供 26 项测试工具：截图、GUI/控件查询与点击、键盘文本、背包/容器操作、物品组件与 tooltip、玩家/世界状态、聊天命令、等待与断言。需要安装对应版本的 Fabric API。
+
+```bash
+./gradlew -p ./fabric-26_3-mod/MinecraftMcp build
+# 产物：./release/MinecraftMcp/MinecraftMcp-mc26_3-fabric-Beta_0_1_0.jar
+```
+
+默认端点 `http://127.0.0.1:8765/mcp`，Bearer 令牌由首次启动自动生成，保存在客户端实例的 `config/minecraft-mcp.json`。协议/参数校验/断言位于不引用 Minecraft 的 `core`；游戏调用位于 `versions/mc26_3`，后续可添加独立版本模块并分别发布 jar。连接配置、工具参数、多版本扩展和真实客户端冒烟步骤见 [`./fabric-26_3-mod/MinecraftMcp/README.md`](./fabric-26_3-mod/MinecraftMcp/README.md)。
+
 ## 开发约定
 
 编码约定（命令写在代码里、MiniMessage、`folia-api` 用 `compileOnly`、`api-version` 跟随游戏版本、Folia 调度器与线程归属、
@@ -402,6 +414,7 @@ dependencies {
 | MainMenu | `1_0_1`（2026.10.18） | `Beta_1_5_1`（管理页功能占位符 + 自定义插件功能；兼容 PlayerTitle 等事件式子命令） |
 | RealTime | `1_0_0`（2026.10.18） | `Beta_1_1_0`（适配 Folia；去掉固定位提示） |
 | MainMenuRepair（fabric） | `1_0_0`（2026.10.18） | `Beta_1_0_2`（时钟右键空气仅在服务端装了 MainMenu 时判定） |
+| MinecraftMcp（fabric） | — | `Beta_0_1_0`（MCP 客户端测试工具；核心与游戏版本适配器分离） |
 | YudreamPlaytime | `1_0_0`（2026.10.19） | `Beta_1_1_0`（适配 Folia；台账缓存加锁） |
 | yudream-minecraft-server | `2_0_0`（2026.10.19） | `Beta_2_1_0`（反射适配 Folia，保持 Java 8 / 1.13.2 兼容） |
 | Town | — | `Beta_0_5_0`（11 页浅灰像素卡片风 + 真实渲染圈地小地图；修复地图线程与资源包生命周期） |

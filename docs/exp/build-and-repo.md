@@ -49,6 +49,13 @@
 - **规避/解决**：命令行显式注入 `-Dorg.gradle.java.installations.paths=<本机JDK25目录>`；不写进仓库配置（机器相关路径不入库）。
 - **来源**：2026.10.24，Town 首次构建。
 
+## 官方客户端依赖下载应有输出目录之外的校验缓存
+
+- **现象**：把已下载的客户端和库预先放在 `build/` 后，首次执行下载任务仍可能清理输出再重新下载；慢速连接下，大文件重复请求耗时很长。
+- **根因**：`build/` 是可清理的任务输出目录，不能兼作持久下载缓存。单连接大文件下载还会被部分网络环境限速。
+- **规避/解决**：MinecraftMcp 将官方清单、客户端和编译库按 SHA-1 放进项目 `./.gradle/minecraft-downloads/`，下载任务校验后复制至输出；只取编译实际引用的库，有限并行下载，支持传入已有官方客户端与缓存齐全后的 `--offline` 构建。缓存、第三方 jar 和本机路径不提交。
+- **来源**：2026.10.26，MinecraftMcp 首次构建；`./fabric-26_3-mod/MinecraftMcp/versions/mc26_3/build.gradle`。
+
 ### 用户级 Gradle 代理失效 → 所有远程仓库 TLS 握手失败（直连却通）
 
 - **现象**：`Could not GET https://repo.maven.apache.org/...`，`Remote host terminated the handshake`；`curl` 直连同地址返回 200。

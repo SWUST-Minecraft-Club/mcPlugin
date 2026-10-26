@@ -30,6 +30,7 @@
 - **每次修改后推送**（用户 2026-10-24 明确要求）：改动（代码 / 文档 / 产物留档）完成并验证后，
   默认提交到 `main` 并推送 `origin`；推送失败先重试，网络超时加 `http.postBuffer`。
 - 新发现的稳定约定，需要提示是否沉淀到 `docs/dev/` 规范。
+- 外部插件规范、示例或其他仓库的做法只用于核实技术事实；是否成为本仓规则按[规范来源与时效](./docs/dev/conventions.md#8-规范来源与时效)处理。
 - 踩坑与非显然经验必须补充到 `docs/exp/`（格式见该目录 README）。
 
 ## 沟通字典（他说 → 我做）
@@ -51,19 +52,20 @@
 - 不要在文档里写 `C:/D:` 盘符路径 —— 仓库改过名，写死路径的脚本已经因此坏过一次。
 - 不要把规范复制到 README 与 docs 两处：规范只写在 `docs/dev/`，README 只留指针。
 
-## 现状快照（2026-10-26，MainMenuRepair 时钟右键空气加服务端探测后更新本行）
+## 现状快照（2026-10-26，新增 MinecraftMcp 分层客户端测试模组；MainMenuRepair 时钟右键空气加服务端探测后更新本行）
 
 插件 MainMenu（正式版 `1_0_1` / 测试中 `Beta_1_5_1`，管理页可添加功能占位符与自定义插件功能）· RealTime（`1_0_0` / `Beta_1_1_0`）· MainMenuRepair Fabric 模组（`1_0_0` / `Beta_1_0_2`，时钟右键空气先在服务端命令树里确认 `/cd clockair` 存在，未装 MainMenu 不判定）·
+MinecraftMcp Fabric 模组（`Beta_0_1_0`，本机 MCP 26 项客户端测试工具；Java 21 协议核心 + Java 25 的 26.3 独立适配器，支持后续新增版本模块分别构建与发布）·
 YudreamPlaytime（正式版 `1_0_0` / 测试中 `Beta_1_1_0`，MainMenu 伴侣插件：菜单里显示查看者自己的在线时长）· Wallet（`Beta_0_5_0`，主菜单钱包；含本地测试模式 test-mode，默认关：货币/余额/流水 + 管理员可切换本服货币启停 + `/walletin` / `/walletout` 在线玩家调币指令 + 供后续插件依赖的 WalletApi）·
 ConcertoMenu（`Beta_0_2_0`，主菜单唱片机 → 发 `concerto:menu` 指令打开客户端 Concerto 主界面）·
 JoinAnnounce（`Beta_0_2_2`，进服公告：dialog 弹窗 / 聊天栏可切换 + 首次进服文案 / 进出服广播 + 主菜单「服务器公告」入口；`config-simple.yml` 为 SWUST 社团公告文案，无徽章）·
 ChatPrivacy（`Beta_0_1_0`，聊天防举报：把玩家公开聊天改写为无签名系统消息，客户端无法把它作为举报证据；纯 API、不依赖 NMS）·
 Town（`Beta_0_5_0`，小镇系统：筹备成立 / 邀请 / 扣费成立 / 镇政厅 / 圈地 / 保护 / 领地 buff；ArcMenu 3.2 原生 YAML 11 页浅灰像素卡片风界面（在线邀请、成员详情、通用确认、祝福分页、真实渲染圈地小地图），输入模式玩家自选（默认 Mouse，保留 Touch/Vision），未装时 /town 指令全量兜底；经济走 WalletApi，公开 TownApi+事件；第三方 ArcMenu API jar 在 `./libs/`（已入库），YAML 知识库在 `./docs/exp/arcmenu-yml知识库.md`，官方 wiki docs.myarc.icu）·
 yudream-minecraft-server（正式版 `2_0_0` / 测试中 `Beta_2_1_0`，反编译基线纳入本仓的 Bukkit 桥接插件，编译目标 spigot-api 1.13.2 + Java 8，含本地时长统计、断线补发与后端对齐；运行期反射适配 Folia）；
-结构 `./Minecraft-26_3-plugin/<插件名>/`（Folia 插件，沿用 `paper-plugin.yml`，MainMenu 提供功能注册 API）· `./fabric-26_3-mod/MainMenuRepair/`（独立 Gradle 工程）·
+结构 `./Minecraft-26_3-plugin/<插件名>/`（Folia 插件，沿用 `paper-plugin.yml`，MainMenu 提供功能注册 API）· `./fabric-26_3-mod/MainMenuRepair/`（独立 Gradle 工程）· `./fabric-26_3-mod/MinecraftMcp/`（core + versions 多模块独立工程）·
 `./templates/plugin-template/`（newPlugin 模板）· `./release/<项目名>/`（产物留档）· `./run/`（共用的 Folia 测试服）· `./docs/dev|exp|plan/`（规范 / 经验 / 计划）；
-构建 `./gradlew build`（全部插件）· `./gradlew -p ./fabric-26_3-mod/MainMenuRepair build`（模组）· `./gradlew :插件名:runServer`（Folia 测试服，端口 25566；内部执行 `runFolia`）；
-远端 `origin`（主仓 `zhou-BZDDX/mcPlugin`，双 push 地址，一次推送同步社团镜像 `SWUST-Minecraft-Club/mcPlugin`）· `swust`（镜像远端，仅用于核对）。
+构建 `./gradlew build`（全部插件）· `./gradlew -p ./fabric-26_3-mod/MainMenuRepair build`（界面修复模组）· `./gradlew -p ./fabric-26_3-mod/MinecraftMcp build`（MCP 测试模组）· `./gradlew :插件名:runServer`（Folia 测试服，端口 25566；内部执行 `runFolia`）；
+远端 `origin`（主仓 `zhou-BZDDX/mcPlugin`，双 push 地址，一次推送同步社团镜像 `SWUST-Minecraft-Club/mcPlugin`）· `swust`（镜像远端，仅用于核对）· 当前开发/测试基线固定 Minecraft/Folia 26.3；设计兼顾后续以小代价升级（如 26.4），升级需按官方迁移资料评估并验证；外部插件资料不自动成为本仓硬规则。
 
 ## 敏感信息
 

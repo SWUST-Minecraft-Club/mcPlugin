@@ -1,0 +1,28 @@
+plugins { id 'base' }
+
+allprojects {
+    group = rootProject.group
+    version = rootProject.version
+    repositories { mavenCentral() }
+    tasks.withType(AbstractArchiveTask).configureEach {
+        preserveFileTimestamps = false
+        reproducibleFileOrder = true
+    }
+}
+
+subprojects {
+    apply plugin: 'java-library'
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+    }
+}
+
+tasks.named('build') { dependsOn { subprojects.collect { "${it.path}:build" } } }
+tasks.named('assemble') { dependsOn { subprojects.collect { "${it.path}:assemble" } } }
+tasks.named('check') { dependsOn { subprojects.collect { "${it.path}:check" } } }
+tasks.named('clean') { dependsOn { subprojects.collect { "${it.path}:clean" } } }
+tasks.register('archiveArtifact') {
+    group = 'build'
+    description = '测试并留档全部游戏版本的 MinecraftMcp 模组'
+    dependsOn { subprojects.findAll { it.name != 'core' }.collect { "${it.path}:archiveArtifact" } }
+}
