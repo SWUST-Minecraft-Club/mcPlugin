@@ -30,6 +30,7 @@
 - **每次修改后推送**（用户 2026-10-24 明确要求）：改动（代码 / 文档 / 产物留档）完成并验证后，
   默认提交到 `main` 并推送 `origin`；推送失败先重试，网络超时加 `http.postBuffer`。
 - 新发现的稳定约定，需要提示是否沉淀到 `docs/dev/` 规范。
+- 外部插件规范、示例或其他仓库的做法只用于核实技术事实；是否成为本仓规则按[规范来源与时效](./docs/dev/conventions.md#8-规范来源与时效)处理。
 - 踩坑与非显然经验必须补充到 `docs/exp/`（格式见该目录 README）。
 
 ## 沟通字典（他说 → 我做）
@@ -63,7 +64,7 @@ yudream-minecraft-server（正式版 `2_0_0` / 测试中 `Beta_2_1_0`，反编�
 结构 `./Minecraft-26_3-plugin/<插件名>/`（Folia 插件，沿用 `paper-plugin.yml`，MainMenu 提供功能注册 API）· `./fabric-26_3-mod/MainMenuRepair/`（独立 Gradle 工程）·
 `./templates/plugin-template/`（newPlugin 模板）· `./release/<项目名>/`（产物留档）· `./run/`（共用的 Folia 测试服）· `./docs/dev|exp|plan/`（规范 / 经验 / 计划）；
 构建 `./gradlew build`（全部插件）· `./gradlew -p ./fabric-26_3-mod/MainMenuRepair build`（模组）· `./gradlew :插件名:runServer`（Folia 测试服，端口 25566；内部执行 `runFolia`）；
-远端 `origin`（主仓 `zhou-BZDDX/mcPlugin`，双 push 地址，一次推送同步社团镜像 `SWUST-Minecraft-Club/mcPlugin`）· `swust`（镜像远端，仅用于核对）。
+远端 `origin`（主仓 `zhou-BZDDX/mcPlugin`，双 push 地址，一次推送同步社团镜像 `SWUST-Minecraft-Club/mcPlugin`）· `swust`（镜像远端，仅用于核对）· 规范来源边界：外部插件资料只核实技术事实，不自动成为本仓硬规则。
 
 ## 敏感信息
 
