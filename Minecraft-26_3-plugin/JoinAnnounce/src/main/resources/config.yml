@@ -10,11 +10,11 @@ announce:
   display: dialog
   # 进服后延迟多少 tick 再发（20 tick = 1 秒），避开原版进服消息
   delay-ticks: 20
-  # 每位玩家每天只在当天第一次进服时弹一次：
+  # 每位玩家每天只在当天第一次进服时弹一次（默认开启；想每次进服都弹改成 false）：
   #   - 跨天在线的玩家不会被打断，退出后在新的一天再次进服时才弹；
   #   - 状态只记在内存里，服务器重启后重置（当天第一次进服的玩家会再弹一次）；
-  #   - 关掉（false）则每次进服都弹。
-  once-per-day: false
+  #   - 旧版本的 config.yml 没有这个键时也按开启处理。
+  once-per-day: true
   # 「一天」按这个时区划分（东 8 区 = 8，范围 -18~18）
   day-zone-offset-hours: 8
   # 公告正文：display 含 dialog 时是弹窗内容，含 chat 时逐行发到聊天栏

@@ -310,7 +310,7 @@ ESC 菜单按钮：已就绪：pause_screen_additions 包含 mainmenu:main_menu�
 | `announce.display` | 显示方式：`dialog`（默认，只弹窗）/ `chat`（只发聊天栏）/ `both` |
 | `announce` | 进服公告：`enabled`、`delay-ticks`、`lines`（弹窗正文与聊天栏文本共用），以及可选的 `title` / `sound` |
 | `announce.dialog` | 弹窗标题、正文宽度、按钮文字、是否允许 ESC 关闭 |
-| `announce.once-per-day` | 每位玩家每天只在当天第一次进服时弹（默认关；示例配置已开），跨天在线不打断、服务器重启重置；时区用 `announce.day-zone-offset-hours` |
+| `announce.once-per-day` | 每位玩家每天只在当天第一次进服时弹（默认开），跨天在线不打断、服务器重启重置；时区用 `announce.day-zone-offset-hours` |
 | `first-join` | 首次进服追加的文案（接在 `announce.lines` 后面，只对第一次进服的玩家生效） |
 | `broadcast.join` / `broadcast.quit` | 替换原版进服 / 退服广播；`enabled: false` 时完全不干预原版消息，`message` 留空则关闭该条 |
 | `menu` | 主菜单「服务器公告」入口：材质、名称、悬停文本、`order`；没装 MainMenu 时自动跳过 |
@@ -421,7 +421,7 @@ dependencies {
 | Town | — | `Beta_0_5_0`（11 页浅灰像素卡片风 + 真实渲染圈地小地图；修复地图线程与资源包生命周期） |
 | Wallet | —（还在测试版阶段） | `Beta_0_5_0`（新增本地测试模式 test-mode：不连官网、本地账本落盘，默认关闭；须手动开启并会打启动警告） |
 | ConcertoMenu | —（还在测试版阶段） | `Beta_0_2_0`（适配 Folia；首个版本：主菜单唱片机入口） |
-| JoinAnnounce | —（还在测试版阶段） | `Beta_0_3_0`（dialog 弹窗公告、默认不发聊天栏消息；新增每位玩家每天首次进服才弹；`config-simple.yml` 为 SWUST 社团公告示例） |
+| JoinAnnounce | —（还在测试版阶段） | `Beta_0_3_1`（dialog 弹窗公告、默认不发聊天栏消息；默认每位玩家每天首次进服才弹；`config-simple.yml` 为 SWUST 社团公告示例） |
 | ChatPrivacy | —（还在测试版阶段） | `Beta_0_1_0`（首个版本：公开聊天改写为无签名系统消息，客户端无法举报） |
 
 > 涨号规则（正式版之后再改动先回到测试版 `Beta_<第 1 位>_x_x`，转正时去掉 `Beta`、第 3 位归 0、第 2 位至少 +1，第 1 位不变）见
@@ -551,6 +551,7 @@ dependencies {
 | `Beta_0_2_1` | 未提交 | 调整：进出服广播默认关闭，插件默认不往聊天栏发任何消息；`preview` 严格按 `announce.display` |
 | `Beta_0_2_2` | 未提交 | 调整：`config-simple.yml` 恢复为 SWUST 社团公告文案（无徽章） |
 | `Beta_0_3_0` | 未提交 | 新增：`announce.once-per-day` 每位玩家每天首次进服才弹（跨天在线不打断、服务器重启重置，时区可配） |
+| `Beta_0_3_1` | 未提交 | 修：`once-per-day` 默认改为开（旧配置缺键也生效，解决退出重进仍弹）；启动日志打印公告模式；补 `DailyNoticeGate` 单元测试 |
 
 > 此前的社团徽章 / 资源包尝试（当时编号 `Beta_0_3_0`～`Beta_0_5_0`）已整体回退，产物已从 `./release/JoinAnnounce/` 移除；
 > 该编号段已重新用于后续功能（当前 `Beta_0_3_0` 是每日一次公告）。

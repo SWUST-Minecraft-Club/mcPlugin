@@ -45,7 +45,13 @@ public final class JoinAnnouncePlugin extends JavaPlugin {
 
         getComponentLogger().info(Component.text(
                 "已启用：进服公告"
-                        + (this.settings.announceEnabled() ? "（延迟 " + this.settings.delayTicks() + " tick）" : "（进服公告已关闭）")
+                        + (this.settings.announceEnabled()
+                        ? "（延迟 " + this.settings.delayTicks() + " tick；"
+                        + (this.settings.oncePerDay()
+                        ? "每位玩家每天首次进服弹一次（东 " + this.settings.dayZoneOffsetHours() + " 区）"
+                        : "每次进服都弹")
+                        + "）"
+                        : "（进服公告已关闭）")
                         + (this.menuRegistered ? "；主菜单入口已注册" : "；主菜单入口未注册"),
                 NamedTextColor.GREEN));
     }

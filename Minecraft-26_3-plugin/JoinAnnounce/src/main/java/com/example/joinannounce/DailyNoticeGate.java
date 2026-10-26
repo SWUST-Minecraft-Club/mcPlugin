@@ -26,7 +26,11 @@ final class DailyNoticeGate {
      * @param zoneOffsetHours 「一天」按这个时区偏移划分
      */
     boolean markIfDue(final UUID playerId, final int zoneOffsetHours) {
-        final LocalDate today = LocalDate.now(ZoneOffset.ofHours(zoneOffsetHours));
+        return markIfDue(playerId, LocalDate.now(ZoneOffset.ofHours(zoneOffsetHours)));
+    }
+
+    /** 指定日期版本：便于单元测试直接构造「昨天 / 今天」 */
+    boolean markIfDue(final UUID playerId, final LocalDate today) {
         final LocalDate previous = this.lastShown.put(playerId, today);
         return previous == null || !previous.equals(today);
     }
