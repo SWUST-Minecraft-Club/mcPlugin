@@ -1,65 +1,34 @@
-# JoinAnnounce 配置示例：SWUST MINECRAFT 社团公告（带社团徽章）
+# JoinAnnounce 最小配置示例：进服后只弹一个简单的公告
 #
 # 用法：把本文件内容复制到 <服务端根>/plugins/JoinAnnounce/config.yml，
 #       然后执行 /joinannounce reload（或重启服务器）。
 #       没有写到的配置项会自动使用插件内置默认值（标题/音效/进出服广播默认关闭）。
 #
-# 徽章说明：弹窗顶部是「画了徽章的自定义头颅」，贴图文件在仓库
-#           ./Minecraft-26_3-plugin/JoinAnnounce/assets/swust-badge-skin.png
-#           玩家客户端需要能访问 texture-url 才能显示徽章；
-#           如果 GitHub 直连慢，可以把 PNG 换到国内可访问的图床 / 服务器网站后替换地址。
+# 想改成聊天栏一行、不弹窗：把 display 改成 chat。
+# 想弹窗和聊天栏都要：把 display 改成 both。
 
 announce:
   enabled: true
   display: dialog
   delay-ticks: 20
   lines:
-    - "<gradient:#2E4A6B:#7A93B5><bold>西南科技大学 · Minecraft 星艺社</bold></gradient>"
-    - "<white>SWUST MINECRAFT · 长期生存服</white>"
-    - "<gray>欢迎 <player> 加入本服！</gray>"
-    - "<gray>本服长期运营，会不定期新增玩法与活动，敬请期待。</gray>"
-    - "<gray>社团招新 / 活动 / 建筑报名请留意社团群公告。</gray>"
+    - "<gold>欢迎 <player> 来到本服！</gold>"
   dialog:
-    title: "<#2E4A6B><bold>SWUST · MINECRAFT</bold></#2E4A6B>"
-    # 正文宽度（像素）
-    width: 260
-    # 底部按钮文字
-    button: "开始冒险"
+    title: "<gold>服务器公告</gold>"
+    button: "知道了"
     can-close-with-escape: true
-    icon:
-      enabled: true
-      # pack = 用资源包里的高清徽章贴图（需要下面的 resource-pack）
-      # 资源包模型已放大 4 倍，图标固定 64 像素，size 请保持 64
-      source: pack
-      size: 64
 
 # 首次进服不再追加额外文案
 first-join:
   enabled: false
 
-# 不接管原版进服 / 退服消息（公告只走弹窗，不往聊天栏发任何消息）
+# 不接管原版进服 / 退服消息
 broadcast:
   join:
     enabled: false
   quit:
     enabled: false
 
-# 主菜单里的「服务器公告」入口（需要 MainMenu，没装时自动跳过）
+# 不在主菜单里加入口
 menu:
-  enabled: true
-  material: WRITTEN_BOOK
-  name: "<#2E4A6B>服务器公告</#2E4A6B>"
-  lines:
-    - "<gray>点击再看一遍进服公告</gray>"
-    - "<dark_gray>当前在线：<online>/<max></dark_gray>"
-  order: 20
-
-# 进服强制下发的社团资源包：把 structure_void 物品模型覆盖成高清徽章
-# zip 源文件在仓库 ./Minecraft-26_3-plugin/JoinAnnounce/assets/pack/（产物 swust-badge-pack.zip）
-# 玩家客户端需要能访问 url；带 sha1 时按 hash 缓存，之后进服不重复下载
-resource-pack:
-  enabled: true
-  url: "https://raw.githubusercontent.com/zhou-BZDDX/mcPlugin/main/Minecraft-26_3-plugin/JoinAnnounce/assets/swust-badge-pack.zip"
-  sha1: "5e565089f900aa76e57508b63cfdac7b33df45fa"
-  force: true
-  prompt: "<#2E4A6B><bold>SWUST MINECRAFT</bold></#2E4A6B><gray> 社团资源包（徽章等界面素材），请接受下载。</gray>"
+  enabled: false

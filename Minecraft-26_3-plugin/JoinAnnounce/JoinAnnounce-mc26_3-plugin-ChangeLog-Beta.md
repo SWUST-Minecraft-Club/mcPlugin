@@ -30,39 +30,3 @@
 1.调整：进出服广播默认关闭 —— 进服公告只在 dialog 弹窗里显示，插件默认不往聊天栏发任何消息
 2.调整：`/joinannounce preview` 改为严格按 `announce.display` 预览（默认只弹窗，不再强制发聊天栏文本）
 3.调整：`config-simple.yml` 说明同步（缺省值里广播已是关闭）
-
-[Beta_0_2_1 -> Beta_0_3_0] 2026.10.25 14:03:58
-1.新增：dialog 弹窗支持徽章 / 图标（`announce.dialog.icon`）——把徽章画进 64x64 皮肤「面部」，
-   以 PLAYER_HEAD 物品正文展示（`showDecorations(false)`，尺寸可配 8~256，默认 48）；
-   皮肤贴图通过 textures 属性 URL 由客户端下载，URL 非法时启动 / reload 告警并跳过
-2.新增：仓库内置社团徽章皮肤 `./assets/swust-badge-skin.png`（徽章量化成蓝 / 灰 / 白三色 8x8 像素画）
-3.调整：`config-simple.yml` 改为 SWUST MINECRAFT 社团公告示例（社团配色文案 + 徽章图标）
-4.调整：头颅 Profile 改用 Paper 的 `createProfile` + `ProfileProperty`（`Bukkit.createPlayerProfile` 已过时）
-
-[Beta_0_3_0 -> Beta_0_4_0] 2026.10.25 14:51:35
-1.新增：进服自动下发资源包（`resource-pack`：url / sha1 / force / prompt）——
-   `Player#setResourcePack(uuid, url, sha1, prompt, force)`，`force: true` 即强制安装；带 sha1 按 hash 缓存
-2.新增：社团徽章资源包 `./assets/swust-badge-pack.zip`（源文件 `./assets/pack/`）——
-   覆盖 `structure_void` 物品模型为 256x256 圆形透明徽章贴图；`pack.mcmeta` 用 26.3 资源包 format 97
-3.新增：弹窗图标来源 `announce.dialog.icon.source`（`head` 皮肤头颅 / `pack` 资源包贴图，默认 head）；
-   选 pack 但资源包未启用时告警
-4.调整：`config-simple.yml` 徽章改为 pack 高清来源（size 64）并启用资源包强制下发
-
-[Beta_0_4_0 -> Beta_0_4_1] 2026.10.25 15:17:51
-1.修复：弹窗徽章只有 16 像素大 —— dialog 物品正文永远按原版物品大小绘制（`width`/`height` 只是布局框），
-   在资源包徽章模型上加 GUI display 变换（`scale [4,4,4]` + 平移居中 `translation [1.5, -1.5, 0]`），
-   徽章放大到 64 像素并居中；资源包 zip 与 SHA-1 同步更新
-2.调整：`announce.dialog.icon.source` 为 pack 时 `size` 固定 64，配置成其它值会告警
-3.文档：说明弹窗里的白色方框是物品控件获得键盘焦点时的原版描边，不是贴图
-
-[Beta_0_4_1 -> Beta_0_4_2] 2026.10.25 15:34:54
-1.修复：徽章放大后仍贴在控件左上角 —— 实测（玩家截图）确认 26.3 的 GUI display `translation`
-   单位是 1 像素（原 [1.5,-1.5] 不可见），改为 `[24, -24, 0]`（16px 控件中心平移到 64px 布局框中心）；
-   资源包 zip 与 SHA-1 同步更新
-2.说明：dialog 正文是纵向列表、没有横向网格，「拆成 4 个物品」拼不出 2×2 徽章，
-   放大走模型 GUI display 变换（物品被控件框裁剪，因此布局框必须 ≥ 放大后的贴图）
-
-[Beta_0_4_2 -> Beta_0_4_3] 2026.10.25 15:52:13
-1.修复：玩家截图（徽章只露 16×16 一角）反推出 26.3 渲染管线的 translation 方向为 x 取反向、
-   y 同向，把平移改为 `[-24, 24, 0]`（位移 = (-24, -24) 像素，正中 64px 布局框中心）；
-   资源包 zip 与 SHA-1 同步更新（5e565089...）

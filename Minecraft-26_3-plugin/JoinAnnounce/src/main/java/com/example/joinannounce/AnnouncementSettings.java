@@ -1,14 +1,8 @@
 package com.example.joinannounce;
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.UUID;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
@@ -35,7 +29,6 @@ public final class AnnouncementSettings {
     private final BroadcastSettings joinBroadcast;
     private final BroadcastSettings quitBroadcast;
     private final MenuSettings menu;
-    private final ResourcePackSettings resourcePack;
 
     private AnnouncementSettings(
             final boolean announceEnabled,
@@ -49,8 +42,7 @@ public final class AnnouncementSettings {
             final DialogSettings dialog,
             final BroadcastSettings joinBroadcast,
             final BroadcastSettings quitBroadcast,
-            final MenuSettings menu,
-            final ResourcePackSettings resourcePack) {
+            final MenuSettings menu) {
         this.announceEnabled = announceEnabled;
         this.display = display;
         this.delayTicks = delayTicks;
@@ -63,7 +55,6 @@ public final class AnnouncementSettings {
         this.joinBroadcast = joinBroadcast;
         this.quitBroadcast = quitBroadcast;
         this.menu = menu;
-        this.resourcePack = resourcePack;
     }
 
     public static AnnouncementSettings load(final FileConfiguration config, final ComponentLogger logger) {
@@ -102,16 +93,11 @@ public final class AnnouncementSettings {
             }
         }
 
-        final DialogSettings dialog = dialog(config, logger);
-        final ResourcePackSettings resourcePack = resourcePack(config, logger);
-        if (dialog.iconSource() == IconSource.PACK && !resourcePack.enabled()) {
-            logger.warn(Component.text(
-                    "announce.dialog.icon.source 为 pack，但 resource-pack 未启用：弹窗图标会是没有贴图的物品"));
-        }
-        if (dialog.iconSource() == IconSource.PACK && dialog.iconSize() != 64) {
-            logger.warn(Component.text(
-                    "announce.dialog.icon.source 为 pack 时图标固定 64 像素（资源包模型已放大 4 倍），建议 size: 64"));
-        }
+        final DialogSettings dialog = new DialogSettings(
+                text(config, "announce.dialog.title", "<gold>服务器公告</gold>"),
+                (int) ranged(config, "announce.dialog.width", 260.0D, 60.0D, 600.0D),
+                text(config, "announce.dialog.button", "知道了"),
+                config.getBoolean("announce.dialog.can-close-with-escape", true));
 
         final BroadcastSettings joinBroadcast = broadcast(config, logger, "broadcast.join", true);
         final BroadcastSettings quitBroadcast = broadcast(config, logger, "broadcast.quit", true);
@@ -125,8 +111,7 @@ public final class AnnouncementSettings {
 
         return new AnnouncementSettings(announceEnabled, displayMode(config, logger),
                 Math.max(0, config.getInt("announce.delay-ticks", 20)),
-                lines, firstJoinEnabled, firstJoinLines, title, sound, dialog, joinBroadcast, quitBroadcast, menu,
-                resourcePack);
+                lines, firstJoinEnabled, firstJoinLines, title, sound, dialog, joinBroadcast, quitBroadcast, menu);
     }
 
     public boolean announceEnabled() {
@@ -177,10 +162,6 @@ public final class AnnouncementSettings {
         return this.menu;
     }
 
-    public ResourcePackSettings resourcePack() {
-        return this.resourcePack;
-    }
-
     // ------------------------------------------------------------------ 读取辅助
 
     private static DisplayMode displayMode(final FileConfiguration config, final ComponentLogger logger) {
@@ -197,103 +178,6 @@ public final class AnnouncementSettings {
                         "announce.display 无效：" + raw + "（可用 dialog / chat / both），已按 dialog 处理"));
                 return DisplayMode.DIALOG;
         }
-    }
-
-    private static DialogSettings dialog(final FileConfiguration config, final ComponentLogger logger) {
-        final IconSource source = iconSource(config, logger);
-        boolean iconEnabled = config.getBoolean("announce.dialog.icon.enabled", false);
-        URL iconUrl = null;
-        if (iconEnabled && source == IconSource.HEAD) {
-            final String rawUrl = text(config, "announce.dialog.icon.texture-url", "").trim();
-            if (rawUrl.isEmpty()) {
-                logger.warn(Component.text("announce.dialog.icon.enabled 已开启但 texture-url 为空：弹窗不放徽章图标"));
-                iconEnabled = false;
-            } else {
-                try {
-                    final URI uri = new URI(rawUrl);
-                    final String scheme = uri.getScheme();
-                    if (scheme == null || !(scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https"))) {
-                        logger.warn(Component.text(
-                                "announce.dialog.icon.texture-url 需要是 http/https 地址：" + rawUrl));
-                        iconEnabled = false;
-                    } else {
-                        iconUrl = uri.toURL();
-                    }
-                } catch (final URISyntaxException | MalformedURLException ex) {
-                    logger.warn(Component.text("announce.dialog.icon.texture-url 无效："
-                            + rawUrl + "（" + ex.getMessage() + "）"));
-                    iconEnabled = false;
-                }
-            }
-        }
-        return new DialogSettings(
-                text(config, "announce.dialog.title", "<gold>服务器公告</gold>"),
-                (int) ranged(config, "announce.dialog.width", 260.0D, 60.0D, 600.0D),
-                text(config, "announce.dialog.button", "知道了"),
-                config.getBoolean("announce.dialog.can-close-with-escape", true),
-                iconEnabled,
-                iconUrl,
-                (int) ranged(config, "announce.dialog.icon.size", 48.0D, 8.0D, 256.0D),
-                iconSource(config, logger));
-    }
-
-    private static IconSource iconSource(final FileConfiguration config, final ComponentLogger logger) {
-        final String raw = text(config, "announce.dialog.icon.source", "head").trim().toLowerCase(Locale.ROOT);
-        switch (raw) {
-            case "pack":
-                return IconSource.PACK;
-            case "head":
-                return IconSource.HEAD;
-            default:
-                logger.warn(Component.text(
-                        "announce.dialog.icon.source 无效：" + raw + "（可用 head / pack），已按 head 处理"));
-                return IconSource.HEAD;
-        }
-    }
-
-    private static ResourcePackSettings resourcePack(final FileConfiguration config, final ComponentLogger logger) {
-        boolean enabled = config.getBoolean("resource-pack.enabled", false);
-        final String rawUrl = text(config, "resource-pack.url", "").trim();
-        URL url = null;
-        if (enabled) {
-            if (rawUrl.isEmpty()) {
-                logger.warn(Component.text("resource-pack.enabled 已开启但 url 为空：不下发资源包"));
-                enabled = false;
-            } else {
-                try {
-                    final URI uri = new URI(rawUrl);
-                    final String scheme = uri.getScheme();
-                    if (scheme == null || !(scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https"))) {
-                        logger.warn(Component.text("resource-pack.url 需要是 http/https 地址：" + rawUrl));
-                        enabled = false;
-                    } else {
-                        url = uri.toURL();
-                    }
-                } catch (final URISyntaxException | MalformedURLException ex) {
-                    logger.warn(Component.text("resource-pack.url 无效：" + rawUrl + "（" + ex.getMessage() + "）"));
-                    enabled = false;
-                }
-            }
-        }
-
-        byte[] sha1 = null;
-        final String rawSha1 = text(config, "resource-pack.sha1", "").trim().toLowerCase(Locale.ROOT);
-        if (!rawSha1.isEmpty()) {
-            if (rawSha1.matches("[0-9a-f]{40}")) {
-                sha1 = new byte[20];
-                for (int i = 0; i < 20; i++) {
-                    sha1[i] = (byte) Integer.parseInt(rawSha1.substring(i * 2, i * 2 + 2), 16);
-                }
-            } else {
-                logger.warn(Component.text("resource-pack.sha1 需要 40 位十六进制（SHA-1），已忽略：" + rawSha1));
-            }
-        }
-
-        return new ResourcePackSettings(enabled, url, sha1,
-                config.getBoolean("resource-pack.force", true),
-                text(config, "resource-pack.prompt",
-                        "<gray>本服务器使用了界面资源包（社团徽章等），请接受下载。</gray>"),
-                url == null ? null : UUID.nameUUIDFromBytes(rawUrl.getBytes(StandardCharsets.UTF_8)));
     }
 
     private static BroadcastSettings broadcast(
@@ -355,21 +239,8 @@ public final class AnnouncementSettings {
         BOTH
     }
 
-    /** 弹窗图标来源：head = 皮肤头颅（无需资源包）、pack = 资源包自定义物品贴图（高清） */
-    public enum IconSource {
-        HEAD,
-        PACK
-    }
-
-    /** dialog 弹窗；{@code iconUrl} 为 null 表示不放徽章图标 */
-    public record DialogSettings(
-            String title, int width, String button, boolean canCloseWithEscape,
-            boolean iconEnabled, URL iconUrl, int iconSize, IconSource iconSource) {
-    }
-
-    /** 进服强制下发的资源包；{@code url} 为 null 表示未启用 */
-    public record ResourcePackSettings(
-            boolean enabled, URL url, byte[] sha1, boolean force, String prompt, UUID packId) {
+    /** dialog 弹窗 */
+    public record DialogSettings(String title, int width, String button, boolean canCloseWithEscape) {
     }
 
     /** 标题与淡入 / 停留 / 淡出时长（tick） */
