@@ -54,7 +54,7 @@
 
 ## 现状快照（2026-10-26，新增 MinecraftMcp 分层客户端测试模组；MainMenuRepair 服务端探测与 dialog 警告清理后更新本行）
 
-插件 MainMenu（正式版 `1_0_1` / 测试中 `Beta_1_7_0`，ArcMenu 3.2 原生 YAML 方块手机与 10 页界面，Vault 资产页、首页翻页与无效头像回退，物品应用图标、每页 12 项应用抽屉，保留功能注册、管理与背包回退）· RealTime（`1_0_0` / `Beta_1_1_0`）· MainMenuRepair Fabric 模组（`1_0_0` / `Beta_1_1_2`，时钟右键空气先在服务端命令树里确认 `/cd clockair` 存在，未装 MainMenu 不判定；隐藏服务端 dialog 右上角的「自定义屏幕」警告并居中标题；移除暂停菜单图标按钮后收掉空行）·
+插件 MainMenu（正式版 `1_0_1` / 测试中 `Beta_1_8_0`，ArcMenu 3.2 原生 YAML 方块手机与 10 页界面，Vault 资产页、首页翻页与无效头像回退；可选多侧卡默认隐藏，YAML / API 接入、按高度自动分栏居中与独立分页，见 `./Minecraft-26_3-plugin/MainMenu/SIDECARDS.md`；保留功能注册、管理与背包回退）· RealTime（`1_0_0` / `Beta_1_1_0`）· MainMenuRepair Fabric 模组（`1_0_0` / `Beta_1_1_2`，时钟右键空气先在服务端命令树里确认 `/cd clockair` 存在，未装 MainMenu 不判定；隐藏服务端 dialog 右上角的「自定义屏幕」警告并居中标题；移除暂停菜单图标按钮后收掉空行）·
 MinecraftMcp Fabric 模组（`Beta_0_1_0`，本机 MCP 26 项客户端测试工具；Java 21 协议核心 + Java 25 的 26.3 独立适配器，支持后续新增版本模块分别构建与发布）·
 YudreamPlaytime（正式版 `1_0_0` / 测试中 `Beta_1_1_0`，MainMenu 伴侣插件：菜单里显示查看者自己的在线时长）· Wallet（`Beta_0_6_0`，默认本地持久多币种、配置 Vault 主币种与旧 YuDream 官网一次性迁入；保留官网后端、独立测试模式、原钱包界面及 WalletApi；迁入范围与验证见 `./Minecraft-26_3-plugin/Wallet/README.md`）·
 ConcertoMenu（`Beta_0_2_0`，主菜单唱片机 → 发 `concerto:menu` 指令打开客户端 Concerto 主界面）·

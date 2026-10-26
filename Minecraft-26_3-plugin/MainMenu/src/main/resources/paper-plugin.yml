@@ -8,7 +8,7 @@ bootstrapper: com.example.mainmenu.MainMenuBootstrap
 api-version: '26.3'
 # 声明支持 Folia；没有这一项的插件会被 Folia 拒绝加载
 folia-supported: true
-description: 主菜单：原生 YAML 方块手机、物品应用桌面与管理界面
+description: 主菜单：原生 YAML 方块手机、自动布局侧卡与应用管理
 authors: [zhou-BZDDX]
 website: https://github.com/zhou-BZDDX/mcPlugin
 

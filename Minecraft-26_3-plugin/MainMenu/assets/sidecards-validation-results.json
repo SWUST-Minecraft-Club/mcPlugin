@@ -1,0 +1,699 @@
+{
+  "version": "Beta_1_8_0",
+  "date": "2026-10-26",
+  "timezone": "America/New_York",
+  "environment": {
+    "server": "Folia 26.3 build 5",
+    "java": 25,
+    "arcmenu": "3.2.0 premium",
+    "client": "Minecraft 26.3 Fabric + MinecraftMcp",
+    "screenshot": [
+      1280,
+      720
+    ],
+    "gui": [
+      640,
+      360
+    ],
+    "fov": 70,
+    "templateDistance": 2,
+    "templatePixelsPerBlock": 42.7,
+    "screenshotsMode": "mouse",
+    "realClicksMode": "touch",
+    "sharedServerUsed": false
+  },
+  "unitTests": [
+    {
+      "name": "com.example.mainmenu.arcmenu.HeadMaterialTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0"
+    },
+    {
+      "name": "com.example.mainmenu.sidecard.SidecardLayoutTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0"
+    },
+    {
+      "name": "com.example.mainmenu.arcmenu.MenuTemplatesTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0"
+    },
+    {
+      "name": "com.example.mainmenu.economy.VaultBalanceTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0"
+    },
+    {
+      "name": "com.example.mainmenu.sidecard.SidecardSettingsTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0"
+    }
+  ],
+  "sidecardRuntimeChecks": [
+    {
+      "check": "0张API侧卡自动布局、分页无重叠无遗漏",
+      "pass": true,
+      "details": {
+        "count": 0,
+        "pages": 0,
+        "ids": []
+      }
+    },
+    {
+      "check": "1张API侧卡自动布局、分页无重叠无遗漏",
+      "pass": true,
+      "details": {
+        "count": 1,
+        "pages": 1,
+        "ids": [
+          "testcards:card-0"
+        ]
+      }
+    },
+    {
+      "check": "2张API侧卡自动布局、分页无重叠无遗漏",
+      "pass": true,
+      "details": {
+        "count": 2,
+        "pages": 1,
+        "ids": [
+          "testcards:card-0",
+          "testcards:card-1"
+        ]
+      }
+    },
+    {
+      "check": "6张API侧卡自动布局、分页无重叠无遗漏",
+      "pass": true,
+      "details": {
+        "count": 6,
+        "pages": 2,
+        "ids": [
+          "testcards:card-0",
+          "testcards:card-1",
+          "testcards:card-2",
+          "testcards:card-3",
+          "testcards:card-4",
+          "testcards:card-5"
+        ]
+      }
+    },
+    {
+      "check": "7张API侧卡自动布局、分页无重叠无遗漏",
+      "pass": true,
+      "details": {
+        "count": 7,
+        "pages": 2,
+        "ids": [
+          "testcards:card-0",
+          "testcards:card-1",
+          "testcards:card-2",
+          "testcards:card-3",
+          "testcards:card-4",
+          "testcards:card-5",
+          "testcards:card-6"
+        ]
+      }
+    },
+    {
+      "check": "16张API侧卡自动布局、分页无重叠无遗漏",
+      "pass": true,
+      "details": {
+        "count": 16,
+        "pages": 3,
+        "ids": [
+          "testcards:card-0",
+          "testcards:card-1",
+          "testcards:card-2",
+          "testcards:card-3",
+          "testcards:card-4",
+          "testcards:card-5",
+          "testcards:card-6",
+          "testcards:card-7",
+          "testcards:card-8",
+          "testcards:card-9",
+          "testcards:card-10",
+          "testcards:card-11",
+          "testcards:card-12",
+          "testcards:card-13",
+          "testcards:card-14",
+          "testcards:card-15"
+        ]
+      }
+    },
+    {
+      "check": "数值刷新保持会话、坐标和实体数量",
+      "pass": true,
+      "details": {
+        "entities": 66
+      }
+    },
+    {
+      "check": "API侧卡真实LEFT回调",
+      "pass": true
+    },
+    {
+      "check": "API侧卡真实RIGHT回调",
+      "pass": true
+    },
+    {
+      "check": "API侧卡真实SHIFT_LEFT回调",
+      "pass": true
+    },
+    {
+      "check": "API侧卡真实SHIFT_RIGHT回调",
+      "pass": true
+    },
+    {
+      "check": "撤销权限后隐藏并清理",
+      "pass": true
+    },
+    {
+      "check": "恢复权限自动出现",
+      "pass": true
+    },
+    {
+      "check": "注销全部API侧卡清理",
+      "pass": true
+    },
+    {
+      "check": "YAML默认三卡且示例数据关闭",
+      "pass": true
+    },
+    {
+      "check": "YAML资产卡沿用经济路由",
+      "pass": true
+    },
+    {
+      "check": "YAML快捷按钮打开应用",
+      "pass": true
+    },
+    {
+      "check": "YAML快捷按钮打开我的",
+      "pass": true
+    },
+    {
+      "check": "管理页默认不显示侧卡",
+      "pass": true
+    },
+    {
+      "check": "关闭菜单清理实体和META",
+      "pass": true
+    },
+    {
+      "check": "错误侧卡重载保留旧配置",
+      "pass": true
+    },
+    {
+      "check": "原有手机YAML字节未变化",
+      "pass": true
+    },
+    {
+      "check": "最终JAR默认关闭且注册不创建实体",
+      "pass": true
+    },
+    {
+      "check": "最终JAR重载启用侧卡",
+      "pass": true
+    },
+    {
+      "check": "API按钮传递唯一action并关闭手机",
+      "pass": true
+    },
+    {
+      "check": "最终JAR默认三张YAML卡",
+      "pass": true
+    },
+    {
+      "check": "六张混合高度YAML卡同页显示",
+      "pass": true
+    },
+    {
+      "check": "YAML与API混合侧卡自动分页",
+      "pass": true
+    },
+    {
+      "check": "侧卡分页不改变手机应用页码",
+      "pass": true
+    },
+    {
+      "check": "最终JAR重载关闭清理全部实体",
+      "pass": true
+    }
+  ],
+  "geometry": {
+    "checks": [
+      {
+        "screenshot": "sidecards-default.png",
+        "id": "yaml:economy",
+        "expectedPx": [
+          133.632,
+          277.44,
+          430.848,
+          415.04
+        ],
+        "measuredPxInclusive": [
+          133,
+          277,
+          430,
+          414
+        ],
+        "maxErrorDesignUnits": 0.756,
+        "pass": true
+      },
+      {
+        "screenshot": "sidecards-default.png",
+        "id": "yaml:server",
+        "expectedPx": [
+          849.152,
+          215.52,
+          1146.368,
+          336.608
+        ],
+        "measuredPxInclusive": [
+          850,
+          215,
+          1146,
+          336
+        ],
+        "maxErrorDesignUnits": 0.616,
+        "pass": true
+      },
+      {
+        "screenshot": "sidecards-default.png",
+        "id": "yaml:shortcuts",
+        "expectedPx": [
+          849.152,
+          353.12,
+          1146.368,
+          476.96
+        ],
+        "measuredPxInclusive": [
+          850,
+          353,
+          1146,
+          476
+        ],
+        "maxErrorDesignUnits": 0.698,
+        "pass": true
+      },
+      {
+        "screenshot": "sidecards-multi.png",
+        "id": "yaml:economy",
+        "expectedPx": [
+          133.632,
+          115.072,
+          430.848,
+          252.672
+        ],
+        "measuredPxInclusive": [
+          133,
+          115,
+          430,
+          252
+        ],
+        "maxErrorDesignUnits": 0.616,
+        "pass": true
+      },
+      {
+        "screenshot": "sidecards-multi.png",
+        "id": "yaml:skills-example",
+        "expectedPx": [
+          849.152,
+          99.936,
+          1146.368,
+          314.592
+        ],
+        "measuredPxInclusive": [
+          850,
+          100,
+          1146,
+          314
+        ],
+        "maxErrorDesignUnits": 0.616,
+        "pass": true
+      },
+      {
+        "screenshot": "sidecards-multi.png",
+        "id": "yaml:quests-example",
+        "expectedPx": [
+          133.632,
+          269.184,
+          430.848,
+          439.808
+        ],
+        "measuredPxInclusive": [
+          133,
+          269,
+          430,
+          439
+        ],
+        "maxErrorDesignUnits": 0.616,
+        "pass": true
+      },
+      {
+        "screenshot": "sidecards-multi.png",
+        "id": "yaml:town-example",
+        "expectedPx": [
+          849.152,
+          331.104,
+          1146.368,
+          452.192
+        ],
+        "measuredPxInclusive": [
+          850,
+          331,
+          1146,
+          451
+        ],
+        "maxErrorDesignUnits": 0.866,
+        "pass": true
+      },
+      {
+        "screenshot": "sidecards-multi.png",
+        "id": "yaml:server",
+        "expectedPx": [
+          133.632,
+          456.32,
+          430.848,
+          577.408
+        ],
+        "measuredPxInclusive": [
+          133,
+          456,
+          430,
+          577
+        ],
+        "maxErrorDesignUnits": 0.616,
+        "pass": true
+      },
+      {
+        "screenshot": "sidecards-multi.png",
+        "id": "yaml:shortcuts",
+        "expectedPx": [
+          849.152,
+          468.704,
+          1146.368,
+          592.544
+        ],
+        "measuredPxInclusive": [
+          850,
+          469,
+          1146,
+          592
+        ],
+        "maxErrorDesignUnits": 0.616,
+        "pass": true
+      },
+      {
+        "screenshot": "sidecards-page2.png",
+        "id": "testcards:card-0",
+        "expectedPx": [
+          133.632,
+          148.096,
+          430.848,
+          269.184
+        ],
+        "measuredPxInclusive": [
+          133,
+          148,
+          430,
+          268
+        ],
+        "maxErrorDesignUnits": 0.86,
+        "pass": true
+      },
+      {
+        "screenshot": "sidecards-page2.png",
+        "id": "testcards:card-1",
+        "expectedPx": [
+          849.152,
+          170.112,
+          1146.368,
+          384.768
+        ],
+        "measuredPxInclusive": [
+          850,
+          170,
+          1146,
+          384
+        ],
+        "maxErrorDesignUnits": 0.616,
+        "pass": true
+      },
+      {
+        "screenshot": "sidecards-page2.png",
+        "id": "testcards:card-2",
+        "expectedPx": [
+          133.632,
+          285.696,
+          430.848,
+          406.784
+        ],
+        "measuredPxInclusive": [
+          133,
+          286,
+          430,
+          406
+        ],
+        "maxErrorDesignUnits": 0.616,
+        "pass": true
+      },
+      {
+        "screenshot": "sidecards-page2.png",
+        "id": "testcards:card-3",
+        "expectedPx": [
+          849.152,
+          401.28,
+          1146.368,
+          522.368
+        ],
+        "measuredPxInclusive": [
+          850,
+          401,
+          1146,
+          522
+        ],
+        "maxErrorDesignUnits": 0.616,
+        "pass": true
+      },
+      {
+        "screenshot": "sidecards-page2.png",
+        "id": "testcards:card-4",
+        "expectedPx": [
+          133.632,
+          423.296,
+          430.848,
+          544.384
+        ],
+        "measuredPxInclusive": [
+          133,
+          423,
+          430,
+          544
+        ],
+        "maxErrorDesignUnits": 0.616,
+        "pass": true
+      }
+    ],
+    "total": 14,
+    "passed": 14,
+    "maxErrorDesignUnits": 0.866
+  },
+  "artifact": {
+    "path": "./release/MainMenu/MainMenu-mc26_3-plugin-Beta_1_8_0.jar",
+    "sha256": "d920c0c6c950296d37f1a4b984a44234d50c2191c7fba51e2f3f8c711f3abcb4"
+  },
+  "screenshots": [
+    {
+      "path": "./screenshots/sidecards-default.png",
+      "sha256": "1ad43c9309a85fe8e69db42c83bdf39894a7ebc748f861c2b874ab9361bb13c7"
+    },
+    {
+      "path": "./screenshots/sidecards-multi.png",
+      "sha256": "857143de9292ccfe34ddca0dc0bd2718e1bbf5f9150dc38c1afafa368f8212ad"
+    },
+    {
+      "path": "./screenshots/sidecards-page2.png",
+      "sha256": "a96076b3d831a8372549cf79ad00732da0132ffedf05f1ef88d0f4d82dd4df7f"
+    }
+  ],
+  "limitations": [
+    "Skill and quest values in the six-card screenshot are explicitly enabled examples, not live Stardew data.",
+    "No real website balances or player production data were accessed.",
+    "Middle-click and the optional ArcMenu client input channel were not runtime-tested.",
+    "Only Minecraft/Folia 26.3 and the recorded ArcMenu build were tested."
+  ],
+  "phoneRegressionWithSidecardsEnabled": [
+    {
+      "check": "手机主页与真实时钟日期",
+      "pass": true
+    },
+    {
+      "check": "周期刷新保持会话",
+      "pass": true
+    },
+    {
+      "check": "真实点击全部应用",
+      "pass": true
+    },
+    {
+      "check": "真实点击我的",
+      "pass": true
+    },
+    {
+      "check": "底部手势条返回桌面",
+      "pass": true
+    },
+    {
+      "check": "真实点击桌面管理",
+      "pass": true
+    },
+    {
+      "check": "管理固定位置标签",
+      "pass": true
+    },
+    {
+      "check": "管理功能区标签",
+      "pass": true
+    },
+    {
+      "check": "物品应用打开属性",
+      "pass": true
+    },
+    {
+      "check": "手机属性隐藏功能",
+      "pass": true
+    },
+    {
+      "check": "隐藏后直接路由不能调用",
+      "pass": true
+    },
+    {
+      "check": "手机属性恢复显示",
+      "pass": true
+    },
+    {
+      "check": "手机排序四个按钮",
+      "pass": true
+    },
+    {
+      "check": "手机切为固定位置",
+      "pass": true
+    },
+    {
+      "check": "手机位置列表",
+      "pass": true
+    },
+    {
+      "check": "手机选择逻辑位置8",
+      "pass": true
+    },
+    {
+      "check": "手机转回功能区",
+      "pass": true
+    },
+    {
+      "check": "手机占位符属性",
+      "pass": true
+    },
+    {
+      "check": "手机删除占位符",
+      "pass": true
+    },
+    {
+      "check": "手机新建应用页面",
+      "pass": true
+    },
+    {
+      "check": "手机按钮进入原生名称输入",
+      "pass": true
+    },
+    {
+      "check": "取消输入返回管理",
+      "pass": true
+    },
+    {
+      "check": "普通玩家工具图标和文案切换",
+      "pass": true
+    },
+    {
+      "check": "普通玩家工具进入我的",
+      "pass": true
+    },
+    {
+      "check": "普通玩家不能进入管理",
+      "pass": true
+    },
+    {
+      "check": "手机12项分页计数",
+      "pass": true
+    },
+    {
+      "check": "所有应用跨页无遗漏无重复",
+      "pass": true
+    },
+    {
+      "check": "手机末页越界钳制",
+      "pass": true
+    },
+    {
+      "check": "真实点击上一页",
+      "pass": true
+    },
+    {
+      "check": "手机应用左键回调",
+      "pass": true
+    },
+    {
+      "check": "手机应用右键回调",
+      "pass": true
+    },
+    {
+      "check": "手机管理独立翻页",
+      "pass": true
+    },
+    {
+      "check": "固定位置保留自己的页码",
+      "pass": true
+    },
+    {
+      "check": "切回功能区保留页码",
+      "pass": true
+    },
+    {
+      "check": "手机YAML重载不覆盖字节",
+      "pass": true
+    },
+    {
+      "check": "手机YAML自定义按钮动作",
+      "pass": true
+    },
+    {
+      "check": "手机时区可配置",
+      "pass": true
+    },
+    {
+      "check": "底部关闭返回游戏",
+      "pass": true
+    }
+  ],
+  "noArcMenuFallback": {
+    "check": "未安装ArcMenu真实启动与背包回退",
+    "pass": true,
+    "screen": {
+      "class": "net.minecraft.client.gui.screens.inventory.ContainerScreen",
+      "title": "主菜单",
+      "width": 640,
+      "height": 360,
+      "pausesGame": false
+    },
+    "mainmenuEnabled": true,
+    "noArcClassFailure": true
+  }
+}

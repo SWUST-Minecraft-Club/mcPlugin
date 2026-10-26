@@ -105,6 +105,7 @@ def main():
     menus = ROOT / "Minecraft-26_3-plugin/MainMenu/src/main/resources/arcmenu"
     for path in sorted(menus.glob("*.yml")):
         files["templates/ArcMenu/menus/mainmenu/" + path.name] = path.read_bytes()
+    files["templates/MainMenu/sidecards.yml"] = (ROOT / "Minecraft-26_3-plugin/MainMenu/src/main/resources/sidecards.yml").read_bytes()
     if not any(name.startswith("templates/ArcMenu/") for name in files):
         raise ValueError("未找到手机菜单 YAML，拒绝生成不完整更新包")
     for source, target in (
@@ -114,6 +115,8 @@ def main():
         ("Minecraft-26_3-plugin/Wallet/README.md", "docs/Wallet-README.md"),
         ("Minecraft-26_3-plugin/Wallet/VALIDATION.md", "docs/Wallet-VALIDATION.md"),
         ("Minecraft-26_3-plugin/MainMenu/assets/VALIDATION.md", "docs/MainMenu-VALIDATION.md"),
+        ("Minecraft-26_3-plugin/MainMenu/SIDECARDS.md", "docs/MainMenu-SIDECARDS.md"),
+        ("Minecraft-26_3-plugin/MainMenu/assets/sidecards-validation-results.json", "docs/sidecards-validation-results.json"),
         ("Minecraft-26_3-plugin/MainMenu/assets/vault-validation-results.json", "docs/vault-validation-results.json"),
         ("docs/exp/arcmenu-item-angles.md", "docs/arcmenu-item-angles.md"),
     ):
@@ -125,8 +128,11 @@ def main():
             text = text.replace("(../MainMenu/assets/vault-validation-results.json)", "(./vault-validation-results.json)")
         elif target == "docs/MainMenu-VALIDATION.md":
             text = text.split("以下是 Beta_1_6_0", 1)[0].replace("(../../Wallet/VALIDATION.md)", "(./Wallet-VALIDATION.md)")
+            text = text.replace("(../SIDECARDS.md)", "(./MainMenu-SIDECARDS.md)")
+        elif target == "docs/MainMenu-SIDECARDS.md":
+            text = text.replace("(./assets/VALIDATION.md)", "(./MainMenu-VALIDATION.md)")
         files[target] = text.encode()
-    for name in ("vault-home", "vault-economy"):
+    for name in ("vault-home", "vault-economy", "sidecards-default", "sidecards-multi", "sidecards-page2"):
         files[f"docs/screenshots/{name}.png"] = (ROOT / f"Minecraft-26_3-plugin/MainMenu/assets/screenshots/{name}.png").read_bytes()
     files["versions.json"] = (json.dumps(versions, ensure_ascii=False, indent=2) + "\n").encode()
     files["SHA256SUMS.txt"] = "".join(f"{hashlib.sha256(data).hexdigest()}  {name}\n"

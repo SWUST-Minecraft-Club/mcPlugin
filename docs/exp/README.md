@@ -36,6 +36,7 @@
 - [town-vault-economy.md](./town-vault-economy.md) — Vault 调用意图与人工核对、经济来源隔离、可选 API 类加载及金额精度
 - [town-menu-layout.md](./town-menu-layout.md) — Town 图标模型分类、ArcMenu 3.2 尺寸校准、余额边界与可读币名
 - [mainmenu-arcmenu-migration.md](./mainmenu-arcmenu-migration.md) — 原生 YAML 主页、动态物品与空提示限制、配置不覆盖和 26.3 截图校准
+- [mainmenu-sidecards.md](./mainmenu-sidecards.md) — 私有侧卡显示层、鼠标模式等效画布、稳定自动布局与潜行点击实测
 - [arcmenu-item-angles.md](./arcmenu-item-angles.md) — UltimateShop-ArcMenu 1.0.0 的物品分类、GUI/FIXED、Y 轴旋转和深度参数，附字节码证据与手机界面验证边界
 - [town-resource-packs.md](./town-resource-packs.md) — 小镇首次合包与托管、GitLab 原生分发、CE 配置阶段回执、地图图片锚点补偿
 

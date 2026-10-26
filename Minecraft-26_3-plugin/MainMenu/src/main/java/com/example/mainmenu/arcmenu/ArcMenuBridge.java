@@ -45,7 +45,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-/** Native YAML owns all visuals and actions; Java supplies data and business callbacks. */
+/** Native YAML owns the phone; a private companion layer renders optional registered sidecards. */
 public final class ArcMenuBridge implements DisplayMenus, Listener {
     private static final int APPS_PER_PAGE = 12;
     private static final ZoneId DEFAULT_CLOCK_ZONE = ZoneId.of("Asia/Shanghai");
@@ -57,6 +57,7 @@ public final class ArcMenuBridge implements DisplayMenus, Listener {
             "playtime", "yudreamplaytime:my-playtime");
     private final MainMenuPlugin plugin;
     private final ArcMenuApi api;
+    private final ArcMenuSidecards sidecards;
     private final Map<UUID, View> views = new ConcurrentHashMap<>();
     private final Set<String> reported = ConcurrentHashMap.newKeySet();
     private volatile Map<String, String> bindings = DEFAULT_BINDINGS;
@@ -83,6 +84,7 @@ public final class ArcMenuBridge implements DisplayMenus, Listener {
     private ArcMenuBridge(final MainMenuPlugin plugin, final ArcMenuApi api) {
         this.plugin = plugin;
         this.api = api;
+        this.sidecards = new ArcMenuSidecards(plugin, api, () -> home);
     }
 
     public static DisplayMenus create(final MainMenuPlugin plugin) throws IOException {
@@ -92,7 +94,12 @@ public final class ArcMenuBridge implements DisplayMenus, Listener {
             return null;
         }
         final ArcMenuBridge bridge = new ArcMenuBridge(plugin, api);
-        bridge.install();
+        try {
+            bridge.install();
+        } catch (final IOException e) {
+            bridge.sidecards.shutdown();
+            throw e;
+        }
         bridge.registerRoutes();
         plugin.getServer().getPluginManager().registerEvents(bridge, plugin);
         return bridge;
@@ -437,6 +444,7 @@ public final class ArcMenuBridge implements DisplayMenus, Listener {
         final View state = view(player);
         Schedulers.cancel(state.refresh);
         state.token = event.getSession().getToken();
+        sidecards.open(player, state.token, event.getSession().getId());
         final long period = Math.max(1L, Math.min(3600L,
                 plugin.getConfig().getLong("menu.refresh-seconds", 1L))) * 20L;
         state.refresh = Schedulers.runForAtFixedRate(plugin, player, () -> {
@@ -448,6 +456,7 @@ public final class ArcMenuBridge implements DisplayMenus, Listener {
             }
             final Map<String, String> materials = Map.copyOf(state.materials);
             publish(player);
+            sidecards.refresh(player);
             if (!materials.equals(state.materials)) {
                 // 3.2 refresh updates text/images, so a changed item needs a new document session.
                 open(player, current.getId());
@@ -459,6 +468,7 @@ public final class ArcMenuBridge implements DisplayMenus, Listener {
 
     @EventHandler
     public void closed(final ArcMenuSessionClosedEvent event) {
+        sidecards.close(event.getPlayer(), event.getSession().getToken());
         final View state = views.get(event.getPlayer().getUniqueId());
         if (state != null && event.getSession().getToken().equals(state.token)) {
             Schedulers.cancel(state.refresh);
@@ -469,6 +479,7 @@ public final class ArcMenuBridge implements DisplayMenus, Listener {
 
     @EventHandler
     public void quit(final PlayerQuitEvent event) {
+        sidecards.quit(event.getPlayer());
         final View state = views.remove(event.getPlayer().getUniqueId());
         if (state != null) {
             Schedulers.cancel(state.refresh);
@@ -749,6 +760,7 @@ public final class ArcMenuBridge implements DisplayMenus, Listener {
     @Override
     public void shutdown() {
         ready = false;
+        sidecards.shutdown();
         api.unregisterRoutes(plugin);
         HandlerList.unregisterAll(this);
         views.forEach((id, state) -> {

@@ -1,0 +1,111 @@
+# MainMenu 的可选侧卡配置。默认不显示；注册 API 卡片也不会自动开启本开关。
+# 修改后 /cd reload。坐标使用手机生成器的 800×450 设计单位，非原生 ArcMenu 坐标。
+enabled: false
+
+# home 跟随 menu.arcmenu.home-menu；管理页默认不显示，避免干扰编辑。
+menus: [home, mainmenu-features, mainmenu-profile, mainmenu-economy]
+
+layout:
+  left-x: 32
+  right-x: 552
+  width: 216
+  top: 35
+  height: 360
+  gap: 12
+  max-per-column: 3
+  # 按 order、id 稳定排序；auto 放入当前页可容纳且已用高度较小的一列。
+  # 各列整体居中；放不下自动分页，侧卡页码与手机应用页码独立。
+
+theme:
+  background: '#173B3C'
+  border: '#79C7B5'
+  hover: '#C7F1DE'
+  text: '#EDF5E9'
+  muted: '#B5D5CB'
+  value: '#ECD18B'
+  track: '#315455'
+  button: '#285753'
+
+cards:
+  economy:
+    enabled: true
+    order: 10
+    side: auto
+    title: 我的资产
+    icon: {material: GOLD_INGOT, context: FIXED}
+    rows:
+      - {label: '余额', value: '{meta:mm-economy-short-balance}'}
+      - {label: '币种', value: '{meta:mm-economy-currency}'}
+    actions: ['route: economy']
+
+  skills-example:
+    # 演示固定数值。替换为实际技能插件的 PlaceholderAPI 字段，或使用 Java 注册后启用。
+    enabled: false
+    order: 20
+    side: auto
+    title: 生活技能
+    icon: {material: WHEAT, context: FIXED}
+    rows:
+      - {label: 耕种, value: 'Lv.8', progress: '8', max: '10'}
+      - {label: 采矿, value: 'Lv.6', progress: '6', max: '10'}
+      - {label: 钓鱼, value: 'Lv.5', progress: '5', max: '10'}
+
+  quests-example:
+    enabled: false
+    order: 30
+    side: auto
+    title: 今日任务
+    icon: {material: WRITABLE_BOOK, context: FIXED}
+    rows:
+      - {label: 收获小麦, value: '18 / 30', progress: '18', max: '30'}
+      - {label: 完成订单, value: '2 / 3', progress: '2', max: '3'}
+
+  town-example:
+    enabled: false
+    order: 40
+    side: auto
+    title: 我的小镇
+    icon: {material: GRASS_BLOCK, context: GUI}
+    rows:
+      - {label: 小镇, value: '晨露镇（示例）'}
+    actions: ['feature: town:main']
+
+  server:
+    enabled: true
+    order: 50
+    side: auto
+    title: 服务器
+    icon: {material: GRASS_BLOCK, context: GUI}
+    rows:
+      - {label: 在线, value: '{online} 人'}
+    actions: ['feature: joinannounce:notice']
+
+  shortcuts:
+    enabled: true
+    order: 60
+    side: auto
+    title: 快捷操作
+    icon: {material: COMPASS, context: FIXED}
+    buttons:
+      - id: apps
+        label: 全部应用
+        actions: ['route: apps']
+      - id: profile
+        label: 我的
+        actions: ['route: profile']
+
+# 对 Java API 注册卡片的覆盖。id 保持原样，可包含点；只影响侧卡，不影响手机应用。
+# overrides:
+#   'farming:skills': {enabled: true, side: right, order: 20, permission: farming.use}
+overrides: {}
+
+# 文案使用 MiniMessage；支持 {player}、{online}、{meta:mm-*} 和已安装的 PAPI 占位符。
+# 未解析的 PAPI 字段显示 --，无效进度显示 0。不要在内容提供器里访问网络或阻塞 IO。
+# actions 可用列表（所有点击）或 {left: [...], right: [...], ...}，支持：
+#   route: economy             MainMenu 路由（每次重新校验权限）
+#   feature: town:main          已注册的功能回调，遵守隐藏和点击规则
+#   menu: my-custom-menu        原生 ArcMenu 页面
+#   player: home               以玩家本人的权限执行命令，先关闭手机
+#   message: <green>你好        聊天提示
+#   close                      关闭手机
+# 每卡最多 8 行、2 个按钮；长内容放入详情页。普通物品 FIXED；库存方块图标 GUI + Y180 / Z0.1。

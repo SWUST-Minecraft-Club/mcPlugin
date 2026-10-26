@@ -3,6 +3,9 @@ package com.example.mainmenu;
 import com.example.mainmenu.api.MainMenuApi;
 import com.example.mainmenu.api.MenuFeature;
 import com.example.mainmenu.api.MenuFeatureRegistry;
+import com.example.mainmenu.api.MenuSidecardRegistry;
+import com.example.mainmenu.sidecard.SidecardRegistry;
+import com.example.mainmenu.sidecard.SidecardService;
 import com.example.mainmenu.economy.VaultBalance;
 import com.example.mainmenu.command.CdCommand;
 import com.example.mainmenu.debug.DebugReporter;
@@ -51,6 +54,8 @@ public final class MainMenuPlugin extends JavaPlugin {
     private DebugReporter debug;
     private DisplayMenus displayMenus;
     private VaultBalance economy;
+    private SidecardRegistry sidecardRegistry;
+    private SidecardService sidecards;
 
     /** 供引导阶段注册的点击回调使用（那时插件实例还不存在） */
     public static MainMenuPlugin instance() {
@@ -76,10 +81,20 @@ public final class MainMenuPlugin extends JavaPlugin {
         this.menus = new MenuService(this);
         this.admin = new AdminService(this);
         this.debug = new DebugReporter(this);
+        this.sidecardRegistry = new SidecardRegistry();
+        this.sidecards = new SidecardService(this, sidecardRegistry);
+        try {
+            sidecards.reload();
+        } catch (final java.io.IOException e) {
+            getLogger().warning("侧卡配置未加载，保持关闭：" + e.getMessage());
+        }
 
-        MainMenuApi.install(features, menus::open);
+        MainMenuApi.install(features, menus::open, sidecardRegistry);
         getServer().getServicesManager().register(
                 MenuFeatureRegistry.class, features, this, ServicePriority.Normal);
+        getServer().getServicesManager().register(
+                MenuSidecardRegistry.class, sidecardRegistry, this, ServicePriority.Normal);
+        getServer().getPluginManager().registerEvents(sidecardRegistry, this);
 
         getServer().getPluginManager().registerEvents(new MenuListener(this), this);
         getServer().getPluginManager().registerEvents(new AdminListener(this), this);
@@ -110,6 +125,7 @@ public final class MainMenuPlugin extends JavaPlugin {
             menus.shutdown();
         }
         MainMenuApi.uninstall();
+        if (sidecardRegistry != null) sidecardRegistry.clear();
         instance = null;
     }
 
@@ -135,6 +151,8 @@ public final class MainMenuPlugin extends JavaPlugin {
         return economy;
     }
 
+    public SidecardService sidecards() { return sidecards; }
+
     public void openEconomy(final org.bukkit.entity.Player player) {
         if (displayMenus == null || !displayMenus.openEconomy(player)) {
             player.sendMessage(economy.read(player).message());
@@ -143,6 +161,12 @@ public final class MainMenuPlugin extends JavaPlugin {
 
     /** Re-evaluate the optional renderer after /cd reload, including first enable. */
     public void reloadDisplayMenus(final org.bukkit.command.CommandSender sender) {
+        try {
+            sidecards.reload();
+        } catch (final java.io.IOException e) {
+            sender.sendMessage(Component.text("侧卡配置错误，保留原配置：" + e.getMessage(), NamedTextColor.RED));
+            return;
+        }
         if (displayMenus == null) {
             displayMenus = DisplayMenus.create(this);
         }

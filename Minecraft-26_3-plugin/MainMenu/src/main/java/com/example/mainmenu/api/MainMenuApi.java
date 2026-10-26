@@ -37,6 +37,7 @@ public final class MainMenuApi {
 
     private static volatile MenuFeatureRegistry registry;
     private static volatile Consumer<Player> opener;
+    private static volatile MenuSidecardRegistry sidecards;
 
     private MainMenuApi() {
     }
@@ -65,6 +66,15 @@ public final class MainMenuApi {
         final ServicesManager services = Bukkit.getServicesManager();
         return services.load(MenuFeatureRegistry.class);
     }
+
+    /** Optional sidecards; registering never changes the administrator's default-off setting. */
+    public static MenuSidecardRegistry sidecards() {
+        final MenuSidecardRegistry current = sidecards;
+        if (current == null) throw new IllegalStateException("MainMenu 侧卡注册表尚未加载");
+        return current;
+    }
+
+    public static MenuSidecardRegistry sidecardsOrNull() { return sidecards; }
 
     /**
      * 替玩家打开主菜单（第一页）。
@@ -101,12 +111,19 @@ public final class MainMenuApi {
     }
 
     public static void install(final MenuFeatureRegistry implementation, final Consumer<Player> openHandler) {
+        install(implementation, openHandler, null);
+    }
+
+    public static void install(final MenuFeatureRegistry implementation, final Consumer<Player> openHandler,
+                               final MenuSidecardRegistry sidecardRegistry) {
         registry = implementation;
         opener = openHandler;
+        sidecards = sidecardRegistry;
     }
 
     public static void uninstall() {
         registry = null;
         opener = null;
+        sidecards = null;
     }
 }

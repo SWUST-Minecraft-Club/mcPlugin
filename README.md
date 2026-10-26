@@ -152,13 +152,15 @@ Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-2
 
 ### ArcMenu 页面与 YAML 编辑
 
-`Beta_1_7_0` 优先使用 ArcMenu 3.2：竖屏机身、状态栏、现实时间小组件、原版物品应用图标与底部快捷栏。
+`Beta_1_8_0` 优先使用 ArcMenu 3.2：竖屏机身、状态栏、现实时间小组件、原版物品应用图标与底部快捷栏。
 首页常用入口、每页 12 项的应用抽屉、“我的”、管理列表、三种属性页、位置选择与自定义功能创建，新增 Vault 资产页，共 10 页。
 小镇、Vault 资产、音乐和公告从桌面直接打开；在线时长在“我的”中查看，所有注册功能自动进入应用抽屉。
 
 启动后直接编辑 `plugins/ArcMenu/menus/mainmenu/mainmenu-home.yml`，可控制布局、配色、文案、模型、悬停提示和按钮动作，执行 `/cd reload` 生效。
 已有 YAML 在升级、重载和重启时均不覆盖。绑定、自定义主页与 META / 路由说明见 [MainMenu 配置指南](./Minecraft-26_3-plugin/MainMenu/README.md)，截图和实测边界见 [验证记录](./Minecraft-26_3-plugin/MainMenu/assets/VALIDATION.md)。
 没有 ArcMenu 或显式关闭 `menu.arcmenu.enabled` 时继续使用背包界面。
+
+手机两侧可选多卡片默认关闭，支持 YAML / 插件 API、按高度自动分栏、独立分页与动态进度；接入见 [侧卡指南](./Minecraft-26_3-plugin/MainMenu/SIDECARDS.md)。
 
 ### 逻辑位置与背包回退布局
 
@@ -427,7 +429,7 @@ dependencies {
 
 | 项目 | 正式版 | 测试版（进行中） |
 | --- | --- | --- |
-| MainMenu | `1_0_1`（2026.10.18） | `Beta_1_7_0`（10 页 YAML 手机；Vault 资产页、首页下一页、头像纹理校验与默认头回退） |
+| MainMenu | `1_0_1`（2026.10.18） | `Beta_1_8_0`（10 页 YAML 手机；默认隐藏的多侧卡、按高度自动布局、独立分页与 YAML / API 接入） |
 | RealTime | `1_0_0`（2026.10.18） | `Beta_1_1_0`（适配 Folia；去掉固定位提示） |
 | MainMenuRepair（fabric） | `1_0_0`（2026.10.18） | `Beta_1_1_2`（去掉 dialog 警告图标并居中；移除暂停菜单图标后收掉空行） |
 | MinecraftMcp（fabric） | — | `Beta_0_1_0`（MCP 客户端测试工具；核心与游戏版本适配器分离） |
@@ -489,6 +491,7 @@ dependencies {
 | `Beta_1_5_1` | 未提交 | 修复：自定义功能执行 PlayerTitle 等事件式子命令时只显示帮助页（补触发 `PlayerCommandPreprocessEvent`） |
 | `Beta_1_6_0` | 本次提交 | 新增：原生 YAML 方块手机、物品应用图标、应用抽屉及管理页面；配置不覆盖、动态 META、原功能点击桥接 |
 | `Beta_1_7_0` | 本次提交 | 新增 Vault 资产页与首页下一页，校验头像纹理并回退默认头；10 页模板与实际 Folia/Vault 联调 |
+| `Beta_1_8_0` | 本次提交 | 新增默认隐藏的多侧卡，YAML / API 按查看者提供内容和动作，自动分栏居中、按高度分页，数值刷新复用实体 |
 
 **RealTime（插件）**
 
