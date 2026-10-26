@@ -64,6 +64,9 @@ public final class TownRegistry {
         for (ChunkKey claim : town.claims()) {
             checkConflict(townIdByChunk.get(claim), town.id(), "地块 " + claim.encode());
         }
+        for (var plot : town.plots().values()) {
+            com.example.town.model.PlotRules.validate(town,plot,4_194_304,65536);
+        }
 
         byId.put(town.id(), town);
         idByNameLower.put(nameKey, town.id());

@@ -1,0 +1,103 @@
+{
+  "capture": "./screenshots/town-plots.png",
+  "runtime": "Folia 26.3 / ArcMenu 3.2.0",
+  "pixelsPerBlock": 42.7,
+  "canvas": [
+    800,
+    450
+  ],
+  "viewport": [
+    1280,
+    720
+  ],
+  "windowScale": 0.7,
+  "pixelsPerCanvasUnit": 1.12,
+  "checks": [
+    {
+      "element": "first-row-button",
+      "designCenter": [
+        708,
+        93
+      ],
+      "measuredOutlinePixels": [
+        919,
+        193,
+        1051,
+        230
+      ],
+      "measuredCenterPixels": [
+        985.0,
+        211.5
+      ],
+      "errorInCanvasUnits": [
+        0.036,
+        -0.589
+      ]
+    },
+    {
+      "element": "second-row-button",
+      "designCenter": [
+        708,
+        141
+      ],
+      "measuredOutlinePixels": [
+        919,
+        247,
+        1051,
+        284
+      ],
+      "measuredCenterPixels": [
+        985.0,
+        265.5
+      ],
+      "errorInCanvasUnits": [
+        0.036,
+        -0.375
+      ]
+    },
+    {
+      "element": "create-plot",
+      "designCenter": [
+        136,
+        384
+      ],
+      "measuredOutlinePixels": [
+        212,
+        519,
+        475,
+        557
+      ],
+      "measuredCenterPixels": [
+        343.5,
+        538.0
+      ],
+      "errorInCanvasUnits": [
+        -0.732,
+        -0.071
+      ]
+    },
+    {
+      "element": "next-page",
+      "designCenter": [
+        156,
+        432
+      ],
+      "measuredOutlinePixels": [
+        318,
+        573,
+        414,
+        610
+      ],
+      "measuredCenterPixels": [
+        366.0,
+        591.5
+      ],
+      "errorInCanvasUnits": [
+        -0.643,
+        -0.304
+      ]
+    }
+  ],
+  "scope": "检查真实轮廓中心与行距，像素外缘包含 frame 描边，不将描边外缘等同于后台命中边界。",
+  "maximumCenterErrorInCanvasUnits": 0.732
+}

@@ -1,0 +1,68 @@
+# Town 自有命名空间；交互与保护由 Town 插件处理。
+items:
+  town:town_hall:
+    material: paper
+    data:
+      item_name: '<!i><#D5B36D>镇政厅核心'
+    model: town:block/town_hall
+    behavior:
+      type: block_item
+      block:
+        settings:
+          hardness: -1
+          resistance: 3600000
+          push_reaction: immoveable
+          is_suffocating: true
+          is_redstone_conductor: false
+          map_color: 13
+          sounds:
+            break: minecraft:block.stone.break
+            fall: minecraft:block.stone.fall
+            hit: minecraft:block.stone.hit
+            place: minecraft:block.stone.place
+            step: minecraft:block.stone.step
+        states:
+          properties:
+            facing:
+              type: 4-direction
+              default: north
+          appearances:
+            north:
+              auto_state: solid
+              model:
+                path: town:block/town_hall
+            east:
+              auto_state: solid
+              model:
+                path: town:block/town_hall
+                y: 90
+            south:
+              auto_state: solid
+              model:
+                path: town:block/town_hall
+                y: 180
+            west:
+              auto_state: solid
+              model:
+                path: town:block/town_hall
+                y: 270
+          variants:
+            facing=north:
+              appearance: north
+            facing=east:
+              appearance: east
+            facing=south:
+              appearance: south
+            facing=west:
+              appearance: west
+  town:surveyor:
+    material: stick
+    data:
+      item_name: '<!i><#79AA93>镇务测绘尺'
+    model:
+      type: minecraft:model
+      path: town:item/surveyor
+      generation:
+        parent: minecraft:item/handheld
+        textures:
+          layer0: town:item/surveyor

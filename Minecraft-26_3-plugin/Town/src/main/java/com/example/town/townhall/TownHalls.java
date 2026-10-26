@@ -37,6 +37,9 @@ public final class TownHalls {
 
     /** 发一枚镇政厅给玩家（背包满则掉在脚下）。 */
     public void give(Player player) {
+        if(plugin.market()!=null && plugin.market().frozen(player.getUniqueId())) {
+            player.sendPlainMessage("[小镇] 物品交付处理中，请完成后再领取政厅核心。");return;
+        }
         ItemStack item = build();
         var leftover = player.getInventory().addItem(item);
         if (!leftover.isEmpty()) {
@@ -61,7 +64,7 @@ public final class TownHalls {
                 MiniMessage.miniMessage().deserialize("<!italic><gray>放置后成为小镇中心："),
                 MiniMessage.miniMessage().deserialize("<!italic><gray>· 设定小镇传送点"),
                 MiniMessage.miniMessage().deserialize("<!italic><gray>· 免费圈下初始领地"),
-                MiniMessage.miniMessage().deserialize("<!italic><gray>仅镇长可放置，可挖回")));
+                MiniMessage.miniMessage().deserialize("<!italic><gray>仅镇长可放置，迁址请使用规划服务")));
         stack.setItemMeta(meta);
         return stack;
     }
@@ -76,11 +79,18 @@ public final class TownHalls {
 
     /** 消耗手中一枚镇政厅道具。 */
     public void consumeOne(PlayerInteractEvent event) {
-        var stack = event.getItem();
+        var stack = event.getPlayer().getInventory().getItemInMainHand();
         if (stack == null) {
             return;
         }
         stack.setAmount(stack.getAmount() - 1);
+        event.getPlayer().getInventory().setItemInMainHand(stack);
+    }
+
+    public boolean place(org.bukkit.block.Block block) {
+        String id=plugin.config().craftEngineId();
+        if(craftEngine!=null && !id.isBlank()) return craftEngine.placeBlock(block,id);
+        block.setType(plugin.config().hallMaterial(),false);return true;
     }
 
     /**

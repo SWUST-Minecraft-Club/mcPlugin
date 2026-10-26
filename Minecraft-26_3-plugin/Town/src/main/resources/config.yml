@@ -4,10 +4,24 @@
 # 文案全部为 MiniMessage（<gold> 等标签直接生效）。
 # ============================================================================
 
+# ---------------------------- 建筑迁移 ----------------------------
+relocation:
+  max-volume: 65536
+  blocks-per-tick: 256
+  preview-blocks: 2048
+  draft-seconds: 600
+  base-price: 20
+  price-per-block: 0.05
+  hall-surcharge: 100
+
+market:
+  max-quantity: 100000
+  max-listings-per-player: 32
+
 # ---------------------------- 小镇基础 ----------------------------
 town:
   # 成立所需最低人数（含镇长本人）。筹备中的小镇达到该人数后才能「成立」扣费。
-  min-members: 2
+  min-members: 1
   # 小镇成员上限（含镇长）；0 = 不限。
   max-members: 0
   # 小镇名称长度与字符限制。
@@ -29,14 +43,16 @@ economy:
 founding:
   # 成立费用（扣费发生在人数达标、点击「成立」时）。
   cost: 1000
-  # 成立后免费自动以镇政厅为中心圈地的半径（区块数）。1 = 3×3，0 = 只圈中心 1 块。
+  # 初始赠地区块总额度（含政厅所在块），剩余额度在地图中自行选择。
+  free-claim-count: 9
+  # 兼容旧配置：未配置 free-claim-count 时按该半径计算总额度，不再自动圈 3×3。
   free-claim-radius: 1
 
 claim:
   # 允许圈地的世界名列表；留空 = 所有世界都允许。
   worlds: []
   # 斜角相邻是否算「相连」。
-  diagonal-connected: true
+  diagonal-connected: false
   # 每个小镇最多拥有的地块总数（含成立赠送）；0 = 不限。
   max-chunks: 256
 
@@ -44,11 +60,16 @@ expansion:
   # 扩张购买价格（每次 1 个区块）。
   price-per-chunk: 50
 
+plots:
+  max-area: 65536
+  max-per-town: 256
+  proposal-seconds: 120
+
 # ---------------------------- 镇政厅 ----------------------------
 townhall:
   # CraftEngine 自定义物品 id（如 mypack:town_hall）；留空或 CE 未装/物品不存在时
-  # 自动回落到下面的原版材质。放置落地时统一转为原版方块（见 README）。
-  craftengine-id: ""
+  # CE 未安装时回落到下面的原版材质；CE 已安装且配置了 id 时必须成功放置真实自定义方块。
+  craftengine-id: "town:town_hall"
   # 原版回落材质（也是落地方块）。
   fallback-material: LODESTONE
 
@@ -99,7 +120,107 @@ menu:
   entry-order: 10
 
 # ---------------------------- 消息 ----------------------------
+# ---------------------------- 镇库与经营 ----------------------------
+civic:
+  policy-slots: 2
+  max-policy-slots: 6
+  discount-cap-percent: 70
+  harvest-cap-percent: 50
+  market-fee-percent: 5
+  technologies:
+    - { id: planning, name: 城镇规划, cost: 500, max-level: 5, effect: LAND_CAPACITY, value: 16 }
+    - { id: archives, name: 政务档案, cost: 800, max-level: 4, effect: POLICY_SLOTS, value: 1 }
+    - { id: logistics, name: 搬迁物流, cost: 600, max-level: 5, effect: MOVE_DISCOUNT, value: 5 }
+  policies:
+    - { id: harvest, name: 丰收协约, cost: 200, duration-seconds: 86400, scope: RESIDENTS, harvest-percent: 15 }
+    - { id: builders, name: 工匠互助, cost: 250, duration-seconds: 86400, scope: RESIDENTS, potion: HASTE, amplifier: 0, move-discount-percent: 10 }
+    - { id: commerce, name: 商业繁荣, cost: 300, duration-seconds: 86400, scope: ALL, trade-discount-percent: 20 }
+
 messages:
+  move-busy: "<yellow>迁移操作仍在处理中，请稍候。"
+  move-too-large: "<yellow>建筑三维选区超过迁移体积上限。"
+  move-outside-town: "<yellow>原址与目标必须完整位于同一个小镇的领土内。"
+  move-no-change: "<yellow>请调整目标位置或朝向。"
+  move-draft-expired: "<yellow>草案不存在或已过期，请重新选择建筑。"
+  move-quote-changed: "<yellow>建筑状态、审批或报价已改变，请重新检查并确认。"
+  move-entity-obstruction: "<yellow>选区内有玩家、动物或其他实体，请先移出。"
+  move-furniture-partial: "<yellow>家具及其完整碰撞范围必须包含在原址选区内。"
+  move-collision: "<yellow>目标位置存在方块，请避开所示坐标。"
+  move-world-unavailable: "<yellow>建筑所在世界尚未加载。"
+  move-height-invalid: "<yellow>选区超出了世界建筑高度。"
+  move-border-invalid: "<yellow>选区超出了世界边界。"
+  move-unsupported-block: "<yellow>选区含当前无法迁移的特殊方块。"
+  move-multiblock-partial: "<yellow>请把整扇门、床或双箱完整包含在选区内。"
+  move-custom-block-entity-unsupported: "<yellow>当前不能迁移带独立方块实体的 CraftEngine 方块，请先移出选区。"
+  move-custom-multiblock-unsupported: "<yellow>当前不能迁移 CraftEngine 的组合门或床，请先移出选区。"
+  move-custom-rotation-unsupported: "<yellow>此 CraftEngine 方块的连接方向暂不支持旋转，请取消旋转或移出选区。"
+  move-core-requires-service: "<yellow>选区涉及政厅核心，请切换到政厅迁址模式。"
+  move-hall-selection: "<yellow>政厅迁址选区必须包含本镇核心。"
+  move-plot-partial: "<yellow>关联迁址需要包含地块的完整 XZ 范围。"
+  move-no-permission: "<yellow>原址或目标中有你无权使用的范围。"
+  move-job-denied: "<yellow>无权处理此工程或工程已不存在。"
+  move-not-reviewing: "<yellow>该工程当前不处于可验收或撤回的阶段。"
+  unclaim-disconnected: "<yellow>迁址后领土必须继续与政厅相连。"
+  plot-commercial-assets: "<yellow>请先下架该地块内的商铺与订单；建筑迁移服务可保留商铺关联。"
+  hall-craftengine-missing: "<red>政厅的 CraftEngine 方块未加载，请联系管理员检查资源包配置。"
+  hall-use-migration: "<yellow>政厅核心不能直接挖回，请使用政厅迁址服务。"
+  payment-processing: "<gray>正在处理交易 <white><id><gray>。可用 /town civic payments 查询；连接中断会自动继续结算。"
+  payment-refunded: "<yellow>操作条件已改变，款项已退回。"
+  payment-storage-failed: "<red>交易记录保存失败，请稍后重试。"
+  civic-amount-invalid: "<red>请输入大于零且最多两位小数的金额。"
+  civic-insufficient: "<red>镇库余额不足。"
+  civic-not-found: "<red>找不到这项科技或政策。"
+  civic-max-level: "<yellow>这项科技已达到最高等级。"
+  civic-slots-full: "<yellow>政策槽位已满，请等待现有政策到期或升级政务档案。"
+  civic-purchased: "<green>购买完成，已记入镇库流水。"
+  civic-donated: "<green>贡献已存入镇库，可在贡献与流水中查看。"
+  civic-withdrawn: "<green>镇库款项已结算到你的钱包。"
+  civic-disband-assets: "<yellow>小镇仍有地块、镇库余额或待结算交易，请先处理这些资产。"
+  plot-rented: "<green>承租成功，租金已结算给业主。"
+  plot-rent-self: "<yellow>不能承租自己的地块。"
+  plot-not-offered: "<yellow>这个地块当前未出租。"
+  plot-lease-active: "<yellow>租约仍在生效，暂时不能进行此操作。"
+  plot-updated: "<green>地块资料已更新。"
+  plot-removed: "<green>地块已撤销，原范围归回小镇公共管理。"
+  selection-tool-name: "<gold>小镇测绘工具</gold>"
+  selection-tool-lore: "<gray>左键设置第一点，右键设置第二点。</gray>"
+  selection-help: "<gold>测绘：</gold><gray>持工具左键/右键方块选择两角；/town select pos1|pos2 选择准星方块；clear 清除。地块只使用 XZ，建筑迁移使用完整三维选区。</gray>"
+  selection-inventory-full: "<yellow>背包已满，请先留出一个空位。"
+  selection-invalid: "<yellow>选区无效，请重新选择同世界内的两角。"
+  selection-target-missing: "<yellow>请瞄准 64 格以内的方块。"
+  selection-incomplete: "<yellow>请先用 /town select 领取测绘工具，并选择两个角点。"
+  selection-point: "<green>已设置第 <index> 点：<world>，<position>。"
+  selection-ready: "<green>选区已就绪：地块面积 <area> 方块；三维范围 <size>。"
+  selection-cleared: "<gray>选区与边界预览已清除。"
+  plot-help: "<gold>地块：</gold><gray>/town plot list；create residential|commercial|production|public 名称 x1 z1 x2 z2 [玩家]；edit ID x1 z1 x2 z2；confirm 提案；approve 提案；trust|untrust ID 玩家；offer ID 金额 天数；info ID</gray>"
+  plot-command-invalid: "<yellow>参数无效，请使用 /town plot 查看用法。玩家可填写在线名称或 UUID。"
+  plot-name-invalid: "<yellow>地块名需要 1～24 个字符。"
+  plot-manager-required: "<yellow>需要小镇管理权限才能划分或行政调整地块。"
+  plot-owner-required: "<yellow>需要当前业主或租户权限。"
+  plot-not-found: "<yellow>没有找到这个地块。"
+  plot-too-large: "<yellow>选区面积超过单地块上限。"
+  plot-limit: "<yellow>已达到本镇地块数量上限。"
+  plot-outside-town: "<yellow>矩形必须完整位于本镇领土内。"
+  plot-overlap: "<yellow>选区与其他地块重叠。"
+  plot-hall-conflict: "<yellow>政厅核心所在位置只能划为公共用地。"
+  plot-consent-denied: "<yellow>你不是这个提案的申请人或待审批人。"
+  plot-consent-pending: "<yellow>仍需取得受影响业主或租户的同意。"
+  plot-proposal-expired: "<yellow>提案已过期或不存在，请重新预览。"
+  plot-edit-preview: "<gold>地块修改预览：</gold>新面积 <area>，待审批 <count> 人。<gray>确认请执行 /town plot confirm <token>。确认前归属保持原状。</gray>"
+  plot-consent-request: "<yellow><name> 申请调整你的地块边界：</yellow>\n<gray>原：<old>\n新：<next></gray>\n<green>核对后点击同意；同意后申请人仍需提交。</green>"
+  plot-consent-recorded: "<green>已记录同意，申请人仍需确认提交。"
+  plot-consent-ready: "<green>地块审批已更新，仍待 <count> 人同意。点击尝试确认。"
+  plot-edited: "<green>地块边界已更新，地块 ID、授权与租约已保留。"
+  plot-trust-updated: "<green>地块授权已更新。"
+  plot-rent-invalid: "<yellow>租金不能为负，租期需为 1 分钟到 365 天。"
+  plot-already-leased: "<yellow>地块已有有效租约，当前不能重新挂牌。"
+  plot-public-rent-denied: "<yellow>公共用地不能作为私人房产出租。"
+  plot-rent-offered: "<green>已登记地块出租报价。"
+  plot-list-empty: "<gray>这里还没有划分地块。"
+  plot-approvals-empty: "<gray>当前没有需要你审批的地块调整。"
+  plot-info: "<gold><name></gold> <gray>[<id>]</gray> <kind> · <area> 方块\n<gray>边界：<bounds>；业主：<owner></gray>"
+  unclaim-has-plots: "<yellow>这个区块内仍有个人或公共地块，请先处理地块。"
+  unclaim-disconnects: "<yellow>放弃后会使领土与镇政厅断开，请调整边界。"
   prefix: "<gold>[小镇] <gray>"
   no-permission: "<red>你没有权限这么做。"
   players-only: "<red>该操作只能由玩家执行。"
@@ -121,7 +242,7 @@ messages:
   name-invalid: "<red>小镇名只能包含中文、字母、数字、下划线。"
   name-too-short: "<red>小镇名至少需要 <min> 个字符。"
   name-too-long: "<red>小镇名最多 <max> 个字符。"
-  created: "<green>小镇 <white><name></white> 筹备中！邀请 <min> 名成员后即可成立。"
+  created: "<green>小镇 <white><name></white> 筹备中！成员总数达到 <min> 人（含自己）即可成立。"
   founded: "<gold>小镇 <white><name></white> 正式成立！领取镇政厅并放置它来划定中心。"
   found-broadcast: "<gold><player> 的小镇 <white><name></white> 成立了！"
   found-min-members: "<yellow>成员不足：成立至少需要 <min> 人（当前 <count> 人）。"
@@ -167,8 +288,8 @@ messages:
   buff-charged: "<green>祝福 <name> 已激活，花费 <amount> <symbol>。"
   hall-received: "<green>获得道具 <gold>镇政厅</gold>，放置它来设定小镇中心与传送点。"
   hall-placed: "<gold>镇政厅已落成！小镇中心与传送点已设定。"
-  hall-free-claims: "<green>已为小镇免费圈下 <count> 块领地。"
-  hall-exists: "<red>小镇已有镇政厅，先拆除旧的（市长可挖掉）再放置。"
+  hall-free-claims: "<green>获得 <count> 个免费区块额度，请在领土地图中自行选择相连区块。"
+  hall-exists: "<red>小镇已有镇政厅，请使用政厅迁址服务调整位置。"
   hall-target-blocked: "<red>目标位置不是空气，不能放置镇政厅。"
   hall-must-mayor: "<red>只有镇长可以放置镇政厅。"
   hall-pending: "<red>小镇还在筹备中，成立后才能放置镇政厅。"
@@ -178,9 +299,10 @@ messages:
   spawn-teleported: "<green>已传送回小镇。"
   wallet-missing: "<red>钱包服务不可用，暂时无法扣费。"
   wallet-failed: "<red>扣费失败（余额不足或服务异常）。"
-  arcmenu-missing: "<yellow>未安装 ArcMenu（或 ProtocolLib），图形界面不可用；请使用 /town help 查看指令。"
+  arcmenu-missing: "<yellow>未安装 ArcMenu，图形界面不可用；请使用 /town help 查看指令。"
   chat-input-prompt: "<gold>请在聊天栏输入小镇名称</gold> <gray>（30 秒内，输入「取消」放弃）"
   chat-input-cancelled: "<yellow>已取消输入。"
   chat-input-timeout: "<yellow>输入超时，已取消。"
   town-info-header: "<gold>───── <white><name></white> ─────"
+  move-area-locked: "<yellow>该区域正在施工或等待验收，请先完成工程。"
   town-not-found: "<red>没有找到这个小镇。"

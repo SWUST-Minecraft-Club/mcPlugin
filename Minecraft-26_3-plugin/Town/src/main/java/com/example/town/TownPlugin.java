@@ -11,6 +11,9 @@ import com.example.town.hook.WalletHook;
 import com.example.town.model.Town;
 import com.example.town.protection.ProtectionListener;
 import com.example.town.service.TownService;
+import com.example.town.service.PlotService;
+import com.example.town.service.CivicService;
+import com.example.town.selection.SelectionService;
 import com.example.town.store.TownStore;
 import com.example.town.townhall.TownHallListener;
 import com.example.town.townhall.TownHalls;
@@ -36,13 +39,31 @@ public final class TownPlugin extends JavaPlugin {
     private CraftEngineHook craftEngine;
     private TownHalls townHalls;
     private TownService service;
+    private PlotService plots;
+    private CivicService civic;
+    private com.example.town.relocation.RelocationService relocation;
+    private com.example.town.market.MarketService market;
+    private SelectionService selections;
     private BuffApplier buffApplier;
     private TownUi ui;
     private MainMenuHook menuHook;
 
     @Override
+    public void onLoad() {
+        if(getServer().getPluginManager().getPlugin("CraftEngine")!=null) {
+            try {com.example.town.hook.TownAssets.install(this);}
+            catch(java.io.IOException error) {getLogger().warning("小镇 CraftEngine 资源释放失败："+error.getMessage());}
+        }
+    }
+
+    @Override
     public void onEnable() {
         saveDefaultConfig();
+        // copyDefaults 之前迁移旧半径，防止新默认值覆盖运营者原先选择的赠地额度。
+        if (!getConfig().isSet("founding.free-claim-count") && getConfig().isSet("founding.free-claim-radius")) {
+            int radius=Math.clamp(getConfig().getInt("founding.free-claim-radius"),0,8);
+            getConfig().set("founding.free-claim-count",(radius*2+1)*(radius*2+1));
+        }
         // 旧安装的 config.yml 缺少新版本新增键（如 claim-already-yours）时补齐默认值，避免「缺少消息」
         getConfig().options().copyDefaults(true);
         saveConfig();
@@ -55,8 +76,7 @@ public final class TownPlugin extends JavaPlugin {
             try {
                 registry.register(town);
             } catch (final IllegalArgumentException e) {
-                getLogger().severe("小镇 " + town.id() + "（" + town.name() + "）索引冲突，已跳过加载："
-                        + e.getMessage());
+                throw new IllegalStateException("小镇 " + town.id() + " 索引冲突，停止加载以保留原数据",e);
             }
         }
 
@@ -65,15 +85,32 @@ public final class TownPlugin extends JavaPlugin {
         craftEngine = CraftEngineHook.create(this);
         townHalls = new TownHalls(this, craftEngine);
         service = new TownService(this, registry, store, messages, events, wallet);
+        plots = new PlotService(registry, service::requestSave, plotLimits());
+        try { civic=new CivicService(this,store); }
+        catch(java.io.IOException error) { throw new IllegalStateException("支付台账不可用，停止加载以保留待结算交易",error); }
+        try {relocation=new com.example.town.relocation.RelocationService(this);}
+        catch(java.io.IOException error) {throw new IllegalStateException("迁移日志不可用，停止加载以保护施工区域",error);}
+        try {market=new com.example.town.market.MarketService(this);}
+        catch(java.io.IOException error) {throw new IllegalStateException("商业台账不可用，停止加载以保护托管资产",error);}
+        plots.commercialAssets(market::hasAssets);
+        getServer().getPluginManager().registerEvents(new com.example.town.market.MarketListener(this),this);
+        plots.constructionLock(relocation.locks()::intersects);
+        getServer().getPluginManager().registerEvents(new com.example.town.relocation.ConstructionListener(this),this);
+        selections = new SelectionService(this);
+        getServer().getPluginManager().registerEvents(selections,this);
+        selections.start();
         if (wallet != null) {
             wallet.preloadAssets();
         }
         com.example.town.api.TownApi.install(service);
         buffApplier = new BuffApplier(this, service);
+        getServer().getPluginManager().registerEvents(buffApplier,this);
+        getServer().getPluginManager().registerEvents(new com.example.town.buff.HarvestListener(this),this);
 
         getServer().getPluginManager().registerEvents(
                 new TownHallListener(this, service, townHalls), this);
         getServer().getPluginManager().registerEvents(new ProtectionListener(this, service), this);
+        if(craftEngine!=null) craftEngine.protect(this);
         getServer().getPluginManager().registerEvents(new TownUiListener(this), this);
 
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event ->
@@ -90,6 +127,9 @@ public final class TownPlugin extends JavaPlugin {
         }
 
         buffApplier.start();
+        relocation.start();
+        market.start();
+        Bukkit.getGlobalRegionScheduler().runAtFixedRate(this,task->civic.payments().recover(),100,100);
         // 维护任务：邀请过期 / 筹备超时 / 过期 buff 惰性清理（30 秒一次）
         Bukkit.getGlobalRegionScheduler().runAtFixedRate(this,
                 task -> service.maintenance(), 600L, 600L);
@@ -127,6 +167,8 @@ public final class TownPlugin extends JavaPlugin {
     public void reloadEverything() {
         reloadConfig();
         config = TownConfig.load(getConfig(), getLogger());
+        plots.limits(plotLimits());
+        civic.reload();
         if (wallet != null) {
             wallet.preloadAssets();
         }
@@ -160,6 +202,22 @@ public final class TownPlugin extends JavaPlugin {
 
     public TownService service() {
         return service;
+    }
+
+    public PlotService plots() { return plots; }
+    public CivicService civic() { return civic; }
+    public com.example.town.relocation.RelocationService relocation() {return relocation;}
+    public com.example.town.market.MarketService market() {return market;}
+    public CraftEngineHook craftEngine() {return craftEngine;}
+    public TownStore store() { return store; }
+    public TownEvents events() { return events; }
+    public SelectionService selections() { return selections; }
+
+    private PlotService.Limits plotLimits() {
+        return new PlotService.Limits(
+                Math.clamp(getConfig().getInt("plots.max-area",65536),1,4_194_304),
+                Math.clamp(getConfig().getInt("plots.max-per-town",256),1,65536),
+                Math.clamp(getConfig().getLong("plots.proposal-seconds",120),10,3600)*1000);
     }
 
     public TownHalls townHalls() {

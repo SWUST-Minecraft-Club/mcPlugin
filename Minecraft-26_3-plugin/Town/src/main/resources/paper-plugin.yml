@@ -6,7 +6,7 @@ main: com.example.town.TownPlugin
 api-version: '26.3'
 # 声明支持 Folia；没有这一项的插件会被 Folia 拒绝加载
 folia-supported: true
-description: 小镇系统：成立 / 邀请 / 圈地 / 领地保护 / 领地 buff，ArcMenu 界面 + Wallet 经济
+description: 小镇经营：政厅 / 连通领土 / 地块租赁 / 镇库发展 / 玩家商业 / 建筑迁移，ArcMenu + Wallet + CraftEngine
 authors: [zhou-BZDDX]
 website: https://github.com/zhou-BZDDX/mcPlugin
 
@@ -40,3 +40,4 @@ dependencies:
     CraftEngine:
       load: BEFORE
       required: false
+      join-classpath: true

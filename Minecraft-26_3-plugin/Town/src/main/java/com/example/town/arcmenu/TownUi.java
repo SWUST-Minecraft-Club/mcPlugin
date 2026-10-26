@@ -51,6 +51,7 @@ public final class TownUi {
     private final Set<UUID> balanceLoading = ConcurrentHashMap.newKeySet();
     private final AtomicBoolean assetsLoading = new AtomicBoolean();
     private TownMapRenderer mapRenderer;
+    private final TownOperations operations;
 
     private record ConfirmSession(String action, String returnScreen) {
     }
@@ -58,6 +59,7 @@ public final class TownUi {
     private TownUi(final TownPlugin plugin, final ArcMenuApi api) {
         this.plugin = plugin;
         this.api = api;
+        operations = new TownOperations(plugin,this);
     }
 
     public static TownUi create(final TownPlugin plugin) {
@@ -326,7 +328,7 @@ public final class TownUi {
         return view.active() ? TownMenus.HOME_ACTIVE : TownMenus.HOME_PENDING;
     }
 
-    private void markAndOpen(final Player player, final String menuId) {
+    void markAndOpen(final Player player, final String menuId) {
         current.put(player.getUniqueId(), menuId);
         // 不强制切换输入模式：默认 mouse（客户端 Mod 本地渲染光标，最跟手），
         // 玩家可用 /arcmenu mode 自选 touch / vision，服务器策略由 ArcMenu config 决定。
@@ -346,7 +348,7 @@ public final class TownUi {
         try {
             final ArcMenuTextInputOptions.Builder builder = ArcMenuTextInputOptions.builder()
                     .title(create ? "输入小镇名称" : "输入要邀请的玩家名")
-                    .maxLength(create ? plugin.config().nameMaxLength() : 16);
+                    .maxLength(create ? Math.min(50, plugin.config().nameMaxLength()) : 16);
             options = builder.build();
         } catch (final LinkageError | RuntimeException e) {
             plugin.getLogger().warning("ArcMenu 文本输入不可用：" + e.getClass().getSimpleName());
@@ -384,6 +386,22 @@ public final class TownUi {
         textInputs.put(playerId, handle);
     }
 
+    public void operation(Player player,String input) {operations.command(player,input);}
+    void closeOperations(Player player) {api.close(player);current.remove(player.getUniqueId());}
+    void requestOperationInput(Player player,String title,java.util.function.Consumer<String> submitted) {
+        if(api.textInput()==null) {plugin.messages().send(player,"input-unavailable");return;}
+        var old=textInputs.remove(player.getUniqueId());if(old!=null) old.close();
+        var handle=api.textInput().request(plugin,player,ArcMenuTextInputOptions.builder().title(title).maxLength(50).build(),
+                new com.fentai.arcmenu.api.ArcMenuTextInputListener() {
+                    @Override public void onComplete(com.fentai.arcmenu.api.ArcMenuTextInputResult result) {
+                        textInputs.remove(player.getUniqueId());
+                        if(result.getReason()==ArcMenuTextInputEndReason.SUBMITTED && result.getValue()!=null && !result.getValue().isBlank())
+                            Threads.forPlayer(plugin,player,()->submitted.accept(result.getValue().trim()));
+                    }
+                });
+        textInputs.put(player.getUniqueId(),handle);
+    }
+
     /** 输入提交后的反馈：投递结果并按当前页面决定回跳。 */
     private java.util.function.Consumer<TownService.Result> feedbackFor(final Player player) {
         return result -> {
@@ -410,6 +428,7 @@ public final class TownUi {
         }
         final TownSnapshotView view = plugin.service().townOf(player.getUniqueId());
         writeCommon(player, view);
+        if(screen.startsWith(TownOperationMenus.PREFIX)) {operations.write(player);api.refresh(player);return;}
         switch (screen) {
             case TownMenus.MEMBERS -> writeMembers(player);
             case TownMenus.MEMBER_DETAIL -> writeSelected(player);
@@ -503,6 +522,7 @@ public final class TownUi {
     }
 
     public void forget(final UUID playerId) {
+        operations.forget(playerId);
         clear(playerId);
     }
 
@@ -546,7 +566,7 @@ public final class TownUi {
 
     // ------------------------------------------------------------------ META 写入
 
-    private void set(final Player player, final String key, final String value) {
+    void set(final Player player, final String key, final String value) {
         if (value == null) {
             api.state().remove(player, ArcMenuStateScope.META, key);
         } else {
@@ -561,8 +581,12 @@ public final class TownUi {
         set(player, "name_len", cfg.nameMinLength() + "~" + cfg.nameMaxLength() + " 字符");
         set(player, "min_members", String.valueOf(cfg.minMembers()));
         set(player, "found_cost", costText(cfg.foundingCost()));
-        set(player, "claim_price", costText(cfg.pricePerChunk()) + " / 块");
-        set(player, "claim_max", cfg.maxChunksPerTown() > 0 ? String.valueOf(cfg.maxChunksPerTown()) : "∞");
+        set(player, "claim_price", view != null && view.raw().freeClaimsRemaining()>0
+                ? "免费 · 剩余 " + view.raw().freeClaimsRemaining() + " 块"
+                : costText(cfg.pricePerChunk()) + " / 块");
+        final int claimLimit=plugin.civic().catalog().claimLimit(cfg.maxChunksPerTown(),
+                view==null?com.example.town.economy.CivicState.empty():view.raw().civic());
+        set(player, "claim_max", claimLimit>0?String.valueOf(claimLimit):"∞");
         final TownSnapshotView invite = plugin.service().inviteOf(player.getUniqueId());
         writeInvite(player, invite);
         if (view == null) {
@@ -784,7 +808,7 @@ public final class TownUi {
         if (own == null) {
             return "&#666666·";
         }
-        final int max = plugin.config().maxChunksPerTown();
+        final int max = plugin.civic().catalog().claimLimit(plugin.config().maxChunksPerTown(), own.raw().civic());
         if (max > 0 && own.claimCount() >= max) {
             return "&#666666■";
         }
@@ -902,7 +926,7 @@ public final class TownUi {
                     title = (buying ? "购买区块 " : "放弃区块 ") + key.x() + ", " + key.z() + "？";
                     body1 = key.world() + (view == null ? "" : " · " + view.name());
                     body2 = buying ? "目标区块已用绿色光点在世界中标出" : "目标区块已用红色光点标出，保护将移除";
-                    cost = buying ? costText(plugin.config().pricePerChunk()) : "";
+                    cost = buying ? costText(plugin.service().claimPrice(player.getUniqueId())) : "";
                     note = buying ? "新区块必须与现有领地相连" : "镇政厅所在区块不能放弃";
                 }
             }

@@ -29,6 +29,7 @@ public record TownConfig(
         String currencyCode,
         double foundingCost,
         int freeClaimRadius,
+        int freeClaimCount,
         Set<String> claimWorlds,
         boolean diagonalConnected,
         int maxChunksPerTown,
@@ -81,7 +82,7 @@ public record TownConfig(
     // ------------------------------------------------------------------
 
     public static TownConfig load(FileConfiguration cfg, Logger log) {
-        int minMembers = clamp(cfg.getInt("town.min-members", 2), 1, 1000);
+        int minMembers = clamp(cfg.getInt("town.min-members", 1), 1, 1000);
         int maxMembers = Math.max(0, cfg.getInt("town.max-members", 0));
         int nameMin = Math.max(1, cfg.getInt("town.name-min-length", 2));
         int nameMax = Math.max(nameMin, cfg.getInt("town.name-max-length", 12));
@@ -97,13 +98,14 @@ public record TownConfig(
         String currency = cfg.getString("economy.currency", "");
         double foundingCost = Math.max(0, cfg.getDouble("founding.cost", 1000.0));
         int freeRadius = clamp(cfg.getInt("founding.free-claim-radius", 1), 0, 8);
+        int freeCount = clamp(cfg.getInt("founding.free-claim-count", (freeRadius*2+1)*(freeRadius*2+1)), 1, 65536);
 
         Set<String> worlds = Set.copyOf(cfg.getStringList("claim.worlds"));
-        boolean diagonal = cfg.getBoolean("claim.diagonal-connected", true);
+        boolean diagonal = cfg.getBoolean("claim.diagonal-connected", false);
         int maxChunks = Math.max(0, cfg.getInt("claim.max-chunks", 256));
         double price = Math.max(0, cfg.getDouble("expansion.price-per-chunk", 50.0));
 
-        String ceId = cfg.getString("townhall.craftengine-id", "");
+        String ceId = cfg.getString("townhall.craftengine-id", "town:town_hall");
         Material hallMaterial = Material.LODESTONE;
         String rawMaterial = cfg.getString("townhall.fallback-material", "LODESTONE");
         Material parsed = Material.matchMaterial(rawMaterial == null ? "" : rawMaterial);
@@ -143,7 +145,7 @@ public record TownConfig(
 
         return new TownConfig(minMembers, maxMembers, nameMin, nameMax, regex,
                 pendingExpire, inviteExpire,
-                currency == null ? "" : currency, foundingCost, freeRadius,
+                currency == null ? "" : currency, foundingCost, freeRadius, freeCount,
                 worlds, diagonal, maxChunks, price,
                 ceId == null ? "" : ceId, hallMaterial, protection,
                 buffInterval, List.copyOf(buffs), entryOrder, Map.copyOf(messages));

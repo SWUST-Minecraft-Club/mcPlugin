@@ -105,6 +105,22 @@ public final class WalletHook {
         return balance == null ? null : balance.balance().doubleValue();
     }
 
+    /** 精确金额版本供持久化支付协调器调用；保留异常，不能把超时当成未扣款。 */
+    public CompletableFuture<Void> debitCents(com.example.town.economy.Payment p) {
+        return service.debit(p.payer(),p.payerName(),p.currency(),BigDecimal.valueOf(p.cents(),2),
+                p.debitKey(),"Town "+p.kind()).thenAccept(ignored->{});
+    }
+    public CompletableFuture<Void> creditCents(com.example.town.economy.Payment p,boolean refund) {
+        return service.credit(refund?p.payer():p.beneficiary(),refund?p.payerName():p.beneficiaryName(),p.currency(),
+                BigDecimal.valueOf(refund?p.cents():p.creditCents(),2),refund?p.refundKey():p.creditKey(),
+                refund?"Town 操作退款":"Town 离线结算").thenAccept(ignored->{});
+    }
+    public boolean definiteRejection(Throwable error) {
+        if(!(error instanceof com.example.wallet.api.WalletException e)) return false;
+        int code=e.statusCode();
+        return code==400 || code==402 || code==422 || (code==0 && e.getMessage()!=null && e.getMessage().startsWith("余额不足"));
+    }
+
     // ------------------------------------------------------------------
     // 扣费 / 入账
     // ------------------------------------------------------------------

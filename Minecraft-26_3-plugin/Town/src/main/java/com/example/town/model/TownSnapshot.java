@@ -33,7 +33,18 @@ public record TownSnapshot(
         double spawnY,
         double spawnZ,
         float spawnYaw,
-        float spawnPitch) {
+        float spawnPitch,
+        int freeClaimsRemaining,
+        Map<String, Plot> plots,
+        com.example.town.economy.CivicState civic) {
+
+    public TownSnapshot {
+        members = Map.copyOf(members);
+        invites = Map.copyOf(invites);
+        claims = Set.copyOf(claims);
+        buffs = Map.copyOf(buffs);
+        plots = Map.copyOf(plots);
+    }
 
     public static TownSnapshot of(Town town) {
         return new TownSnapshot(
@@ -59,7 +70,10 @@ public record TownSnapshot(
                 town.spawnY(),
                 town.spawnZ(),
                 town.spawnYaw(),
-                town.spawnPitch());
+                town.spawnPitch(),
+                town.freeClaimsRemaining(),
+                town.plots(),
+                town.civic());
     }
 
     public List<Map.Entry<UUID, Role>> membersByRole() {

@@ -14,8 +14,8 @@ Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-2
 **[ConcertoMenu](./Minecraft-26_3-plugin/ConcertoMenu)**（主菜单唱片机 → 打开客户端 Concerto 界面）、
 **[JoinAnnounce](./Minecraft-26_3-plugin/JoinAnnounce)**（进服公告：dialog 弹窗 / 聊天栏可切换 + 首次进服文案 / 进出服广播 + 主菜单公告入口）、
 **[ChatPrivacy](./Minecraft-26_3-plugin/ChatPrivacy)**（聊天防举报：把公开聊天改写为无签名系统消息，客户端无法把它作为举报证据）、
-**[Town](./Minecraft-26_3-plugin/Town)**（小镇系统：筹备成立 / 邀请 / 扣费成立 / 镇政厅 / 点选圈地 / 领地保护 / 领地 buff，
-界面走 ArcMenu 鼠标模式，经济走 WalletApi）、
+**[Town](./Minecraft-26_3-plugin/Town)**（小镇经营：政厅核心 / 自主连通领土 / 矩形地块与租赁 / 镇库科技政策 / 玩家商业 / 建筑迁移，
+25 页 ArcMenu 界面、WalletApi 经济和 CraftEngine 素材）、
 **[yudream-minecraft-server](./Minecraft-26_3-plugin/yudream-minecraft-server)**（把玩家动态上报给 YuDream Admin 的 Bukkit 桥接插件，
 自带本地时长统计与断线补发，运行期反射兼容 Folia）。新增插件用 `./gradlew newPlugin -PpluginName=你的插件名`。
 
@@ -73,7 +73,7 @@ Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-2
 │   ├── ConcertoMenu/               # 主菜单里的 Concerto 音乐入口（唱片机 → 打开客户端 Concerto 界面）
 │   ├── JoinAnnounce/               # 进服公告（本人公告 / 首次进服文案 / 进出服广播 + 主菜单公告入口）
 │   ├── ChatPrivacy/                # 聊天防举报（公开聊天改写为无签名系统消息）
-│   ├── Town/                       # 小镇系统（ArcMenu 鼠标模式界面 + WalletApi 经济 + TownApi 扩展口）
+│   ├── Town/                       # 小镇经营、租赁、商业与建筑迁移（ArcMenu + WalletApi + CraftEngine）
 │   └── yudream-minecraft-server/   # YuDream Admin 桥接插件：上报 + 本地时长统计 + 断线补发（Java 8 / Bukkit 1.13.2 目标）
 ├── fabric-26_3-mod/                # Fabric 客户端模组（独立 Gradle 工程，不参与上面的插件构建）
 │   ├── MainMenuRepair/             # 清理 ESC 暂停菜单的界面修复模组
@@ -418,7 +418,7 @@ dependencies {
 | MinecraftMcp（fabric） | — | `Beta_0_1_0`（MCP 客户端测试工具；核心与游戏版本适配器分离） |
 | YudreamPlaytime | `1_0_0`（2026.10.19） | `Beta_1_1_0`（适配 Folia；台账缓存加锁） |
 | yudream-minecraft-server | `2_0_0`（2026.10.19） | `Beta_2_1_0`（反射适配 Folia，保持 Java 8 / 1.13.2 兼容） |
-| Town | — | `Beta_0_5_0`（11 页浅灰像素卡片风 + 真实渲染圈地小地图；修复地图线程与资源包生命周期） |
+| Town | — | `Beta_0_6_0`（自主赠地、XZ 地块租赁、镇库科技政策、托管商业、可恢复建筑迁移；25 页 ArcMenu 与 CraftEngine 素材） |
 | Wallet | —（还在测试版阶段） | `Beta_0_5_0`（新增本地测试模式 test-mode：不连官网、本地账本落盘，默认关闭；须手动开启并会打启动警告） |
 | ConcertoMenu | —（还在测试版阶段） | `Beta_0_2_0`（适配 Folia；首个版本：主菜单唱片机入口） |
 | JoinAnnounce | —（还在测试版阶段） | `Beta_0_3_1`（dialog 弹窗公告、默认不发聊天栏消息；默认每位玩家每天首次进服才弹；`config-simple.yml` 为 SWUST 社团公告示例） |
@@ -441,6 +441,7 @@ dependencies {
 | `Beta_0_3_0` | `7986ae9` | 11 页菜单重设计、在线邀请/成员详情/通用确认/分页；修复指令、邀请、镇政厅、扣费与持久化一致性 |
 | `Beta_0_4_0` | `c5ea791` | 圈地页改为真实渲染小地图（逐方块采样 PNG）、7×7 大格、地图拖动与区块预览 |
 | `Beta_0_5_0` | 未提交 | 11 页浅灰像素卡片风；修复地图线程、资源包索引、并发与尾随重建 |
+| `Beta_0_6_0` | 本次提交 | 自主连通领土、矩形地块与外镇租赁、镇库发展、离线商业与收件箱、三维建筑迁移和恢复；59 项测试与双客户端联调 |
 
 **MainMenu（插件）**
 

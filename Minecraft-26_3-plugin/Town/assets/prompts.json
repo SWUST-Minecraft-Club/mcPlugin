@@ -1,0 +1,17 @@
+[
+  {
+    "generatedAtUtc": "2026-10-26T11:49:15.405Z",
+    "tool": "image_gen.imagegen",
+    "transparentBackground": false,
+    "output": "./source/town-material-reference.png",
+    "prompt": "Use case: stylized-concept. Asset type: Minecraft CraftEngine texture sheet for a cozy town management plugin. Create ONE square pixel-art texture sheet with a precise 2 by 2 grid, four perfectly equal square quadrants edge to edge, no margins and no gutters, orthographic flat surfaces, no perspective, no text or labels. Each quadrant is an intentionally coarse 32 by 32 pixel design enlarged with sharp nearest-neighbor pixel edges. Upper left: front face of a town hall charter core, warm ivory limestone frame, a recessed walnut wood square panel and a small centered brass compass seal with a muted jade center. Upper right: side face of the same core, warm limestone frame with walnut wood panel, understated brass corner pins, readable simple large pixel clusters. Lower left: top face of the same core, warm carved limestone rim around a walnut inset with a centered jade and brass compass rose. Lower right: an inventory icon of a surveyor's brass caliper and jade-tipped wooden measuring staff crossed diagonally, on solid charcoal backdrop. Consistent material and lighting in all four quadrants. Friendly sophisticated survival game aesthetic, warm ivory, walnut brown, antique brass, desaturated jade. No gradients or blur, no letters, no logos, no UI, no watermark. This is a production pixel texture design sheet, all features must remain legible at 32 pixels per quadrant."
+  },
+  {
+    "generatedAtUtc": "2026-10-26T11:53:21.433Z",
+    "tool": "image_gen.imagegen",
+    "transparentBackground": true,
+    "output": "./source/surveyor-reference.png",
+    "prompt": "Use case: background-extraction. Edit target: the supplied pixel art sheet. Extract ONLY the surveyor's brass caliper crossed with a jade-tipped measuring staff from the lower-right quadrant. Remove the charcoal background and remove the other three quadrants entirely. Return a single isolated inventory item sprite on a genuinely transparent background. Preserve the original item's exact silhouette, brass, walnut and jade colors, coarse pixel cluster style and diagonal arrangement. Center it with about 5% transparent margin. No text, no extra elements, no cast shadow, no new styling, sharp nearest-neighbor pixel edges suitable for a Minecraft 32px item texture.",
+    "editTarget": "./source/town-material-reference.png"
+  }
+]

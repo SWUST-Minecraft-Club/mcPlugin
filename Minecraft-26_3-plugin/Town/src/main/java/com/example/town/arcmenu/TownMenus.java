@@ -14,20 +14,20 @@ import java.util.Map;
 import static com.example.town.arcmenu.MenuBuilder.Align.CENTER;
 import static com.example.town.arcmenu.MenuBuilder.Align.LEFT;
 
-/** Town 的 11 份 ArcMenu 页面：浅灰底、白卡、深灰像素描边、绿色主按钮、紫色点缀。 */
+/** 小镇 ArcMenu 页面：暖象牙卡片、玉绿按钮、黄铜点缀。 */
 public final class TownMenus {
 
-    public static final String BG = "#C6C6C6";
-    public static final String PANEL = "#F4F4F4";
-    public static final String RAISE = "#E3E3E3";
-    public static final String LINE = "#3F3F3F";
-    public static final String TEXT = "#303030";
-    public static final String MUTE = "#666666";
-    public static final String ACC = "#8A5CCF";
-    public static final String GREEN = "#2F9E44";
-    public static final String RED = "#C94B4B";
-    public static final String CYAN = "#287FA8";
-    public static final String GOLD = "#A87616";
+    public static final String BG = "#D8D2C4";
+    public static final String PANEL = "#F4F0E4";
+    public static final String RAISE = "#E5DDCB";
+    public static final String LINE = "#4B4940";
+    public static final String TEXT = "#343D38";
+    public static final String MUTE = "#716F62";
+    public static final String ACC = "#7D6338";
+    public static final String GREEN = "#387C64";
+    public static final String RED = "#AE5D51";
+    public static final String CYAN = "#4E7880";
+    public static final String GOLD = "#A37D38";
     public static final String WHITE = "#FFFFFF";
 
     public static final String HOME_NONE = "town-home-none";
@@ -55,15 +55,20 @@ public final class TownMenus {
         return "&#" + color.substring(1);
     }
 
-    private static String t(final String color, final String text) {
+    static String t(final String color, final String text) {
         return amp(color) + text;
     }
 
-    private static JsonObject dyn() {
+    static JsonObject dyn() {
         return MenuBuilder.updateEvery(40);
     }
 
-    private static MenuBuilder chrome(final String title, final String hint, final boolean showBack) {
+    static MenuBuilder chrome(final String title, final String hint, final boolean showBack) {
+        return chrome(title, hint, showBack, false);
+    }
+
+    static MenuBuilder chrome(final String title, final String hint, final boolean showBack,
+                              final boolean hintAboveContent) {
         final MenuBuilder m = new MenuBuilder();
         m.rect("bg", 0, 0, MenuBuilder.W, MenuBuilder.H, BG, 0);
         m.rect("bar-top", 0, 0, MenuBuilder.W, TOP, PANEL, 1);
@@ -79,7 +84,8 @@ public final class TownMenus {
         m.text("close-x", t(TEXT, "×"), 770, 27, 18, 5, CENTER, null);
         m.region("close", 752, 8, 36, 36,
                 MenuBuilder.spec(MenuBuilder.tooltip("&f关闭界面"), MenuBuilder.click("all", "close:")));
-        m.text("hint", t(MUTE, hint), 20, 430, 10, 5, LEFT, null);
+        m.text("hint", t(MUTE, hint), 20, hintAboveContent ? 59 : 430,
+                hintAboveContent ? 9 : 10, 5, LEFT, null);
         if (showBack) {
             smallButton(m, "back", 664, 416, 116, 26, RAISE, "返回主页",
                     MenuBuilder.spec(MenuBuilder.tooltip("&f返回小镇主页"),
@@ -88,13 +94,13 @@ public final class TownMenus {
         return m;
     }
 
-    private static void card(final MenuBuilder m, final String id, final double l, final double t,
+    static void card(final MenuBuilder m, final String id, final double l, final double t,
                              final double w, final double h, final String color) {
         m.rect(id + "-bg", l, t, w, h, color, 1);
         m.frame(id + "-frame", l, t, w, h, LINE, 3, 2);
     }
 
-    private static void card(final MenuBuilder m, final String id, final double l, final double t,
+    static void card(final MenuBuilder m, final String id, final double l, final double t,
                              final double w, final double h) {
         card(m, id, l, t, w, h, PANEL);
     }
@@ -107,7 +113,7 @@ public final class TownMenus {
                 ? WHITE : TEXT, label);
     }
 
-    private static void button(final MenuBuilder m, final String id, final double l, final double t,
+    static void button(final MenuBuilder m, final String id, final double l, final double t,
                                final double w, final double h, final String color, final String label,
                                final JsonObject spec) {
         m.rect(id + "-bg", l, t, w, h, color, 2);
@@ -116,7 +122,7 @@ public final class TownMenus {
         m.region(id, l, t, w, h, spec);
     }
 
-    private static void button(final MenuBuilder m, final String id, final double l, final double t,
+    static void button(final MenuBuilder m, final String id, final double l, final double t,
                                final double w, final double h, final String color, final String label,
                                final String... actions) {
         button(m, id, l, t, w, h, color, label,
@@ -124,7 +130,7 @@ public final class TownMenus {
                         MenuBuilder.click("all", actions)));
     }
 
-    private static void smallButton(final MenuBuilder m, final String id, final double l, final double t,
+    static void smallButton(final MenuBuilder m, final String id, final double l, final double t,
                                     final double w, final double h, final String color, final String label,
                                     final JsonObject spec) {
         m.rect(id + "-bg", l, t, w, h, color, 2);
@@ -133,7 +139,7 @@ public final class TownMenus {
         m.region(id, l, t, w, h, spec);
     }
 
-    private static void navCard(final MenuBuilder m, final String id, final double l, final double t,
+    static void navCard(final MenuBuilder m, final String id, final double l, final double t,
                                 final double w, final double h, final String material,
                                 final String title, final String subtitle, final JsonObject spec) {
         card(m, id, l, t, w, h);
@@ -143,7 +149,7 @@ public final class TownMenus {
         m.region(id, l, t, w, h, spec);
     }
 
-    private static void navCard(final MenuBuilder m, final String id, final double l, final double t,
+    static void navCard(final MenuBuilder m, final String id, final double l, final double t,
                                 final double w, final double h, final String material,
                                 final String title, final String subtitle, final String... actions) {
         navCard(m, id, l, t, w, h, material, title, subtitle,
@@ -151,7 +157,7 @@ public final class TownMenus {
                         MenuBuilder.click("all", actions)));
     }
 
-    private static void infoRow(final MenuBuilder m, final String id, final String label,
+    static void infoRow(final MenuBuilder m, final String id, final String label,
                                 final String value, final double cy, final double lx, final double vx) {
         m.text("i-" + id, t(MUTE, label), lx, cy, 12, 5, LEFT, null);
         m.text("v-" + id, t(TEXT, value), vx, cy, 12, 5, CENTER, dyn());
@@ -180,13 +186,13 @@ public final class TownMenus {
         m.text("hero-sub-2", t(MUTE, "让每一次建设都有归属。"), 44, 250, 12, 5, LEFT, null);
         button(m, "go-create", 44, 300, 310, 48, GREEN, "创建小镇　→", "command: town create");
         final String[] titles = {"登记小镇名称", "邀请首批成员", "落成镇政厅"};
-        final String[] subs = {"独一无二的名字，是小镇的起点", "至少 2 名成员，包含你自己", "支付成立费用，获得中心与初始领地"};
+        final String[] subs = {"独一无二的名字，是小镇的起点", "至少 {meta:min_members} 名成员，包含你自己", "支付成立费用，获得中心与初始领地"};
         for (int i = 0; i < 3; i++) {
             final double top = 64 + i * 112;
             card(m, "step-" + i, 406, top, 374, 98);
             m.text("step-no-" + i, t(ACC, "0" + (i + 1)), 430, top + 49, 22, 5, LEFT, null);
             m.text("step-title-" + i, t(TEXT, titles[i]), 482, top + 37, 15, 5, LEFT, null);
-            m.text("step-sub-" + i, t(MUTE, subs[i]), 482, top + 64, 10, 5, LEFT, null);
+            m.text("step-sub-" + i, t(MUTE, subs[i]), 625, top + 64, 10, 5, CENTER, i==1?dyn():null);
         }
         return m;
     }
@@ -271,19 +277,16 @@ public final class TownMenus {
         m.text("stat-members", t(TEXT, "{meta:member_count}") + t(MUTE, " 成员"), 500, 96, 12, 5, CENTER, dyn());
         m.text("stat-claims", t(TEXT, "{meta:claim_count}") + t(MUTE, " 领地"), 604, 96, 12, 5, CENTER, dyn());
         m.text("stat-buffs", t(TEXT, "{meta:buff_count}") + t(MUTE, " 祝福"), 708, 96, 12, 5, CENTER, dyn());
-        navCard(m, "b-members", 20, 140, 244, 112, "writable_book", "成员管理", "邀请、职位与成员详情", "command: town members");
-        navCard(m, "b-claim", 276, 140, 244, 112, "map", "领地地图", "查看、购买与放弃区块", "command: town claimmap center");
-        navCard(m, "b-buffs", 20, 264, 244, 112, "potion", "领地祝福", "急迫、再生与更多祝福", "command: town buffs");
-        navCard(m, "b-spawn", 276, 264, 244, 112, "lodestone", "回到小镇", "传送至小镇传送点",
-                "close:", "command: town spawn");
-        card(m, "hall", 536, 140, 244, 164);
-        m.item("hall-icon", "lodestone", 658, 174, 32, 4);
-        m.text("hall-title", t(TEXT, "镇政厅"), 658, 208, 16, 5, CENTER, null);
-        m.text("hall-state", t(GREEN, "{meta:hall_state}"), 658, 238, 12, 5, CENTER, dyn());
-        m.text("hall-pos", t(MUTE, "{meta:hall_position}"), 658, 266, 10, 5, CENTER, dyn());
-        button(m, "danger", 536, 316, 244, 60, RAISE, t(RED, "{meta:danger_label}"),
-                MenuBuilder.spec(MenuBuilder.tooltip("&f退出或解散前需要再次确认"),
-                        MenuBuilder.click("all", "command: town confirm {meta:danger_action}")));
+        navCard(m,"b-members",20,140,244,92,"writable_book","成员管理","邀请伙伴与职务","command: town members");
+        navCard(m,"b-claim",278,140,244,92,"map","领土地图","自主选择相连区块","command: town claimmap center");
+        navCard(m,"b-plots",536,140,244,92,"oak_door","地块与租赁","住宅、商铺与授权","command: town manage plots");
+        navCard(m,"b-civic",20,244,244,92,"emerald","镇库与发展","科技、政策与贡献","command: town manage civic");
+        navCard(m,"b-market",278,244,244,92,"chest","商业街","现货、订单与收件箱","command: town manage market");
+        navCard(m,"b-planning",536,244,244,92,"brush","城镇规划","建筑迁移与工程验收","command: town manage planning");
+        button(m,"b-spawn",20,348,176,38,GREEN,"回到小镇","close:","command: town spawn");
+        button(m,"b-buffs",210,348,176,38,RAISE,"领地祝福","command: town buffs");
+        button(m,"b-approvals",400,348,176,38,RAISE,"待办审批","command: town manage approvals");
+        button(m,"danger",590,348,190,38,RAISE,t(RED,"{meta:danger_label}"),"command: town confirm {meta:danger_action}");
         return m;
     }
 
@@ -493,6 +496,7 @@ public final class TownMenus {
         all.put(CLAIM, claim());
         all.put(BUFFS, buffs());
         all.put(CONFIRM, confirm());
+        all.putAll(TownOperationMenus.all());
         return all;
     }
 

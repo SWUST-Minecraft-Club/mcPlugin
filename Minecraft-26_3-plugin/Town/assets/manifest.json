@@ -1,0 +1,69 @@
+{
+  "tool": "image_gen.imagegen",
+  "conversion": "./rebuild_textures.py",
+  "files": [
+    {
+      "path": "./source/surveyor-reference.png",
+      "sha256": "05c93781a1e18110814c11c3168235b728eced70602007a515df6d737f58912a",
+      "bytes": 605338,
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA"
+    },
+    {
+      "path": "./source/town-material-reference.png",
+      "sha256": "8955d98bd2b111a52d04852bcca70db37b4455a20d0c72771b6db0430d781660",
+      "bytes": 1361944,
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGB"
+    },
+    {
+      "path": "./../src/main/resources/craftengine/configuration/town.yml",
+      "sha256": "6a10781f3439e762c080d881e403b6618af6c89282756d97f543f2986c6b88c5",
+      "bytes": 1893
+    },
+    {
+      "path": "./../src/main/resources/craftengine/pack.yml",
+      "sha256": "cfb38abeb905b8a639d74d8b47596e6be06e38e983fd7dadb4077942a98071e8",
+      "bytes": 117
+    },
+    {
+      "path": "./../src/main/resources/craftengine/resourcepack/assets/town/models/block/town_hall.json",
+      "sha256": "7540af8ab1538fbcabab56b46bf65f2fbaedb37cbef794333609774e11024db7",
+      "bytes": 188
+    },
+    {
+      "path": "./../src/main/resources/craftengine/resourcepack/assets/town/textures/block/town_hall_front.png",
+      "sha256": "b3619c23b35bfaf341ec170e8b95c4251a7bbfc9fdab68cdcb03a76e90e43dc5",
+      "bytes": 2038,
+      "width": 32,
+      "height": 32,
+      "mode": "RGB"
+    },
+    {
+      "path": "./../src/main/resources/craftengine/resourcepack/assets/town/textures/block/town_hall_side.png",
+      "sha256": "66fa479730a12326fe6bbd5e7c3e52bf877e9b1c67a0a99779c980ac25989655",
+      "bytes": 1763,
+      "width": 32,
+      "height": 32,
+      "mode": "RGB"
+    },
+    {
+      "path": "./../src/main/resources/craftengine/resourcepack/assets/town/textures/block/town_hall_top.png",
+      "sha256": "f5e4a3ac4311f7e7020450040ecf1aaa409a129e23645f8189ecea8f1785b261",
+      "bytes": 2188,
+      "width": 32,
+      "height": 32,
+      "mode": "RGB"
+    },
+    {
+      "path": "./../src/main/resources/craftengine/resourcepack/assets/town/textures/item/surveyor.png",
+      "sha256": "adf68b48f39b892e416709731e5782a8c037bd6f70ccfc6f860334ee3ca81111",
+      "bytes": 1444,
+      "width": 32,
+      "height": 32,
+      "mode": "RGBA"
+    }
+  ]
+}

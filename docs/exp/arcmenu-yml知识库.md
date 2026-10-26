@@ -2574,3 +2574,10 @@ AI 如果无法取得全目录、图片清单或依赖状态，只能保证单�
 - **规避**：异步任务只准备数据；最后通过 `player.getScheduler()`（本仓 `Threads.forPlayer`）写 META、refresh 和打开菜单，并再次核对当前页面/参数未变化。
   同 key 请求共享等待，资源包重建失败继续使用占位内容，不能把文件存在当作已入包。
 - **来源**：2026-10-25 Town 小地图 `world_-3_2.png` 回调异常与修复。
+
+### 25.12 ArcMenu 3.2 原生文本输入限制为 1～50 字符
+
+- **现象**：经营菜单点击金额输入后没有出现输入界面，返回 `Native input maxLength must be between 1 and 50`。
+- **根因**：`ArcMenuTextInput` 选择原生输入通道时校验长度；将通用输入长度设为 96 超出该通道限制。
+- **规避/解决**：原生兼容输入长度限制在 50 内；名称、金额、UUID 和三维整数坐标都可在此范围表达。本次未装 Editor 的客户端实际打开铁砧界面，填写后点击右侧结果提交；不能把所有客户端通道统一描述为“按回车提交”。回调仍需返回玩家区域线程。
+- **来源**：2026-10-26，Town Beta_0_6_0 双客户端菜单点击与贡献 12.50 TEST 联调；`./Minecraft-26_3-plugin/Town/src/main/java/com/example/town/arcmenu/TownUi.java`。

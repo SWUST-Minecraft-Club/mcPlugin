@@ -43,6 +43,42 @@ public final class TownCommand {
                     help(plugin, ctx.getSource().getSender());
                     return 1;
                 }))
+                .then(PlotCommands.create(plugin))
+                .then(CivicCommands.create(plugin))
+                .then(MoveCommands.create(plugin))
+                .then(MarketCommands.create(plugin))
+                .then(Commands.literal("manage").executes(ctx->{Player p=player(ctx);if(p!=null && plugin.ui()!=null) plugin.ui().operation(p,"civic");return 1;})
+                        .then(Commands.argument("operation",StringArgumentType.greedyString()).executes(ctx->{
+                            Player p=player(ctx);if(p!=null) {if(plugin.ui()==null) plugin.messages().send(p,"arcmenu-missing");else plugin.ui().operation(p,StringArgumentType.getString(ctx,"operation"));}return 1;
+                        })))
+                .then(Commands.literal("hall").executes(ctx->{
+                    final Player player=needPlayer(plugin,ctx);
+                    if(player!=null) {
+                        var town=plugin.service().townOf(player.getUniqueId());
+                        if(town==null) plugin.messages().send(player,"not-in-town");
+                        else if(!town.mayor().equals(player.getUniqueId())) plugin.messages().send(player,"hall-must-mayor");
+                        else if(!town.active()) plugin.messages().send(player,"hall-pending");
+                        else if(town.hallSet()) plugin.messages().send(player,"hall-exists");
+                        else plugin.townHalls().give(player);
+                    }
+                    return 1;
+                }))
+                .then(Commands.literal("select")
+                        .executes(ctx->{if(player(ctx)!=null) plugin.selections().giveTool(player(ctx));return 1;})
+                        .then(Commands.argument("action",StringArgumentType.word()).executes(ctx->{
+                            Player p=player(ctx);
+                            if(p==null) return 0;
+                            String action=StringArgumentType.getString(ctx,"action");
+                            try {
+                                switch(action) {
+                                    case "pos1" -> plugin.selections().selectTarget(p,1);
+                                    case "pos2" -> plugin.selections().selectTarget(p,2);
+                                    case "clear" -> { plugin.selections().clear(p.getUniqueId());plugin.messages().send(p,"selection-cleared"); }
+                                    default -> plugin.messages().send(p,"selection-help");
+                                }
+                            } catch(IllegalArgumentException e) { plugin.messages().send(p,e.getMessage()); }
+                            return 1;
+                        })))
                 .then(Commands.literal("create")
                         .executes(ctx -> {
                             final Player player = needPlayer(plugin, ctx);
@@ -55,7 +91,7 @@ public final class TownCommand {
                             }
                             return 1;
                         })
-                        .then(Commands.argument("name", StringArgumentType.word())
+                        .then(Commands.argument("name", StringArgumentType.greedyString())
                                 .executes(ctx -> {
                                     final Player player = needPlayer(plugin, ctx);
                                     if (player == null) {
@@ -206,7 +242,7 @@ public final class TownCommand {
                                     return 1;
                                 })))
                 .then(Commands.literal("member")
-                        .then(Commands.argument("name", StringArgumentType.word())
+                        .then(Commands.argument("name", StringArgumentType.greedyString())
                                 .executes(ctx -> {
                                     final Player player = needPlayer(plugin, ctx);
                                     if (player != null) {
@@ -321,7 +357,7 @@ public final class TownCommand {
                             }
                             return 1;
                         })
-                        .then(Commands.argument("name", StringArgumentType.word())
+                        .then(Commands.argument("name", StringArgumentType.greedyString())
                                 .executes(ctx -> {
                                     final Player player = needPlayer(plugin, ctx);
                                     if (player != null) {

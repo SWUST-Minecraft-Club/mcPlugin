@@ -48,7 +48,11 @@ public final class TownStore {
         if (!Files.exists(file)) {
             return result;
         }
-        YamlConfiguration yml = YamlConfiguration.loadConfiguration(file.toFile());
+        YamlConfiguration yml = new YamlConfiguration();
+        try { yml.load(file.toFile()); }
+        catch(IOException|org.bukkit.configuration.InvalidConfigurationException error) {
+            throw new IllegalStateException("towns.yml 无法读取，停止加载以保留原数据",error);
+        }
         ConfigurationSection towns = yml.getConfigurationSection("towns");
         if (towns == null) {
             return result;
@@ -61,7 +65,7 @@ public final class TownStore {
             try {
                 result.add(parseTown(id, s));
             } catch (Exception e) {
-                plugin.getLogger().log(Level.WARNING, "小镇 " + id + " 数据损坏，已跳过：" + e.getMessage(), e);
+                throw new IllegalStateException("小镇 " + id + " 数据损坏，停止加载以保留原数据",e);
             }
         }
         plugin.getLogger().info("已加载 " + result.size() + " 个小镇。");
@@ -134,6 +138,14 @@ public final class TownStore {
                     s.getDouble("spawn.x"), s.getDouble("spawn.y"), s.getDouble("spawn.z"),
                     (float) s.getDouble("spawn.yaw"), (float) s.getDouble("spawn.pitch"));
         }
+        // 旧版本已经自动赠地的城镇升级时额度为零，拆放核心也不能再次领取。
+        town.foundingClaimsGranted(s.getBoolean("founding-claims-granted", town.isHallSet() || !town.claims().isEmpty()));
+        town.freeClaimsRemaining(Math.max(0,s.getInt("free-claims-remaining",0)));
+        for (Map<?,?> raw : s.getMapList("plots")) {
+            var plot=PlotCodec.decode(raw);
+            if (town.plots().putIfAbsent(plot.id(),plot)!=null) throw new IllegalArgumentException("重复地块 ID "+plot.id());
+        }
+        town.civic(CivicCodec.decode(s.getConfigurationSection("civic")));
         return town;
     }
 
@@ -146,6 +158,12 @@ public final class TownStore {
                 yml.set("towns." + town.id() + ".mayor", town.mayor().toString());
                 yml.set("towns." + town.id() + ".created", town.createdAt());
                 yml.set("towns." + town.id() + ".state", town.state().name());
+                yml.set("towns." + town.id() + ".founding-claims-granted", town.foundingClaimsGranted());
+                yml.set("towns." + town.id() + ".free-claims-remaining", town.freeClaimsRemaining());
+                yml.set("towns." + town.id() + ".plots", town.plots().values().stream()
+                        .sorted(java.util.Comparator.comparing(com.example.town.model.Plot::id))
+                        .map(PlotCodec::encode).toList());
+                yml.set("towns." + town.id() + ".civic", CivicCodec.encode(town.civic()));
                 for (Map.Entry<UUID, Role> e : town.members().entrySet()) {
                     yml.set("towns." + town.id() + ".members." + e.getKey(), e.getValue().name());
                 }
@@ -186,6 +204,16 @@ public final class TownStore {
         writeSnapshot(snapshot(registry));
     }
 
+    /** 金融操作在 IO 线程调用，失败抛出异常；调用方回滚内存并保留待恢复支付。 */
+    public void saveChecked(TownRegistry registry) throws IOException {
+        SaveSnapshot snapshot=snapshot(registry);
+        synchronized(fileIoLock) {
+            if(snapshot.sequence()<=lastWrittenSequence) return;
+            AtomicFiles.write(file,snapshot.yml().saveToString().getBytes(StandardCharsets.UTF_8));
+            lastWrittenSequence=snapshot.sequence();
+        }
+    }
+
     /** 快照在调用时固定，仅文件 IO 交给异步线程。 */
     public void saveAllAsync(TownRegistry registry) {
         SaveSnapshot snapshot = snapshot(registry);
@@ -197,24 +225,17 @@ public final class TownStore {
             if (snapshot.sequence() <= lastWrittenSequence) {
                 return;
             }
-            atomicWrite(snapshot.yml());
-            lastWrittenSequence = snapshot.sequence();
+            if (atomicWrite(snapshot.yml())) lastWrittenSequence = snapshot.sequence();
         }
     }
 
-    private void atomicWrite(YamlConfiguration yml) {
+    private boolean atomicWrite(YamlConfiguration yml) {
         try {
-            Path dir = file.getParent();
-            Files.createDirectories(dir);
-            Path tmp = Files.createTempFile(dir, "towns-", ".tmp");
-            Files.writeString(tmp, yml.saveToString(), StandardCharsets.UTF_8);
-            try {
-                Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-            } catch (IOException atomicUnsupported) {
-                Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING);
-            }
+            AtomicFiles.write(file,yml.saveToString().getBytes(StandardCharsets.UTF_8));
+            return true;
         } catch (IOException e) {
             plugin.getLogger().log(Level.SEVERE, "towns.yml 写入失败：" + e.getMessage(), e);
+            return false;
         }
     }
 }

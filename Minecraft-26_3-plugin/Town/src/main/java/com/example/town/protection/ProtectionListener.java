@@ -2,6 +2,7 @@ package com.example.town.protection;
 
 import com.example.town.TownPlugin;
 import com.example.town.model.ChunkKey;
+import com.example.town.model.PlotRules;
 import com.example.town.service.TownService;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,9 @@ import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
+import org.bukkit.event.block.BlockFromToEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
@@ -89,14 +93,14 @@ public final class ProtectionListener implements Listener {
         if (event.getAction() == Action.PHYSICAL) {
             // 踩耕地 / 压力板：静默取消，不发提示
             if (plugin.config().protection().interact()
-                    && deny(event.getPlayer(), event.getClickedBlock().getLocation())) {
+                    && service.denied(event.getPlayer(), event.getClickedBlock().getLocation(),PlotRules.Action.INTERACT)) {
                 event.setUseInteractedBlock(org.bukkit.event.Event.Result.DENY);
             }
             return;
         }
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK
                 && plugin.config().protection().interact()
-                && deny(event.getPlayer(), event.getClickedBlock().getLocation())) {
+                && service.denied(event.getPlayer(), event.getClickedBlock().getLocation(),PlotRules.Action.INTERACT)) {
             event.setUseInteractedBlock(org.bukkit.event.Event.Result.DENY);
             warn(event.getPlayer());
         }
@@ -108,8 +112,8 @@ public final class ProtectionListener implements Listener {
                 || !plugin.config().protection().container()) {
             return;
         }
-        Location location = containerLocation(event.getInventory().getHolder());
-        if (location != null && deny(player, location)) {
+        if (containerLocations(event.getInventory().getHolder()).stream()
+                .anyMatch(location -> service.denied(player,location,PlotRules.Action.CONTAINER))) {
             event.setCancelled(true);
             warn(player);
         }
@@ -175,15 +179,38 @@ public final class ProtectionListener implements Listener {
 
     private boolean pistonCrosses(List<Block> blocks, BlockFace direction) {
         for (Block block : blocks) {
-            var from = service.townAt(ChunkKey.of(block.getLocation()));
-            var to = service.townAt(ChunkKey.of(block.getRelative(direction).getLocation()));
-            String fromTownId = from == null ? null : from.id();
-            String toTownId = to == null ? null : to.id();
+            String fromTownId = domain(block.getLocation());
+            String toTownId = domain(block.getRelative(direction).getLocation());
             if (!Objects.equals(fromTownId, toTownId)) {
                 return true;
             }
         }
         return false;
+    }
+
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void onFluid(BlockFromToEvent event) {
+        if (plugin.config().protection().bucket()
+                && !Objects.equals(domain(event.getBlock().getLocation()),domain(event.getToBlock().getLocation())))
+            event.setCancelled(true);
+    }
+
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void onHopper(InventoryMoveItemEvent event) {
+        if (!plugin.config().protection().container()) return;
+        var sources=containerLocations(event.getSource().getHolder());
+        var targets=containerLocations(event.getDestination().getHolder());
+        for (Location source:sources) for (Location target:targets) {
+            if (!Objects.equals(domain(source),domain(target))) { event.setCancelled(true); return; }
+        }
+    }
+
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void onEntityInteract(PlayerInteractEntityEvent event) {
+        Entity target=event.getRightClicked();
+        PlotRules.Action action=target instanceof ItemFrame || target instanceof ArmorStand
+                ? PlotRules.Action.BUILD : PlotRules.Action.INTERACT;
+        if (service.denied(event.getPlayer(),target.getLocation(),action)) event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -302,6 +329,25 @@ public final class ProtectionListener implements Listener {
             return entity.getLocation();
         }
         return null;
+    }
+
+    private List<Location> containerLocations(InventoryHolder holder) {
+        if (holder instanceof DoubleChest chest) {
+            var locations=new java.util.ArrayList<Location>();
+            Location left=containerLocation(chest.getLeftSide()),right=containerLocation(chest.getRightSide());
+            if (left!=null) locations.add(left);
+            if (right!=null) locations.add(right);
+            return locations;
+        }
+        Location location=containerLocation(holder);
+        return location==null?List.of():List.of(location);
+    }
+
+    private String domain(Location location) {
+        var town=service.townAt(ChunkKey.of(location));
+        if (town==null) return null;
+        var plot=PlotRules.at(town.raw(),location.getWorld().getName(),location.getBlockX(),location.getBlockZ());
+        return town.id()+":"+(plot==null?"public":plot.id());
     }
 
     private void warn(Player player) {

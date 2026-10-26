@@ -17,7 +17,7 @@ class TownMenusTest {
 
     private static final TownConfig CONFIG = new TownConfig(
             2, 0, 2, 12, Pattern.compile("[0-9A-Za-z_\\u4e00-\\u9fa5]+"),
-            72L * 3600_000L, 30L * 60_000L, "", 1000, 1,
+            72L * 3600_000L, 30L * 60_000L, "", 1000, 1, 9,
             Set.of(), true, 256, 50, "", Material.LODESTONE,
             new TownConfig.Protection(true, true, true, true, true, true, true, true, true, true),
             40, java.util.List.of(), 10, Map.of());
@@ -25,7 +25,7 @@ class TownMenusTest {
     @Test
     void generatesElevenValidSelfContainedMenus() {
         Map<String, MenuBuilder> menus = TownMenus.all(CONFIG);
-        assertEquals(11, menus.size());
+        assertEquals(11 + TownOperationMenus.all().size(), menus.size());
         for (Map.Entry<String, MenuBuilder> entry : menus.entrySet()) {
             String json = entry.getValue().dump(entry.getKey());
             JsonObject doc = JsonParser.parseString(json).getAsJsonObject();

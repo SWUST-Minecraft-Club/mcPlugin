@@ -24,6 +24,10 @@ public final class Town {
     private final Set<ChunkKey> claims = new HashSet<>();
     /** 生效中的 buff：buffId -> 过期时间（epoch millis；-1 = 永久）。 */
     private final Map<String, Long> buffs = new HashMap<>();
+    private final Map<String, Plot> plots = new HashMap<>();
+    private int freeClaimsRemaining;
+    private boolean foundingClaimsGranted;
+    private com.example.town.economy.CivicState civic = com.example.town.economy.CivicState.empty();
 
     /** 镇政厅方块位置（放置后非空）。 */
     private ChunkKey hallChunk;
@@ -102,6 +106,26 @@ public final class Town {
 
     public Map<String, Long> buffs() {
         return buffs;
+    }
+
+    public Map<String, Plot> plots() { return plots; }
+    public com.example.town.economy.CivicState civic() { return civic; }
+    public void civic(com.example.town.economy.CivicState civic) { this.civic=java.util.Objects.requireNonNull(civic); }
+    public int freeClaimsRemaining() { return freeClaimsRemaining; }
+    public void freeClaimsRemaining(int count) {
+        if (count < 0) throw new IllegalArgumentException("赠地区块额度不能为负");
+        freeClaimsRemaining=count;
+    }
+    public boolean foundingClaimsGranted() { return foundingClaimsGranted; }
+    public void foundingClaimsGranted(boolean granted) { foundingClaimsGranted=granted; }
+
+    /** 额度只在首次登记核心时发放；改变配置或重放核心不重置已消费额度。 */
+    public int grantFoundingClaims(int total, int maximum) {
+        if (foundingClaimsGranted) return 0;
+        int allowance = maximum > 0 ? Math.min(total, maximum) : total;
+        freeClaimsRemaining = Math.max(0, allowance - claims.size());
+        foundingClaimsGranted = true;
+        return freeClaimsRemaining;
     }
 
     public boolean isHallSet() {
