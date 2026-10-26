@@ -497,6 +497,7 @@ dependencies {
 | `1_0_0` | `0c83099` | 出正式版：清理 ESC 暂停菜单（去掉 4 个图标按钮 + 第三方内容警告，ESC→主菜单一步到位）；产物已留档 |
 | `Beta_1_0_1` | `da87b2c` | 正式版后重回测试版：修 `fabric.mod.json` 里的仓库地址（`mcPligin` → `mcPlugin`）；产物已留档 |
 | `Beta_1_0_2` | `02f969a` | 修：服务端未装 MainMenu 时时钟右键空气仍会判定并发未知命令；改为先检查命令树里的 `/cd clockair`；产物已留档 |
+| `Beta_1_1_0` | `c3c9587` | 新增：去掉服务端 dialog 右上角的「自定义屏幕」警告图标（标题重新居中）；产物已留档 |
 
 **YudreamPlaytime（插件，MainMenu 伴侣）**
 
