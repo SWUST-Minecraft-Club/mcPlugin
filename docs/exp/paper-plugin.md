@@ -94,3 +94,17 @@
 - **根因**：HotSpot 校验钩子类字节码时，为验证可赋值性可能加载 `WalletFeature`，进而解析其父接口 `MenuFeature`（MainMenu 类不在 classloader）→ 炸；是否触发与校验器对该方法的类型推断路径有关，同构代码表现不一致（Town 未触发、Wallet 触发），不可依赖「实测没炸」。
 - **规避/解决**：钩子里对依赖插件的类型**全部反射**（`Class.forName` + `Constructor/Method.invoke`），字段一律 `Object`，本类可验证性不再依赖任何外部类型；`create()` 里先 `Class.forName` 探活再返回实例。实现见 `./Minecraft-26_3-plugin/Wallet/.../menu/WalletMainMenuHook.java`。
 - **来源**：2026.10.25，Wallet 测试模式接入（Beta_0_5_0）。
+
+### dialog 的物品正文固定 16 像素，`width`/`height` 只是布局框
+
+- **现象**：给 dialog 的 item 正文设 `width`/`height` 64，并让资源包模型放大 4 倍，物品仍只有 16 像素、贴在布局框左上角，框上还多一圈白色描边。
+- **根因**（反编译 26.3 客户端确认）：`DialogBodyHandlers$ItemHandler` 把 `width`/`height` 传给 `ItemDisplayWidget`，
+  渲染时固定调 `GuiGraphicsExtractor.item(stack, getX(), getY(), 0)` —— 物品按原版 16 GUI 像素绘制，框只影响布局；
+  `isFocused()` 时会 `outline(x, y, width, height, -1)`，白框是键盘焦点描边而不是贴图；模型 `display.gui` 的 `scale`
+  生效（以布局框左上 16 像素槽的中心为原点），`translation` 单位是 **1 像素**，方向与旧版渲染管线不同，需按实测校准。
+- **规避/解决**：要放大图标，就在资源包模型里加 `display.gui.scale` + `translation` 居中，并把 `width`/`height`
+  设成放大后的尺寸（物品会被裁剪在控件框内，框必须 ≥ 图标）；不引资源包就按 16 像素设计图标；
+  dialog 正文是纵向列表，无法把 4 个物品拼成 2×2 网格。
+- **来源**：2026.10.25～26，JoinAnnounce 社团徽章尝试（`Beta_0_3_0`～`Beta_0_5_0`，已整体回退）；
+  `./fabric-26_3-mod/MainMenuRepair/build/minecraft/client-26.3.jar` 的 `DialogBodyHandlers$ItemHandler` /
+  `ItemDisplayWidget` / `GuiGraphicsExtractor`。
