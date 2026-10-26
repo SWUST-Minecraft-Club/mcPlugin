@@ -111,24 +111,32 @@ public final class MenuCleaner {
 
         int icons = 0;
         int removed = 0;
+        int iconTop = Integer.MAX_VALUE;
+        int iconBottom = Integer.MIN_VALUE;
+        final List<AbstractWidget> widgets = new ArrayList<>();
         for (final GuiEventListener child : children) {
             // SpriteIconButton 覆盖报告 Bug / 给予反馈 / 举报玩家，FriendsButton 也继承它
-            if (!(child instanceof SpriteIconButton)) {
-                continue;
-            }
-            icons++;
-            if (child instanceof AbstractWidget widget) {
-                // 先隐藏：即使下面的移除失败，玩家也看不到它们
-                widget.visible = false;
-                widget.active = false;
-            }
-            try {
-                ((ScreenAccess) screen).mainmenuRepair$removeWidget(child);
-                removed++;
-            } catch (final Throwable ignored) {
-                // 移除失败也没关系，已经隐藏了
+            if (child instanceof SpriteIconButton) {
+                icons++;
+                if (child instanceof AbstractWidget icon) {
+                    iconTop = Math.min(iconTop, icon.getY());
+                    iconBottom = Math.max(iconBottom, icon.getY() + icon.getHeight());
+                    // 先隐藏：即使下面的移除失败，玩家也看不到它们
+                    icon.visible = false;
+                    icon.active = false;
+                }
+                try {
+                    ((ScreenAccess) screen).mainmenuRepair$removeWidget(child);
+                    removed++;
+                } catch (final Throwable ignored) {
+                    // 移除失败也没关系，已经隐藏了
+                }
+            } else if (child instanceof AbstractWidget widget) {
+                widgets.add(widget);
             }
         }
+
+        final int shifted = collapseIconRow(widgets, iconTop, iconBottom);
 
         int tooltips = 0;
         for (final GuiEventListener child : screen.children()) {
@@ -140,7 +148,54 @@ public final class MenuCleaner {
         }
 
         StatusLog.append(source + "：控件 " + children.size() + " 个，图标 " + icons
-                + " 个（移除 " + removed + "），清空提示 " + tooltips + " 个");
+                + " 个（移除 " + removed + "），空行上移 " + shifted + " 像素，清空提示 "
+                + tooltips + " 个");
+    }
+
+    /** 原版暂停菜单网格每个单元格上下各有 4 像素内边距，相邻两行的正常间距是 8 */
+    private static final int MENU_ROW_GAP = 8;
+
+    /**
+     * 收掉图标行空出来的高度。
+     *
+     * <p>原版 {@code GridLayout} 在图标被隐藏后仍为那一行保留高度（按钮高 + 上下内边距），
+     * 中间的空白不会自己收掉。这里按实际控件位置算出当前间距，把这行下方的控件整体上移，
+     * 让间距回到正常行距；重复执行时间距已经是正常值，会直接跳过。
+     */
+    private static int collapseIconRow(
+            final List<AbstractWidget> widgets, final int iconTop, final int iconBottom) {
+        if (iconTop == Integer.MAX_VALUE) {
+            return 0;
+        }
+        AbstractWidget upper = null;
+        AbstractWidget next = null;
+        for (final AbstractWidget widget : widgets) {
+            if (!widget.visible) {
+                continue;
+            }
+            final int top = widget.getY();
+            final int bottom = top + widget.getHeight();
+            if (bottom <= iconTop && (upper == null || bottom > upper.getY() + upper.getHeight())) {
+                upper = widget;
+            }
+            if (top >= iconBottom && (next == null || top < next.getY())) {
+                next = widget;
+            }
+        }
+        if (upper == null || next == null) {
+            return 0;
+        }
+        final int gap = next.getY() - (upper.getY() + upper.getHeight());
+        if (gap <= MENU_ROW_GAP) {
+            return 0;
+        }
+        final int shift = gap - MENU_ROW_GAP;
+        for (final AbstractWidget widget : widgets) {
+            if (widget.getY() >= iconBottom) {
+                widget.setY(widget.getY() - shift);
+            }
+        }
+        return shift;
     }
 
     /**

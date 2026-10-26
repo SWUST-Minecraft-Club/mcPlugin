@@ -5,7 +5,7 @@
 | 改动 | 实现 |
 | --- | --- |
 | 去掉服务器自定义选项按钮上的 *注：自定义选项由第三方服务器或内容提供。请小心操作！* | Mixin `PauseScreen.addCustomDialogButtons`，把 `Button$Builder.tooltip(...)` 的参数置空 |
-| 移除右下角 4 个原版图标按钮：报告 Bug / 给予反馈 / 好友 / 举报玩家 | Mixin `PauseScreen.createPauseMenu`，把图标行 `LinearLayout.horizontal()` 换成不接收子控件的 `EmptyIconRow`，4 个按钮不会被创建 |
+| 移除右下角 4 个原版图标按钮：报告 Bug / 给予反馈 / 好友 / 举报玩家 | Fabric API `ScreenEvents.AFTER_INIT` 中隐藏并移出 4 个 `SpriteIconButton`，再把图标行下方的按钮整体上移收掉空行；Mixin `PauseScreen.createPauseMenu` 用 `EmptyIconRow` 做增强 |
 | 跳过 ESC →「主菜单」的中间 dialog 页 | Fabric API `ScreenEvents.AFTER_INIT` 把按钮换成直接发 `/cd`；Mixin `Gui#setScreen` 拦下 dialog 界面兜底 |
 | 手持时钟右键空气打开主菜单 | `ClientTickEvents.END_CLIENT_TICK` 检测“按下使用键 + 瞄准空气”，发 `/cd clockair`；仅在服务端提供该命令（装了 MainMenu）时启用 |
 | 去掉服务端自定义界面右上角的黄色「自定义屏幕」警告图标 | Fabric API `ScreenEvents.AFTER_INIT` 遍历 `DialogScreen` 控件，按 `menu.custom_screen_info` 提示文本识别并隐藏，尺寸归零后标题重新居中 |

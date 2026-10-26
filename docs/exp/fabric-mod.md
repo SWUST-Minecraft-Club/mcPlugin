@@ -39,6 +39,17 @@
   （`src/mixin-stubs/java/com/mojang/brigadier/`），它不在客户端 jar 里。
 - **来源**：MainMenuRepair `Beta_1_0_2`；`MainMenuRepairClient#detectClockAirCommand`。
 
+## 隐藏/移除布局里的控件不会自动收掉行高
+
+- **现象**：暂停菜单移除右下角 4 个图标按钮后，中间仍留着一大段空白，按钮没有并拢。
+- **根因**：原版用 `GridLayout` + `createRowHelper(2)` 排版，图标行是一个 `LinearLayout` 单元格
+  （按钮 20 高 + 上下各 4 像素内边距）；Fabric API 通道是在 `init()` 之后才拿到界面，
+  这时布局已排好。把按钮 `visible=false` 或从 `Screen#children()` 移除，都不会让 `GridLayout` 重新计算行高。
+- **规避/解决**：按控件实际位置算当前间距（上一行底部到下一行顶部），把图标行下方所有控件的 Y 减去
+  「当前间距 - 正常行距 8」，重复执行时检测到间距已正常就跳过。不要依赖 Mixin `@Redirect` 替换布局，
+  本环境 Mixin 不生效；它只能作为无效时的增强。
+- **来源**：MainMenuRepair `Beta_1_1_2`；`MenuCleaner#collapseIconRow`。
+
 ## 客户端模组的排查输出不要用 System.out
 
 - **现象**：用 `System.out.println` 打的排查信息，在游戏的 `latest.log` 里完全看不到，导致误判"代码没执行"。
