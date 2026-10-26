@@ -62,3 +62,10 @@
 - **根因**：`~/.gradle/gradle.properties` 里配置的本地代理（127.0.0.1:7897）进程活着但隧道握手失败；Gradle 走该代理全军覆没，curl 没走代理反而通。
 - **规避/解决**：注释掉代理两行并加 `systemProp.http.nonProxyHosts=*` 旁路（原配置备份 `gradle.properties.bak-*`），`./gradlew --stop` 后重跑；网络恢复后可还原。
 - **来源**：2026.10.24，Town 首次构建。
+
+## Git URL 重写会改变推送认证的主机
+
+- **现象**：正常的 GitHub 远端在推送时变成代理地址，报无法读取 Username 或 HTTP 403；本机对 GitHub 的凭据实际可用。
+- **根因**：全局 `url.<代理前缀>.insteadOf` 改写传输 URL，而凭据按主机匹配；代理主机与 GitHub 主机的认证不是同一项。本次添加反向重写后，原始 GitHub URL 仍先匹配原规则，未能绕过代理。
+- **规避/解决**：先区分 `git config --get-all remote.origin.pushurl` 的原始地址与 `git remote get-url --push --all origin` 的实际地址，再核对重写的配置作用域。临时直推时，只在该次进程中让 `GIT_CONFIG_GLOBAL` 指向空配置，并通过进程配置保留原有 `credential.helper`；否则绕过重写时也会失去全局认证配置。凭据可用性通过捕获 `git credential fill` 的结果判断，只记录布尔状态，禁止打印或提交密码。推送后分别核对主仓与镜像的 `main`。
+- **来源**：2026-10-26，MainMenu `Beta_1_6_0` 推送；代理传输失败，临时绕过全局重写后两个 origin push 地址均成功。代理地址、凭据和本机配置位置均不在本条记录中展开。
