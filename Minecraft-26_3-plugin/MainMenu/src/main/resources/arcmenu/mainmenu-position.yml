@@ -1,0 +1,4296 @@
+# Editable native ArcMenu phone UI. Existing server files are never overwritten.
+# Change layout, labels, models, tooltips and actions here; use /cd reload to apply.
+# Palette: edit the first &phone-<color> anchor; its *phone-<color> aliases follow.
+# META values are supplied by MainMenu. See the MainMenu README for the data contract.
+# Frontend offsets include measured depth/rectangle compensation; backend uses root coordinates.
+schema-version: 1
+id: mainmenu-position
+permission: mainmenu.admin
+open-commands: []
+main-menu: false
+canvas:
+  width: 800
+  height: 450
+  pixels-per-block: 42.7
+  distance: 2
+frontend:
+  phone-shell:
+    type: rectangle
+    width: 60.0578
+    height: 100.9937
+    color: &phone-shell '#222B2A'
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 4.2922
+      z: -3
+  phone-shell-top-0:
+    type: rectangle
+    width: 54.7327
+    height: 1.4243
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 50.8264
+      z: -3
+  phone-shell-bottom-0:
+    type: rectangle
+    width: 54.7327
+    height: 1.4243
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -50.7053
+      z: -3
+  phone-shell-top-1:
+    type: rectangle
+    width: 57.7933
+    height: 1.4243
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 49.5232
+      z: -3
+  phone-shell-bottom-1:
+    type: rectangle
+    width: 57.7933
+    height: 1.4243
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -49.4021
+      z: -3
+  phone-shell-top-2:
+    type: rectangle
+    width: 59.3045
+    height: 1.4243
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 48.22
+      z: -3
+  phone-shell-bottom-2:
+    type: rectangle
+    width: 59.3045
+    height: 1.4243
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -48.0989
+      z: -3
+  phone-shell-top-3:
+    type: rectangle
+    width: 59.9768
+    height: 1.4243
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 46.9168
+      z: -3
+  phone-shell-bottom-3:
+    type: rectangle
+    width: 59.9768
+    height: 1.4243
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -46.7957
+      z: -3
+  phone-rim:
+    type: rectangle
+    width: 58.4257
+    height: 99.2969
+    color: &phone-rim '#61675E'
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 4.2201
+      z: -2
+  phone-rim-top-0:
+    type: rectangle
+    width: 53.4023
+    height: 1.3436
+    color: *phone-rim
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 49.7882
+      z: -2
+  phone-rim-bottom-0:
+    type: rectangle
+    width: 53.4023
+    height: 1.3436
+    color: *phone-rim
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -49.674
+      z: -2
+  phone-rim-top-1:
+    type: rectangle
+    width: 56.2895
+    height: 1.3436
+    color: *phone-rim
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 48.5589
+      z: -2
+  phone-rim-bottom-1:
+    type: rectangle
+    width: 56.2895
+    height: 1.3436
+    color: *phone-rim
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -48.4447
+      z: -2
+  phone-rim-top-2:
+    type: rectangle
+    width: 57.7151
+    height: 1.3436
+    color: *phone-rim
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 47.3295
+      z: -2
+  phone-rim-bottom-2:
+    type: rectangle
+    width: 57.7151
+    height: 1.3436
+    color: *phone-rim
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -47.2153
+      z: -2
+  phone-rim-top-3:
+    type: rectangle
+    width: 58.3494
+    height: 1.3436
+    color: *phone-rim
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 46.1001
+      z: -2
+  phone-rim-bottom-3:
+    type: rectangle
+    width: 58.3494
+    height: 1.3436
+    color: *phone-rim
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -45.9859
+      z: -2
+  window-bg:
+    type: rectangle
+    width: 55.4566
+    height: 97.1335
+    color: &phone-bg '#F4F1E8'
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 4.1282
+      z: -1
+  window-bg-top-0:
+    type: rectangle
+    width: 51.2007
+    height: 1.1383
+    color: *phone-bg
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 48.1323
+      z: -1
+  window-bg-bottom-0:
+    type: rectangle
+    width: 51.2007
+    height: 1.1383
+    color: *phone-bg
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -48.0356
+      z: -1
+  window-bg-top-1:
+    type: rectangle
+    width: 53.6468
+    height: 1.1383
+    color: *phone-bg
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 47.0908
+      z: -1
+  window-bg-bottom-1:
+    type: rectangle
+    width: 53.6468
+    height: 1.1383
+    color: *phone-bg
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -46.994
+      z: -1
+  window-bg-top-2:
+    type: rectangle
+    width: 54.8545
+    height: 1.1383
+    color: *phone-bg
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 46.0492
+      z: -1
+  window-bg-bottom-2:
+    type: rectangle
+    width: 54.8545
+    height: 1.1383
+    color: *phone-bg
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -45.9525
+      z: -1
+  window-bg-top-3:
+    type: rectangle
+    width: 55.3919
+    height: 1.1383
+    color: *phone-bg
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 45.0077
+      z: -1
+  window-bg-bottom-3:
+    type: rectangle
+    width: 55.3919
+    height: 1.1383
+    color: *phone-bg
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -44.911
+      z: -1
+  camera-island:
+    type: rectangle
+    width: 6.57
+    height: 0.4835
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 43.8162
+      z: 3
+  camera-island-top-0:
+    type: rectangle
+    width: 5.8921
+    height: 0.1813
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 44.6052
+      z: 3
+  camera-island-bottom-0:
+    type: rectangle
+    width: 5.8921
+    height: 0.1813
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 43.0015
+      z: 3
+  camera-island-top-1:
+    type: rectangle
+    width: 6.2817
+    height: 0.1813
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 44.4393
+      z: 3
+  camera-island-bottom-1:
+    type: rectangle
+    width: 6.2817
+    height: 0.1813
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 43.1674
+      z: 3
+  camera-island-top-2:
+    type: rectangle
+    width: 6.4741
+    height: 0.1813
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 44.2734
+      z: 3
+  camera-island-bottom-2:
+    type: rectangle
+    width: 6.4741
+    height: 0.1813
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 43.3333
+      z: 3
+  camera-island-top-3:
+    type: rectangle
+    width: 6.5597
+    height: 0.1813
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 44.1075
+      z: 3
+  camera-island-bottom-3:
+    type: rectangle
+    width: 6.5597
+    height: 0.1813
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 43.4992
+      z: 3
+  status-brand:
+    type: text
+    content: '&#183E35ARC · 在线'
+    size: 1.6775
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: -19.0788
+      y: 42.7557
+      z: 2
+  signal-0:
+    type: rectangle
+    width: 0.4531
+    height: 0.7502
+    color: &phone-green '#183E35'
+    opacity: 255
+    offset:
+      x: 16.7022
+      y: 44.0754
+      z: 0
+  signal-1:
+    type: rectangle
+    width: 0.4531
+    height: 1.2503
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 17.3886
+      y: 44.3255
+      z: 0
+  signal-2:
+    type: rectangle
+    width: 0.4531
+    height: 1.7504
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 18.075
+      y: 44.5755
+      z: 0
+  battery-bg:
+    type: rectangle
+    width: 3.398
+    height: 2.0004
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 21.3926
+      y: 44.9293
+      z: 0
+  battery-cap:
+    type: rectangle
+    width: 0.4531
+    height: 0.7502
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 23.3373
+      y: 44.8762
+      z: 0
+  battery-fill:
+    type: rectangle
+    width: 2.4636
+    height: 0.9889
+    color: *phone-bg
+    opacity: 255
+    offset:
+      x: 21.1501
+      y: 44.3781
+      z: 1
+  page-title:
+    type: text
+    content: '&#283F35固定位置'
+    size: 3.5787
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 0.0
+      y: 34.1766
+      z: 2
+  page-subtitle:
+    type: text
+    content: '&#747B6B选择应用的逻辑位置。'
+    size: 1.7894
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 0.0
+      y: 29.9493
+      z: 2
+  back-label:
+    type: text
+    content: '&#183E35‹'
+    size: 4.2497
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: -23.2616
+      y: 33.7271
+      z: 2
+  dock-bg:
+    type: rectangle
+    width: 48.0248
+    height: 4.5009
+    color: &phone-dock '#CDDCC4'
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -39.8483
+      z: 0
+  dock-bg-top-0:
+    type: rectangle
+    width: 45.2201
+    height: 0.7502
+    color: *phone-dock
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -35.5461
+      z: 0
+  dock-bg-bottom-0:
+    type: rectangle
+    width: 45.2201
+    height: 0.7502
+    color: *phone-dock
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -44.4692
+      z: 0
+  dock-bg-top-1:
+    type: rectangle
+    width: 46.8321
+    height: 0.7502
+    color: *phone-dock
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -36.2325
+      z: 0
+  dock-bg-bottom-1:
+    type: rectangle
+    width: 46.8321
+    height: 0.7502
+    color: *phone-dock
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -43.7828
+      z: 0
+  dock-bg-top-2:
+    type: rectangle
+    width: 47.6281
+    height: 0.7502
+    color: *phone-dock
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -36.9189
+      z: 0
+  dock-bg-bottom-2:
+    type: rectangle
+    width: 47.6281
+    height: 0.7502
+    color: *phone-dock
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -43.0964
+      z: 0
+  dock-bg-top-3:
+    type: rectangle
+    width: 47.9822
+    height: 0.7502
+    color: *phone-dock
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -37.6053
+      z: 0
+  dock-bg-bottom-3:
+    type: rectangle
+    width: 47.9822
+    height: 0.7502
+    color: *phone-dock
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -42.4101
+      z: 0
+  dock-apps-icon:
+    type: item
+    material: minecraft:compass
+    context: FIXED
+    offset:
+      x: -16.2867
+      y: -38.2285
+      z: 1
+    scale:
+      x: 4.5241
+      y: 4.5241
+      z: 4.5241
+  dock-apps-label:
+    type: text
+    content: '&#183E35应用'
+    size: 1.5657
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: -16.1042
+      y: -42.4049
+      z: 2
+  dock-profile-icon:
+    type: item
+    material: <head:%player_name%>
+    context: GUI
+    offset:
+      x: 0.0
+      y: -38.2285
+      z: 1
+    scale:
+      x: 5.4289
+      y: 5.4289
+      z: 0.1
+    rotation:
+      x: 0
+      y: 180
+      z: 0
+  dock-profile-label:
+    type: text
+    content: '&#183E35我的'
+    size: 1.5657
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 0.0
+      y: -42.4049
+      z: 2
+  dock-close-icon:
+    type: item
+    material: minecraft:barrier
+    context: FIXED
+    offset:
+      x: 16.2867
+      y: -38.2285
+      z: 1
+    scale:
+      x: 4.5241
+      y: 4.5241
+      z: 4.5241
+  dock-close-label:
+    type: text
+    content: '&#183E35关闭'
+    size: 1.5657
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 16.1042
+      y: -42.4049
+      z: 2
+  home-indicator:
+    type: rectangle
+    width: 13.1389
+    height: 0.3251
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -46.4893
+      z: 0
+  home-indicator-top-0:
+    type: rectangle
+    width: 12.9986
+    height: 0.0375
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -46.2327
+      z: 0
+  home-indicator-bottom-0:
+    type: rectangle
+    width: 12.9986
+    height: 0.0375
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -46.7703
+      z: 0
+  home-indicator-top-1:
+    type: rectangle
+    width: 13.0792
+    height: 0.0375
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -46.267
+      z: 0
+  home-indicator-bottom-1:
+    type: rectangle
+    width: 13.0792
+    height: 0.0375
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -46.736
+      z: 0
+  home-indicator-top-2:
+    type: rectangle
+    width: 13.119
+    height: 0.0375
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -46.3013
+      z: 0
+  home-indicator-bottom-2:
+    type: rectangle
+    width: 13.119
+    height: 0.0375
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -46.7017
+      z: 0
+  home-indicator-top-3:
+    type: rectangle
+    width: 13.1367
+    height: 0.0375
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -46.3356
+      z: 0
+  home-indicator-bottom-3:
+    type: rectangle
+    width: 13.1367
+    height: 0.0375
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -46.6674
+      z: 0
+  position-0-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: &phone-sage '#E3ECDE'
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 24.0262
+      z: 0
+  position-0-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 25.9791
+      z: 0
+  position-0-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 21.8608
+      z: 0
+  position-0-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 25.7503
+      z: 0
+  position-0-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 22.0896
+      z: 0
+  position-0-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 25.5215
+      z: 0
+  position-0-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 22.3184
+      z: 0
+  position-0-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 25.2928
+      z: 0
+  position-0-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 22.5472
+      z: 0
+  position-0-label:
+    type: text
+    content: '&#183E3500'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: -15.8805
+      y: 22.1857
+      z: 2
+  position-1-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 24.0262
+      z: 0
+  position-1-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 25.9791
+      z: 0
+  position-1-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 21.8608
+      z: 0
+  position-1-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 25.7503
+      z: 0
+  position-1-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 22.0896
+      z: 0
+  position-1-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 25.5215
+      z: 0
+  position-1-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 22.3184
+      z: 0
+  position-1-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 25.2928
+      z: 0
+  position-1-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 22.5472
+      z: 0
+  position-1-label:
+    type: text
+    content: '&#183E3501'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 0.0
+      y: 22.1857
+      z: 2
+  position-2-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 24.0262
+      z: 0
+  position-2-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 25.9791
+      z: 0
+  position-2-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 21.8608
+      z: 0
+  position-2-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 25.7503
+      z: 0
+  position-2-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 22.0896
+      z: 0
+  position-2-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 25.5215
+      z: 0
+  position-2-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 22.3184
+      z: 0
+  position-2-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 25.2928
+      z: 0
+  position-2-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 22.5472
+      z: 0
+  position-2-label:
+    type: text
+    content: '&#183E3502'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 15.8805
+      y: 22.1857
+      z: 2
+  position-3-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 18.7639
+      z: 0
+  position-3-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 20.7168
+      z: 0
+  position-3-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 16.5984
+      z: 0
+  position-3-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 20.488
+      z: 0
+  position-3-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 16.8272
+      z: 0
+  position-3-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 20.2592
+      z: 0
+  position-3-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 17.056
+      z: 0
+  position-3-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 20.0304
+      z: 0
+  position-3-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 17.2848
+      z: 0
+  position-3-label:
+    type: text
+    content: '&#183E3503'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: -15.8805
+      y: 17.0413
+      z: 2
+  position-4-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 18.7639
+      z: 0
+  position-4-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 20.7168
+      z: 0
+  position-4-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 16.5984
+      z: 0
+  position-4-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 20.488
+      z: 0
+  position-4-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 16.8272
+      z: 0
+  position-4-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 20.2592
+      z: 0
+  position-4-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 17.056
+      z: 0
+  position-4-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 20.0304
+      z: 0
+  position-4-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 17.2848
+      z: 0
+  position-4-label:
+    type: text
+    content: '&#183E3504'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 0.0
+      y: 17.0413
+      z: 2
+  position-5-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 18.7639
+      z: 0
+  position-5-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 20.7168
+      z: 0
+  position-5-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 16.5984
+      z: 0
+  position-5-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 20.488
+      z: 0
+  position-5-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 16.8272
+      z: 0
+  position-5-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 20.2592
+      z: 0
+  position-5-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 17.056
+      z: 0
+  position-5-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 20.0304
+      z: 0
+  position-5-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 17.2848
+      z: 0
+  position-5-label:
+    type: text
+    content: '&#183E3505'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 15.8805
+      y: 17.0413
+      z: 2
+  position-6-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 13.5016
+      z: 0
+  position-6-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 15.4545
+      z: 0
+  position-6-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 11.3361
+      z: 0
+  position-6-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 15.2257
+      z: 0
+  position-6-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 11.5649
+      z: 0
+  position-6-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 14.9969
+      z: 0
+  position-6-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 11.7937
+      z: 0
+  position-6-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 14.7681
+      z: 0
+  position-6-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 12.0225
+      z: 0
+  position-6-label:
+    type: text
+    content: '&#183E3506'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: -15.8805
+      y: 11.897
+      z: 2
+  position-7-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 13.5016
+      z: 0
+  position-7-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 15.4545
+      z: 0
+  position-7-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 11.3361
+      z: 0
+  position-7-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 15.2257
+      z: 0
+  position-7-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 11.5649
+      z: 0
+  position-7-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 14.9969
+      z: 0
+  position-7-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 11.7937
+      z: 0
+  position-7-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 14.7681
+      z: 0
+  position-7-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 12.0225
+      z: 0
+  position-7-label:
+    type: text
+    content: '&#183E3507'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 0.0
+      y: 11.897
+      z: 2
+  position-8-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 13.5016
+      z: 0
+  position-8-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 15.4545
+      z: 0
+  position-8-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 11.3361
+      z: 0
+  position-8-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 15.2257
+      z: 0
+  position-8-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 11.5649
+      z: 0
+  position-8-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 14.9969
+      z: 0
+  position-8-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 11.7937
+      z: 0
+  position-8-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 14.7681
+      z: 0
+  position-8-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 12.0225
+      z: 0
+  position-8-label:
+    type: text
+    content: '&#183E3508'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 15.8805
+      y: 11.897
+      z: 2
+  position-9-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 8.2392
+      z: 0
+  position-9-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 10.1921
+      z: 0
+  position-9-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 6.0738
+      z: 0
+  position-9-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 9.9633
+      z: 0
+  position-9-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 6.3026
+      z: 0
+  position-9-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 9.7345
+      z: 0
+  position-9-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 6.5314
+      z: 0
+  position-9-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 9.5057
+      z: 0
+  position-9-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 6.7602
+      z: 0
+  position-9-label:
+    type: text
+    content: '&#183E3509'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: -15.8805
+      y: 6.7526
+      z: 2
+  position-10-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 8.2392
+      z: 0
+  position-10-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 10.1921
+      z: 0
+  position-10-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 6.0738
+      z: 0
+  position-10-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 9.9633
+      z: 0
+  position-10-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 6.3026
+      z: 0
+  position-10-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 9.7345
+      z: 0
+  position-10-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 6.5314
+      z: 0
+  position-10-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 9.5057
+      z: 0
+  position-10-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 6.7602
+      z: 0
+  position-10-label:
+    type: text
+    content: '&#183E3510'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 0.0
+      y: 6.7526
+      z: 2
+  position-11-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 8.2392
+      z: 0
+  position-11-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 10.1921
+      z: 0
+  position-11-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 6.0738
+      z: 0
+  position-11-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 9.9633
+      z: 0
+  position-11-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 6.3026
+      z: 0
+  position-11-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 9.7345
+      z: 0
+  position-11-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 6.5314
+      z: 0
+  position-11-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 9.5057
+      z: 0
+  position-11-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 6.7602
+      z: 0
+  position-11-label:
+    type: text
+    content: '&#183E3511'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 15.8805
+      y: 6.7526
+      z: 2
+  position-12-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 2.9769
+      z: 0
+  position-12-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 4.9298
+      z: 0
+  position-12-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 0.8114
+      z: 0
+  position-12-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 4.701
+      z: 0
+  position-12-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 1.0402
+      z: 0
+  position-12-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 4.4722
+      z: 0
+  position-12-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 1.269
+      z: 0
+  position-12-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 4.2434
+      z: 0
+  position-12-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: 1.4978
+      z: 0
+  position-12-label:
+    type: text
+    content: '&#183E3512'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: -15.8805
+      y: 1.6082
+      z: 2
+  position-13-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 2.9769
+      z: 0
+  position-13-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 4.9298
+      z: 0
+  position-13-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 0.8114
+      z: 0
+  position-13-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 4.701
+      z: 0
+  position-13-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 1.0402
+      z: 0
+  position-13-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 4.4722
+      z: 0
+  position-13-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 1.269
+      z: 0
+  position-13-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 4.2434
+      z: 0
+  position-13-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 1.4978
+      z: 0
+  position-13-label:
+    type: text
+    content: '&#183E3513'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 0.0
+      y: 1.6082
+      z: 2
+  position-14-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 2.9769
+      z: 0
+  position-14-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 4.9298
+      z: 0
+  position-14-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 0.8114
+      z: 0
+  position-14-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 4.701
+      z: 0
+  position-14-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 1.0402
+      z: 0
+  position-14-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 4.4722
+      z: 0
+  position-14-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 1.269
+      z: 0
+  position-14-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 4.2434
+      z: 0
+  position-14-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: 1.4978
+      z: 0
+  position-14-label:
+    type: text
+    content: '&#183E3514'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 15.8805
+      y: 1.6082
+      z: 2
+  position-15-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -2.2855
+      z: 0
+  position-15-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -0.3326
+      z: 0
+  position-15-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -4.4509
+      z: 0
+  position-15-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -0.5614
+      z: 0
+  position-15-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -4.2221
+      z: 0
+  position-15-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -0.7902
+      z: 0
+  position-15-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -3.9933
+      z: 0
+  position-15-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -1.019
+      z: 0
+  position-15-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -3.7645
+      z: 0
+  position-15-label:
+    type: text
+    content: '&#183E3515'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: -15.8805
+      y: -3.5362
+      z: 2
+  position-16-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -2.2855
+      z: 0
+  position-16-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -0.3326
+      z: 0
+  position-16-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -4.4509
+      z: 0
+  position-16-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -0.5614
+      z: 0
+  position-16-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -4.2221
+      z: 0
+  position-16-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -0.7902
+      z: 0
+  position-16-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -3.9933
+      z: 0
+  position-16-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -1.019
+      z: 0
+  position-16-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -3.7645
+      z: 0
+  position-16-label:
+    type: text
+    content: '&#183E3516'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 0.0
+      y: -3.5362
+      z: 2
+  position-17-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -2.2855
+      z: 0
+  position-17-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -0.3326
+      z: 0
+  position-17-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -4.4509
+      z: 0
+  position-17-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -0.5614
+      z: 0
+  position-17-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -4.2221
+      z: 0
+  position-17-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -0.7902
+      z: 0
+  position-17-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -3.9933
+      z: 0
+  position-17-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -1.019
+      z: 0
+  position-17-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -3.7645
+      z: 0
+  position-17-label:
+    type: text
+    content: '&#183E3517'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 15.8805
+      y: -3.5362
+      z: 2
+  position-18-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -7.5478
+      z: 0
+  position-18-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -5.5949
+      z: 0
+  position-18-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -9.7133
+      z: 0
+  position-18-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -5.8237
+      z: 0
+  position-18-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -9.4845
+      z: 0
+  position-18-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -6.0525
+      z: 0
+  position-18-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -9.2557
+      z: 0
+  position-18-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -6.2813
+      z: 0
+  position-18-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -9.0269
+      z: 0
+  position-18-label:
+    type: text
+    content: '&#183E3518'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: -15.8805
+      y: -8.6806
+      z: 2
+  position-26-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -7.5478
+      z: 0
+  position-26-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -5.5949
+      z: 0
+  position-26-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -9.7133
+      z: 0
+  position-26-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -5.8237
+      z: 0
+  position-26-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -9.4845
+      z: 0
+  position-26-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -6.0525
+      z: 0
+  position-26-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -9.2557
+      z: 0
+  position-26-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -6.2813
+      z: 0
+  position-26-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -9.0269
+      z: 0
+  position-26-label:
+    type: text
+    content: '&#183E3526'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 0.0
+      y: -8.6806
+      z: 2
+  position-36-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -7.5478
+      z: 0
+  position-36-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -5.5949
+      z: 0
+  position-36-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -9.7133
+      z: 0
+  position-36-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -5.8237
+      z: 0
+  position-36-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -9.4845
+      z: 0
+  position-36-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -6.0525
+      z: 0
+  position-36-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -9.2557
+      z: 0
+  position-36-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -6.2813
+      z: 0
+  position-36-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -9.0269
+      z: 0
+  position-36-label:
+    type: text
+    content: '&#183E3536'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 15.8805
+      y: -8.6806
+      z: 2
+  position-44-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -12.8102
+      z: 0
+  position-44-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -10.8573
+      z: 0
+  position-44-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -14.9756
+      z: 0
+  position-44-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -11.0861
+      z: 0
+  position-44-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -14.7468
+      z: 0
+  position-44-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -11.3148
+      z: 0
+  position-44-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -14.518
+      z: 0
+  position-44-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -11.5436
+      z: 0
+  position-44-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -14.2892
+      z: 0
+  position-44-label:
+    type: text
+    content: '&#183E3544'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: -15.8805
+      y: -13.825
+      z: 2
+  position-45-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -12.8102
+      z: 0
+  position-45-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -10.8573
+      z: 0
+  position-45-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -14.9756
+      z: 0
+  position-45-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -11.0861
+      z: 0
+  position-45-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -14.7468
+      z: 0
+  position-45-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -11.3148
+      z: 0
+  position-45-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -14.518
+      z: 0
+  position-45-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -11.5436
+      z: 0
+  position-45-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -14.2892
+      z: 0
+  position-45-label:
+    type: text
+    content: '&#183E3545'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 0.0
+      y: -13.825
+      z: 2
+  position-46-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -12.8102
+      z: 0
+  position-46-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -10.8573
+      z: 0
+  position-46-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -14.9756
+      z: 0
+  position-46-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -11.0861
+      z: 0
+  position-46-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -14.7468
+      z: 0
+  position-46-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -11.3148
+      z: 0
+  position-46-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -14.518
+      z: 0
+  position-46-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -11.5436
+      z: 0
+  position-46-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -14.2892
+      z: 0
+  position-46-label:
+    type: text
+    content: '&#183E3546'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 15.8805
+      y: -13.825
+      z: 2
+  position-47-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -18.0725
+      z: 0
+  position-47-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -16.1196
+      z: 0
+  position-47-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -20.238
+      z: 0
+  position-47-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -16.3484
+      z: 0
+  position-47-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -20.0092
+      z: 0
+  position-47-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -16.5772
+      z: 0
+  position-47-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -19.7804
+      z: 0
+  position-47-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -16.806
+      z: 0
+  position-47-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -19.5516
+      z: 0
+  position-47-label:
+    type: text
+    content: '&#183E3547'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: -15.8805
+      y: -18.9694
+      z: 2
+  position-48-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -18.0725
+      z: 0
+  position-48-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -16.1196
+      z: 0
+  position-48-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -20.238
+      z: 0
+  position-48-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -16.3484
+      z: 0
+  position-48-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -20.0092
+      z: 0
+  position-48-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -16.5772
+      z: 0
+  position-48-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -19.7804
+      z: 0
+  position-48-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -16.806
+      z: 0
+  position-48-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -19.5516
+      z: 0
+  position-48-label:
+    type: text
+    content: '&#183E3548'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 0.0
+      y: -18.9694
+      z: 2
+  position-50-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -18.0725
+      z: 0
+  position-50-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -16.1196
+      z: 0
+  position-50-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -20.238
+      z: 0
+  position-50-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -16.3484
+      z: 0
+  position-50-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -20.0092
+      z: 0
+  position-50-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -16.5772
+      z: 0
+  position-50-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -19.7804
+      z: 0
+  position-50-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -16.806
+      z: 0
+  position-50-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -19.5516
+      z: 0
+  position-50-label:
+    type: text
+    content: '&#183E3550'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 15.8805
+      y: -18.9694
+      z: 2
+  position-51-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -23.3348
+      z: 0
+  position-51-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -21.3819
+      z: 0
+  position-51-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -25.5003
+      z: 0
+  position-51-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -21.6107
+      z: 0
+  position-51-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -25.2715
+      z: 0
+  position-51-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -21.8395
+      z: 0
+  position-51-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -25.0427
+      z: 0
+  position-51-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -22.0683
+      z: 0
+  position-51-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: -16.2446
+      y: -24.8139
+      z: 0
+  position-51-label:
+    type: text
+    content: '&#183E3551'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: -15.8805
+      y: -24.1138
+      z: 2
+  position-52-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -23.3348
+      z: 0
+  position-52-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -21.3819
+      z: 0
+  position-52-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -25.5003
+      z: 0
+  position-52-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -21.6107
+      z: 0
+  position-52-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -25.2715
+      z: 0
+  position-52-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -21.8395
+      z: 0
+  position-52-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -25.0427
+      z: 0
+  position-52-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -22.0683
+      z: 0
+  position-52-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -24.8139
+      z: 0
+  position-52-label:
+    type: text
+    content: '&#183E3552'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 0.0
+      y: -24.1138
+      z: 2
+  position-53-bg:
+    type: rectangle
+    width: 14.4981
+    height: 2.7506
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -23.3348
+      z: 0
+  position-53-bg-top-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -21.3819
+      z: 0
+  position-53-bg-bottom-0:
+    type: rectangle
+    width: 13.5632
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -25.5003
+      z: 0
+  position-53-bg-top-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -21.6107
+      z: 0
+  position-53-bg-bottom-1:
+    type: rectangle
+    width: 14.1005
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -25.2715
+      z: 0
+  position-53-bg-top-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -21.8395
+      z: 0
+  position-53-bg-bottom-2:
+    type: rectangle
+    width: 14.3658
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -25.0427
+      z: 0
+  position-53-bg-top-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -22.0683
+      z: 0
+  position-53-bg-bottom-3:
+    type: rectangle
+    width: 14.4838
+    height: 0.2501
+    color: *phone-sage
+    opacity: 255
+    offset:
+      x: 16.2446
+      y: -24.8139
+      z: 0
+  position-53-label:
+    type: text
+    content: '&#183E3553'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 15.8805
+      y: -24.1138
+      z: 2
+  position-note:
+    type: text
+    content: '&#747B6B冲突应用会自动回到功能区'
+    size: 1.7894
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 0.0
+      y: -29.0993
+      z: 2
+  position-note2:
+    type: text
+    content: '&#747B6B已保留功能区与系统位置'
+    size: 1.5657
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 0.0
+      y: -32.1161
+      z: 2
+backend:
+  header-back:
+    x: -23.7949
+    y: 37.294
+    width: 5.9487
+    height: 7.3215
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:attribute'
+  dock-apps:
+    x: -16.4734
+    y: -40.0396
+    width: 12.3551
+    height: 9.1519
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:apps'
+  dock-profile:
+    x: 0.0
+    y: -40.0396
+    width: 12.3551
+    height: 9.1519
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:profile'
+  dock-close:
+    x: 16.4734
+    y: -40.0396
+    width: 12.3551
+    height: 9.1519
+    priority: 10
+    actions:
+      all:
+      - close
+  home-gesture:
+    x: 0.0
+    y: -46.5603
+    width: 21.507
+    height: 2.5168
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:home'
+    tooltip:
+    - '&7返回桌面'
+    update: 20
+  position-0:
+    x: -16.2446
+    y: 23.9093
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 0'
+    tooltip:
+    - '&f第 1 行第 1 格 · 位置 0'
+    - '&7当前功能：{meta:mm-position-0-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-1:
+    x: 0.0
+    y: 23.9093
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 1'
+    tooltip:
+    - '&f第 1 行第 2 格 · 位置 1'
+    - '&7当前功能：{meta:mm-position-1-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-2:
+    x: 16.2446
+    y: 23.9093
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 2'
+    tooltip:
+    - '&f第 1 行第 3 格 · 位置 2'
+    - '&7当前功能：{meta:mm-position-2-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-3:
+    x: -16.2446
+    y: 18.647
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 3'
+    tooltip:
+    - '&f第 1 行第 4 格 · 位置 3'
+    - '&7当前功能：{meta:mm-position-3-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-4:
+    x: 0.0
+    y: 18.647
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 4'
+    tooltip:
+    - '&f第 1 行第 5 格 · 位置 4'
+    - '&7当前功能：{meta:mm-position-4-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-5:
+    x: 16.2446
+    y: 18.647
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 5'
+    tooltip:
+    - '&f第 1 行第 6 格 · 位置 5'
+    - '&7当前功能：{meta:mm-position-5-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-6:
+    x: -16.2446
+    y: 13.3847
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 6'
+    tooltip:
+    - '&f第 1 行第 7 格 · 位置 6'
+    - '&7当前功能：{meta:mm-position-6-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-7:
+    x: 0.0
+    y: 13.3847
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 7'
+    tooltip:
+    - '&f第 1 行第 8 格 · 位置 7'
+    - '&7当前功能：{meta:mm-position-7-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-8:
+    x: 16.2446
+    y: 13.3847
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 8'
+    tooltip:
+    - '&f第 1 行第 9 格 · 位置 8'
+    - '&7当前功能：{meta:mm-position-8-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-9:
+    x: -16.2446
+    y: 8.1223
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 9'
+    tooltip:
+    - '&f第 2 行第 1 格 · 位置 9'
+    - '&7当前功能：{meta:mm-position-9-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-10:
+    x: 0.0
+    y: 8.1223
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 10'
+    tooltip:
+    - '&f第 2 行第 2 格 · 位置 10'
+    - '&7当前功能：{meta:mm-position-10-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-11:
+    x: 16.2446
+    y: 8.1223
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 11'
+    tooltip:
+    - '&f第 2 行第 3 格 · 位置 11'
+    - '&7当前功能：{meta:mm-position-11-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-12:
+    x: -16.2446
+    y: 2.86
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 12'
+    tooltip:
+    - '&f第 2 行第 4 格 · 位置 12'
+    - '&7当前功能：{meta:mm-position-12-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-13:
+    x: 0.0
+    y: 2.86
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 13'
+    tooltip:
+    - '&f第 2 行第 5 格 · 位置 13'
+    - '&7当前功能：{meta:mm-position-13-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-14:
+    x: 16.2446
+    y: 2.86
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 14'
+    tooltip:
+    - '&f第 2 行第 6 格 · 位置 14'
+    - '&7当前功能：{meta:mm-position-14-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-15:
+    x: -16.2446
+    y: -2.4024
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 15'
+    tooltip:
+    - '&f第 2 行第 7 格 · 位置 15'
+    - '&7当前功能：{meta:mm-position-15-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-16:
+    x: 0.0
+    y: -2.4024
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 16'
+    tooltip:
+    - '&f第 2 行第 8 格 · 位置 16'
+    - '&7当前功能：{meta:mm-position-16-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-17:
+    x: 16.2446
+    y: -2.4024
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 17'
+    tooltip:
+    - '&f第 2 行第 9 格 · 位置 17'
+    - '&7当前功能：{meta:mm-position-17-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-18:
+    x: -16.2446
+    y: -7.6647
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 18'
+    tooltip:
+    - '&f第 3 行第 1 格 · 位置 18'
+    - '&7当前功能：{meta:mm-position-18-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-26:
+    x: 0.0
+    y: -7.6647
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 26'
+    tooltip:
+    - '&f第 3 行第 9 格 · 位置 26'
+    - '&7当前功能：{meta:mm-position-26-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-36:
+    x: 16.2446
+    y: -7.6647
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 36'
+    tooltip:
+    - '&f第 5 行第 1 格 · 位置 36'
+    - '&7当前功能：{meta:mm-position-36-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-44:
+    x: -16.2446
+    y: -12.9271
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 44'
+    tooltip:
+    - '&f第 5 行第 9 格 · 位置 44'
+    - '&7当前功能：{meta:mm-position-44-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-45:
+    x: 0.0
+    y: -12.9271
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 45'
+    tooltip:
+    - '&f第 6 行第 1 格 · 位置 45'
+    - '&7当前功能：{meta:mm-position-45-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-46:
+    x: 16.2446
+    y: -12.9271
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 46'
+    tooltip:
+    - '&f第 6 行第 2 格 · 位置 46'
+    - '&7当前功能：{meta:mm-position-46-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-47:
+    x: -16.2446
+    y: -18.1894
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 47'
+    tooltip:
+    - '&f第 6 行第 3 格 · 位置 47'
+    - '&7当前功能：{meta:mm-position-47-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-48:
+    x: 0.0
+    y: -18.1894
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 48'
+    tooltip:
+    - '&f第 6 行第 4 格 · 位置 48'
+    - '&7当前功能：{meta:mm-position-48-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-50:
+    x: 16.2446
+    y: -18.1894
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 50'
+    tooltip:
+    - '&f第 6 行第 6 格 · 位置 50'
+    - '&7当前功能：{meta:mm-position-50-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-51:
+    x: -16.2446
+    y: -23.4517
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 51'
+    tooltip:
+    - '&f第 6 行第 7 格 · 位置 51'
+    - '&7当前功能：{meta:mm-position-51-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-52:
+    x: 0.0
+    y: -23.4517
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 52'
+    tooltip:
+    - '&f第 6 行第 8 格 · 位置 52'
+    - '&7当前功能：{meta:mm-position-52-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+  position-53:
+    x: 16.2446
+    y: -23.4517
+    width: 14.643
+    height: 4.3472
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:pick 53'
+    tooltip:
+    - '&f第 6 行第 9 格 · 位置 53'
+    - '&7当前功能：{meta:mm-position-53-occupant}'
+    - '&e点击选择此位置'
+    update: 20
+events:
+  open: []
+  close: []

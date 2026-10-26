@@ -50,6 +50,13 @@ public final class AdminService {
     // ------------------------------------------------------------------ 打开界面
 
     public void openManage(final Player player) {
+        if (!player.hasPermission("mainmenu.admin")) {
+            plugin.message(player, "messages.no-permission");
+            return;
+        }
+        if (plugin.displayMenus() != null && plugin.displayMenus().openManage(player)) {
+            return;
+        }
         openManage(player, 1, 1);
     }
 

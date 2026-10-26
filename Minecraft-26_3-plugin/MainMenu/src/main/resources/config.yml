@@ -2,12 +2,29 @@
 # 改完用 /cd reload 热重载
 
 menu:
-  # 菜单标题
+  # 背包回退界面的菜单标题；ArcMenu 标题在对应 YAML 的 frontend 中修改
   title: "<dark_gray>主菜单</dark_gray>"
 
   # 菜单打开期间的重绘间隔（秒）：功能插件的 icon()/description() 会被重新调用，
   # 动态内容（例如 RealTime 插件的时间）靠这个刷新
   refresh-seconds: 1
+
+  # Native ArcMenu YAML templates are installed only when missing.
+  # Edit plugins/ArcMenu/menus/mainmenu/*.yml, then run /cd reload.
+  arcmenu:
+    enabled: true
+    home-menu: mainmenu-home
+    # Phone clock/date/greeting timezone; independent of each feature's own settings.
+    clock-zone: Asia/Shanghai
+    # Each alias publishes mm-bind-<alias>-* META values for use in any YAML.
+    # Bind a new feature here and use open: mainmenu:feature {meta:mm-bind-<alias>-id} left.
+    bindings:
+      town: town:main
+      wallet: wallet:wallet
+      music: concertomenu:menu
+      notice: joinannounce:notice
+      time: realtime:clock
+      playtime: yudreamplaytime:my-playtime
 
   # 打开方式
   open:
@@ -37,7 +54,7 @@ menu:
     last-page: "<dark_gray>已经是最后一页</dark_gray>"
 
   # 功能插件管理（第 6 行第 5 格入口，仅管理员可见可点）
-  # 管理界面里的物品材质固定，不开放配置：
+  # 以下固定物品材质仅适用于背包回退界面；ArcMenu 可直接修改 YAML：
   #   入口=命令方块、分隔=黑色染色玻璃板、显示/隐藏=黄绿色/红色羊毛、
   #   排序值=空地图、更改位置=末影之眼、转固定位置=拉杆、转非固定位置=红石火把、
   #   位置选择界面里的功能名=命名牌、返回/取消=屏障、翻页=箭

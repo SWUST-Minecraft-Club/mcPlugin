@@ -1,0 +1,2694 @@
+# Editable native ArcMenu phone UI. Existing server files are never overwritten.
+# Change layout, labels, models, tooltips and actions here; use /cd reload to apply.
+# Palette: edit the first &phone-<color> anchor; its *phone-<color> aliases follow.
+# META values are supplied by MainMenu. See the MainMenu README for the data contract.
+# Frontend offsets include measured depth/rectangle compensation; backend uses root coordinates.
+schema-version: 1
+id: mainmenu-features
+permission: mainmenu.use
+open-commands: []
+main-menu: false
+canvas:
+  width: 800
+  height: 450
+  pixels-per-block: 42.7
+  distance: 2
+frontend:
+  phone-shell:
+    type: rectangle
+    width: 60.0578
+    height: 100.9937
+    color: &phone-shell '#222B2A'
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 4.2922
+      z: -3
+  phone-shell-top-0:
+    type: rectangle
+    width: 54.7327
+    height: 1.4243
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 50.8264
+      z: -3
+  phone-shell-bottom-0:
+    type: rectangle
+    width: 54.7327
+    height: 1.4243
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -50.7053
+      z: -3
+  phone-shell-top-1:
+    type: rectangle
+    width: 57.7933
+    height: 1.4243
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 49.5232
+      z: -3
+  phone-shell-bottom-1:
+    type: rectangle
+    width: 57.7933
+    height: 1.4243
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -49.4021
+      z: -3
+  phone-shell-top-2:
+    type: rectangle
+    width: 59.3045
+    height: 1.4243
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 48.22
+      z: -3
+  phone-shell-bottom-2:
+    type: rectangle
+    width: 59.3045
+    height: 1.4243
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -48.0989
+      z: -3
+  phone-shell-top-3:
+    type: rectangle
+    width: 59.9768
+    height: 1.4243
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 46.9168
+      z: -3
+  phone-shell-bottom-3:
+    type: rectangle
+    width: 59.9768
+    height: 1.4243
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -46.7957
+      z: -3
+  phone-rim:
+    type: rectangle
+    width: 58.4257
+    height: 99.2969
+    color: &phone-rim '#61675E'
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 4.2201
+      z: -2
+  phone-rim-top-0:
+    type: rectangle
+    width: 53.4023
+    height: 1.3436
+    color: *phone-rim
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 49.7882
+      z: -2
+  phone-rim-bottom-0:
+    type: rectangle
+    width: 53.4023
+    height: 1.3436
+    color: *phone-rim
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -49.674
+      z: -2
+  phone-rim-top-1:
+    type: rectangle
+    width: 56.2895
+    height: 1.3436
+    color: *phone-rim
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 48.5589
+      z: -2
+  phone-rim-bottom-1:
+    type: rectangle
+    width: 56.2895
+    height: 1.3436
+    color: *phone-rim
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -48.4447
+      z: -2
+  phone-rim-top-2:
+    type: rectangle
+    width: 57.7151
+    height: 1.3436
+    color: *phone-rim
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 47.3295
+      z: -2
+  phone-rim-bottom-2:
+    type: rectangle
+    width: 57.7151
+    height: 1.3436
+    color: *phone-rim
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -47.2153
+      z: -2
+  phone-rim-top-3:
+    type: rectangle
+    width: 58.3494
+    height: 1.3436
+    color: *phone-rim
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 46.1001
+      z: -2
+  phone-rim-bottom-3:
+    type: rectangle
+    width: 58.3494
+    height: 1.3436
+    color: *phone-rim
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -45.9859
+      z: -2
+  window-bg:
+    type: rectangle
+    width: 55.4566
+    height: 97.1335
+    color: &phone-bg '#F4F1E8'
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 4.1282
+      z: -1
+  window-bg-top-0:
+    type: rectangle
+    width: 51.2007
+    height: 1.1383
+    color: *phone-bg
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 48.1323
+      z: -1
+  window-bg-bottom-0:
+    type: rectangle
+    width: 51.2007
+    height: 1.1383
+    color: *phone-bg
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -48.0356
+      z: -1
+  window-bg-top-1:
+    type: rectangle
+    width: 53.6468
+    height: 1.1383
+    color: *phone-bg
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 47.0908
+      z: -1
+  window-bg-bottom-1:
+    type: rectangle
+    width: 53.6468
+    height: 1.1383
+    color: *phone-bg
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -46.994
+      z: -1
+  window-bg-top-2:
+    type: rectangle
+    width: 54.8545
+    height: 1.1383
+    color: *phone-bg
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 46.0492
+      z: -1
+  window-bg-bottom-2:
+    type: rectangle
+    width: 54.8545
+    height: 1.1383
+    color: *phone-bg
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -45.9525
+      z: -1
+  window-bg-top-3:
+    type: rectangle
+    width: 55.3919
+    height: 1.1383
+    color: *phone-bg
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 45.0077
+      z: -1
+  window-bg-bottom-3:
+    type: rectangle
+    width: 55.3919
+    height: 1.1383
+    color: *phone-bg
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -44.911
+      z: -1
+  camera-island:
+    type: rectangle
+    width: 6.57
+    height: 0.4835
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 43.8162
+      z: 3
+  camera-island-top-0:
+    type: rectangle
+    width: 5.8921
+    height: 0.1813
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 44.6052
+      z: 3
+  camera-island-bottom-0:
+    type: rectangle
+    width: 5.8921
+    height: 0.1813
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 43.0015
+      z: 3
+  camera-island-top-1:
+    type: rectangle
+    width: 6.2817
+    height: 0.1813
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 44.4393
+      z: 3
+  camera-island-bottom-1:
+    type: rectangle
+    width: 6.2817
+    height: 0.1813
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 43.1674
+      z: 3
+  camera-island-top-2:
+    type: rectangle
+    width: 6.4741
+    height: 0.1813
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 44.2734
+      z: 3
+  camera-island-bottom-2:
+    type: rectangle
+    width: 6.4741
+    height: 0.1813
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 43.3333
+      z: 3
+  camera-island-top-3:
+    type: rectangle
+    width: 6.5597
+    height: 0.1813
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 44.1075
+      z: 3
+  camera-island-bottom-3:
+    type: rectangle
+    width: 6.5597
+    height: 0.1813
+    color: *phone-shell
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 43.4992
+      z: 3
+  status-brand:
+    type: text
+    content: '&#183E35ARC · 在线'
+    size: 1.6775
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: -19.0788
+      y: 42.7557
+      z: 2
+  signal-0:
+    type: rectangle
+    width: 0.4531
+    height: 0.7502
+    color: &phone-green '#183E35'
+    opacity: 255
+    offset:
+      x: 16.7022
+      y: 44.0754
+      z: 0
+  signal-1:
+    type: rectangle
+    width: 0.4531
+    height: 1.2503
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 17.3886
+      y: 44.3255
+      z: 0
+  signal-2:
+    type: rectangle
+    width: 0.4531
+    height: 1.7504
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 18.075
+      y: 44.5755
+      z: 0
+  battery-bg:
+    type: rectangle
+    width: 3.398
+    height: 2.0004
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 21.3926
+      y: 44.9293
+      z: 0
+  battery-cap:
+    type: rectangle
+    width: 0.4531
+    height: 0.7502
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 23.3373
+      y: 44.8762
+      z: 0
+  battery-fill:
+    type: rectangle
+    width: 2.4636
+    height: 0.9889
+    color: *phone-bg
+    opacity: 255
+    offset:
+      x: 21.1501
+      y: 44.3781
+      z: 1
+  page-title:
+    type: text
+    content: '&#283F35应用抽屉'
+    size: 3.5787
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 0.0
+      y: 34.1766
+      z: 2
+  page-subtitle:
+    type: text
+    content: '&#747B6B已接入的功能，都在这里。'
+    size: 1.7894
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 0.0
+      y: 29.9493
+      z: 2
+  back-label:
+    type: text
+    content: '&#183E35‹'
+    size: 4.2497
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: -23.2616
+      y: 33.7271
+      z: 2
+  dock-bg:
+    type: rectangle
+    width: 48.0248
+    height: 4.5009
+    color: &phone-dock '#CDDCC4'
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -39.8483
+      z: 0
+  dock-bg-top-0:
+    type: rectangle
+    width: 45.2201
+    height: 0.7502
+    color: *phone-dock
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -35.5461
+      z: 0
+  dock-bg-bottom-0:
+    type: rectangle
+    width: 45.2201
+    height: 0.7502
+    color: *phone-dock
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -44.4692
+      z: 0
+  dock-bg-top-1:
+    type: rectangle
+    width: 46.8321
+    height: 0.7502
+    color: *phone-dock
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -36.2325
+      z: 0
+  dock-bg-bottom-1:
+    type: rectangle
+    width: 46.8321
+    height: 0.7502
+    color: *phone-dock
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -43.7828
+      z: 0
+  dock-bg-top-2:
+    type: rectangle
+    width: 47.6281
+    height: 0.7502
+    color: *phone-dock
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -36.9189
+      z: 0
+  dock-bg-bottom-2:
+    type: rectangle
+    width: 47.6281
+    height: 0.7502
+    color: *phone-dock
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -43.0964
+      z: 0
+  dock-bg-top-3:
+    type: rectangle
+    width: 47.9822
+    height: 0.7502
+    color: *phone-dock
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -37.6053
+      z: 0
+  dock-bg-bottom-3:
+    type: rectangle
+    width: 47.9822
+    height: 0.7502
+    color: *phone-dock
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -42.4101
+      z: 0
+  dock-apps-icon:
+    type: item
+    material: minecraft:compass
+    context: FIXED
+    offset:
+      x: -16.2867
+      y: -38.2285
+      z: 1
+    scale:
+      x: 4.5241
+      y: 4.5241
+      z: 4.5241
+  dock-apps-label:
+    type: text
+    content: '&#183E35应用'
+    size: 1.5657
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: -16.1042
+      y: -42.4049
+      z: 2
+  dock-profile-icon:
+    type: item
+    material: <head:%player_name%>
+    context: GUI
+    offset:
+      x: 0.0
+      y: -38.2285
+      z: 1
+    scale:
+      x: 5.4289
+      y: 5.4289
+      z: 0.1
+    rotation:
+      x: 0
+      y: 180
+      z: 0
+  dock-profile-label:
+    type: text
+    content: '&#183E35我的'
+    size: 1.5657
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 0.0
+      y: -42.4049
+      z: 2
+  dock-close-icon:
+    type: item
+    material: minecraft:barrier
+    context: FIXED
+    offset:
+      x: 16.2867
+      y: -38.2285
+      z: 1
+    scale:
+      x: 4.5241
+      y: 4.5241
+      z: 4.5241
+  dock-close-label:
+    type: text
+    content: '&#183E35关闭'
+    size: 1.5657
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 16.1042
+      y: -42.4049
+      z: 2
+  home-indicator:
+    type: rectangle
+    width: 13.1389
+    height: 0.3251
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -46.4893
+      z: 0
+  home-indicator-top-0:
+    type: rectangle
+    width: 12.9986
+    height: 0.0375
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -46.2327
+      z: 0
+  home-indicator-bottom-0:
+    type: rectangle
+    width: 12.9986
+    height: 0.0375
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -46.7703
+      z: 0
+  home-indicator-top-1:
+    type: rectangle
+    width: 13.0792
+    height: 0.0375
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -46.267
+      z: 0
+  home-indicator-bottom-1:
+    type: rectangle
+    width: 13.0792
+    height: 0.0375
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -46.736
+      z: 0
+  home-indicator-top-2:
+    type: rectangle
+    width: 13.119
+    height: 0.0375
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -46.3013
+      z: 0
+  home-indicator-bottom-2:
+    type: rectangle
+    width: 13.119
+    height: 0.0375
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -46.7017
+      z: 0
+  home-indicator-top-3:
+    type: rectangle
+    width: 13.1367
+    height: 0.0375
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -46.3356
+      z: 0
+  home-indicator-bottom-3:
+    type: rectangle
+    width: 13.1367
+    height: 0.0375
+    color: *phone-green
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -46.6674
+      z: 0
+  app-0-tile:
+    type: rectangle
+    width: 10.4205
+    height: 5.7512
+    color: &phone-white '#FCFBF6'
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: 22.5522
+      z: 0
+  app-0-tile-top-0:
+    type: rectangle
+    width: 8.5507
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: 26.5618
+      z: 0
+  app-0-tile-bottom-0:
+    type: rectangle
+    width: 8.5507
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: 18.0963
+      z: 0
+  app-0-tile-top-1:
+    type: rectangle
+    width: 9.6254
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: 26.1042
+      z: 0
+  app-0-tile-bottom-1:
+    type: rectangle
+    width: 9.6254
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: 18.5539
+      z: 0
+  app-0-tile-top-2:
+    type: rectangle
+    width: 10.156
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: 25.6466
+      z: 0
+  app-0-tile-bottom-2:
+    type: rectangle
+    width: 10.156
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: 19.0114
+      z: 0
+  app-0-tile-top-3:
+    type: rectangle
+    width: 10.3921
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: 25.189
+      z: 0
+  app-0-tile-bottom-3:
+    type: rectangle
+    width: 10.3921
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: 19.469
+      z: 0
+  app-0-icon:
+    type: item
+    material: '{meta:mm-app-0-material}'
+    context: GUI
+    offset:
+      x: -16.2867
+      y: 22.168
+      z: 1
+    scale:
+      x: 8.5958
+      y: 8.5958
+      z: 0.1
+    rotation:
+      x: 0
+      y: 180
+      z: 0
+  app-0-name:
+    type: text
+    content: '&#283F35{meta:mm-app-0-short-name}'
+    size: 1.6775
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: 20
+    offset:
+      x: -16.1042
+      y: 14.5734
+      z: 2
+  app-1-tile:
+    type: rectangle
+    width: 10.4205
+    height: 5.7512
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 22.5522
+      z: 0
+  app-1-tile-top-0:
+    type: rectangle
+    width: 8.5507
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 26.5618
+      z: 0
+  app-1-tile-bottom-0:
+    type: rectangle
+    width: 8.5507
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 18.0963
+      z: 0
+  app-1-tile-top-1:
+    type: rectangle
+    width: 9.6254
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 26.1042
+      z: 0
+  app-1-tile-bottom-1:
+    type: rectangle
+    width: 9.6254
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 18.5539
+      z: 0
+  app-1-tile-top-2:
+    type: rectangle
+    width: 10.156
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 25.6466
+      z: 0
+  app-1-tile-bottom-2:
+    type: rectangle
+    width: 10.156
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 19.0114
+      z: 0
+  app-1-tile-top-3:
+    type: rectangle
+    width: 10.3921
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 25.189
+      z: 0
+  app-1-tile-bottom-3:
+    type: rectangle
+    width: 10.3921
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 19.469
+      z: 0
+  app-1-icon:
+    type: item
+    material: '{meta:mm-app-1-material}'
+    context: GUI
+    offset:
+      x: 0.0
+      y: 22.168
+      z: 1
+    scale:
+      x: 8.5958
+      y: 8.5958
+      z: 0.1
+    rotation:
+      x: 0
+      y: 180
+      z: 0
+  app-1-name:
+    type: text
+    content: '&#283F35{meta:mm-app-1-short-name}'
+    size: 1.6775
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: 20
+    offset:
+      x: 0.0
+      y: 14.5734
+      z: 2
+  app-2-tile:
+    type: rectangle
+    width: 10.4205
+    height: 5.7512
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: 22.5522
+      z: 0
+  app-2-tile-top-0:
+    type: rectangle
+    width: 8.5507
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: 26.5618
+      z: 0
+  app-2-tile-bottom-0:
+    type: rectangle
+    width: 8.5507
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: 18.0963
+      z: 0
+  app-2-tile-top-1:
+    type: rectangle
+    width: 9.6254
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: 26.1042
+      z: 0
+  app-2-tile-bottom-1:
+    type: rectangle
+    width: 9.6254
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: 18.5539
+      z: 0
+  app-2-tile-top-2:
+    type: rectangle
+    width: 10.156
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: 25.6466
+      z: 0
+  app-2-tile-bottom-2:
+    type: rectangle
+    width: 10.156
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: 19.0114
+      z: 0
+  app-2-tile-top-3:
+    type: rectangle
+    width: 10.3921
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: 25.189
+      z: 0
+  app-2-tile-bottom-3:
+    type: rectangle
+    width: 10.3921
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: 19.469
+      z: 0
+  app-2-icon:
+    type: item
+    material: '{meta:mm-app-2-material}'
+    context: GUI
+    offset:
+      x: 16.2867
+      y: 22.168
+      z: 1
+    scale:
+      x: 8.5958
+      y: 8.5958
+      z: 0.1
+    rotation:
+      x: 0
+      y: 180
+      z: 0
+  app-2-name:
+    type: text
+    content: '&#283F35{meta:mm-app-2-short-name}'
+    size: 1.6775
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: 20
+    offset:
+      x: 16.1042
+      y: 14.5734
+      z: 2
+  app-3-tile:
+    type: rectangle
+    width: 10.4205
+    height: 5.7512
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: 8.8243
+      z: 0
+  app-3-tile-top-0:
+    type: rectangle
+    width: 8.5507
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: 12.8339
+      z: 0
+  app-3-tile-bottom-0:
+    type: rectangle
+    width: 8.5507
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: 4.3684
+      z: 0
+  app-3-tile-top-1:
+    type: rectangle
+    width: 9.6254
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: 12.3763
+      z: 0
+  app-3-tile-bottom-1:
+    type: rectangle
+    width: 9.6254
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: 4.826
+      z: 0
+  app-3-tile-top-2:
+    type: rectangle
+    width: 10.156
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: 11.9187
+      z: 0
+  app-3-tile-bottom-2:
+    type: rectangle
+    width: 10.156
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: 5.2836
+      z: 0
+  app-3-tile-top-3:
+    type: rectangle
+    width: 10.3921
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: 11.4611
+      z: 0
+  app-3-tile-bottom-3:
+    type: rectangle
+    width: 10.3921
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: 5.7412
+      z: 0
+  app-3-icon:
+    type: item
+    material: '{meta:mm-app-3-material}'
+    context: GUI
+    offset:
+      x: -16.2867
+      y: 8.5958
+      z: 1
+    scale:
+      x: 8.5958
+      y: 8.5958
+      z: 0.1
+    rotation:
+      x: 0
+      y: 180
+      z: 0
+  app-3-name:
+    type: text
+    content: '&#283F35{meta:mm-app-3-short-name}'
+    size: 1.6775
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: 20
+    offset:
+      x: -16.1042
+      y: 1.1533
+      z: 2
+  app-4-tile:
+    type: rectangle
+    width: 10.4205
+    height: 5.7512
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 8.8243
+      z: 0
+  app-4-tile-top-0:
+    type: rectangle
+    width: 8.5507
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 12.8339
+      z: 0
+  app-4-tile-bottom-0:
+    type: rectangle
+    width: 8.5507
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 4.3684
+      z: 0
+  app-4-tile-top-1:
+    type: rectangle
+    width: 9.6254
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 12.3763
+      z: 0
+  app-4-tile-bottom-1:
+    type: rectangle
+    width: 9.6254
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 4.826
+      z: 0
+  app-4-tile-top-2:
+    type: rectangle
+    width: 10.156
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 11.9187
+      z: 0
+  app-4-tile-bottom-2:
+    type: rectangle
+    width: 10.156
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 5.2836
+      z: 0
+  app-4-tile-top-3:
+    type: rectangle
+    width: 10.3921
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 11.4611
+      z: 0
+  app-4-tile-bottom-3:
+    type: rectangle
+    width: 10.3921
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: 5.7412
+      z: 0
+  app-4-icon:
+    type: item
+    material: '{meta:mm-app-4-material}'
+    context: GUI
+    offset:
+      x: 0.0
+      y: 8.5958
+      z: 1
+    scale:
+      x: 8.5958
+      y: 8.5958
+      z: 0.1
+    rotation:
+      x: 0
+      y: 180
+      z: 0
+  app-4-name:
+    type: text
+    content: '&#283F35{meta:mm-app-4-short-name}'
+    size: 1.6775
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: 20
+    offset:
+      x: 0.0
+      y: 1.1533
+      z: 2
+  app-5-tile:
+    type: rectangle
+    width: 10.4205
+    height: 5.7512
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: 8.8243
+      z: 0
+  app-5-tile-top-0:
+    type: rectangle
+    width: 8.5507
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: 12.8339
+      z: 0
+  app-5-tile-bottom-0:
+    type: rectangle
+    width: 8.5507
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: 4.3684
+      z: 0
+  app-5-tile-top-1:
+    type: rectangle
+    width: 9.6254
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: 12.3763
+      z: 0
+  app-5-tile-bottom-1:
+    type: rectangle
+    width: 9.6254
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: 4.826
+      z: 0
+  app-5-tile-top-2:
+    type: rectangle
+    width: 10.156
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: 11.9187
+      z: 0
+  app-5-tile-bottom-2:
+    type: rectangle
+    width: 10.156
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: 5.2836
+      z: 0
+  app-5-tile-top-3:
+    type: rectangle
+    width: 10.3921
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: 11.4611
+      z: 0
+  app-5-tile-bottom-3:
+    type: rectangle
+    width: 10.3921
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: 5.7412
+      z: 0
+  app-5-icon:
+    type: item
+    material: '{meta:mm-app-5-material}'
+    context: GUI
+    offset:
+      x: 16.2867
+      y: 8.5958
+      z: 1
+    scale:
+      x: 8.5958
+      y: 8.5958
+      z: 0.1
+    rotation:
+      x: 0
+      y: 180
+      z: 0
+  app-5-name:
+    type: text
+    content: '&#283F35{meta:mm-app-5-short-name}'
+    size: 1.6775
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: 20
+    offset:
+      x: 16.1042
+      y: 1.1533
+      z: 2
+  app-6-tile:
+    type: rectangle
+    width: 10.4205
+    height: 5.7512
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: -4.9035
+      z: 0
+  app-6-tile-top-0:
+    type: rectangle
+    width: 8.5507
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: -0.8939
+      z: 0
+  app-6-tile-bottom-0:
+    type: rectangle
+    width: 8.5507
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: -9.3594
+      z: 0
+  app-6-tile-top-1:
+    type: rectangle
+    width: 9.6254
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: -1.3515
+      z: 0
+  app-6-tile-bottom-1:
+    type: rectangle
+    width: 9.6254
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: -8.9018
+      z: 0
+  app-6-tile-top-2:
+    type: rectangle
+    width: 10.156
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: -1.8091
+      z: 0
+  app-6-tile-bottom-2:
+    type: rectangle
+    width: 10.156
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: -8.4443
+      z: 0
+  app-6-tile-top-3:
+    type: rectangle
+    width: 10.3921
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: -2.2667
+      z: 0
+  app-6-tile-bottom-3:
+    type: rectangle
+    width: 10.3921
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: -7.9867
+      z: 0
+  app-6-icon:
+    type: item
+    material: '{meta:mm-app-6-material}'
+    context: GUI
+    offset:
+      x: -16.2867
+      y: -4.9765
+      z: 1
+    scale:
+      x: 8.5958
+      y: 8.5958
+      z: 0.1
+    rotation:
+      x: 0
+      y: 180
+      z: 0
+  app-6-name:
+    type: text
+    content: '&#283F35{meta:mm-app-6-short-name}'
+    size: 1.6775
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: 20
+    offset:
+      x: -16.1042
+      y: -12.2669
+      z: 2
+  app-7-tile:
+    type: rectangle
+    width: 10.4205
+    height: 5.7512
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -4.9035
+      z: 0
+  app-7-tile-top-0:
+    type: rectangle
+    width: 8.5507
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -0.8939
+      z: 0
+  app-7-tile-bottom-0:
+    type: rectangle
+    width: 8.5507
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -9.3594
+      z: 0
+  app-7-tile-top-1:
+    type: rectangle
+    width: 9.6254
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -1.3515
+      z: 0
+  app-7-tile-bottom-1:
+    type: rectangle
+    width: 9.6254
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -8.9018
+      z: 0
+  app-7-tile-top-2:
+    type: rectangle
+    width: 10.156
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -1.8091
+      z: 0
+  app-7-tile-bottom-2:
+    type: rectangle
+    width: 10.156
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -8.4443
+      z: 0
+  app-7-tile-top-3:
+    type: rectangle
+    width: 10.3921
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -2.2667
+      z: 0
+  app-7-tile-bottom-3:
+    type: rectangle
+    width: 10.3921
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -7.9867
+      z: 0
+  app-7-icon:
+    type: item
+    material: '{meta:mm-app-7-material}'
+    context: GUI
+    offset:
+      x: 0.0
+      y: -4.9765
+      z: 1
+    scale:
+      x: 8.5958
+      y: 8.5958
+      z: 0.1
+    rotation:
+      x: 0
+      y: 180
+      z: 0
+  app-7-name:
+    type: text
+    content: '&#283F35{meta:mm-app-7-short-name}'
+    size: 1.6775
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: 20
+    offset:
+      x: 0.0
+      y: -12.2669
+      z: 2
+  app-8-tile:
+    type: rectangle
+    width: 10.4205
+    height: 5.7512
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: -4.9035
+      z: 0
+  app-8-tile-top-0:
+    type: rectangle
+    width: 8.5507
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: -0.8939
+      z: 0
+  app-8-tile-bottom-0:
+    type: rectangle
+    width: 8.5507
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: -9.3594
+      z: 0
+  app-8-tile-top-1:
+    type: rectangle
+    width: 9.6254
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: -1.3515
+      z: 0
+  app-8-tile-bottom-1:
+    type: rectangle
+    width: 9.6254
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: -8.9018
+      z: 0
+  app-8-tile-top-2:
+    type: rectangle
+    width: 10.156
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: -1.8091
+      z: 0
+  app-8-tile-bottom-2:
+    type: rectangle
+    width: 10.156
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: -8.4443
+      z: 0
+  app-8-tile-top-3:
+    type: rectangle
+    width: 10.3921
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: -2.2667
+      z: 0
+  app-8-tile-bottom-3:
+    type: rectangle
+    width: 10.3921
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: -7.9867
+      z: 0
+  app-8-icon:
+    type: item
+    material: '{meta:mm-app-8-material}'
+    context: GUI
+    offset:
+      x: 16.2867
+      y: -4.9765
+      z: 1
+    scale:
+      x: 8.5958
+      y: 8.5958
+      z: 0.1
+    rotation:
+      x: 0
+      y: 180
+      z: 0
+  app-8-name:
+    type: text
+    content: '&#283F35{meta:mm-app-8-short-name}'
+    size: 1.6775
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: 20
+    offset:
+      x: 16.1042
+      y: -12.2669
+      z: 2
+  app-9-tile:
+    type: rectangle
+    width: 10.4205
+    height: 5.7512
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: -18.6314
+      z: 0
+  app-9-tile-top-0:
+    type: rectangle
+    width: 8.5507
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: -14.6218
+      z: 0
+  app-9-tile-bottom-0:
+    type: rectangle
+    width: 8.5507
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: -23.0873
+      z: 0
+  app-9-tile-top-1:
+    type: rectangle
+    width: 9.6254
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: -15.0794
+      z: 0
+  app-9-tile-bottom-1:
+    type: rectangle
+    width: 9.6254
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: -22.6297
+      z: 0
+  app-9-tile-top-2:
+    type: rectangle
+    width: 10.156
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: -15.537
+      z: 0
+  app-9-tile-bottom-2:
+    type: rectangle
+    width: 10.156
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: -22.1721
+      z: 0
+  app-9-tile-top-3:
+    type: rectangle
+    width: 10.3921
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: -15.9946
+      z: 0
+  app-9-tile-bottom-3:
+    type: rectangle
+    width: 10.3921
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: -16.4734
+      y: -21.7145
+      z: 0
+  app-9-icon:
+    type: item
+    material: '{meta:mm-app-9-material}'
+    context: GUI
+    offset:
+      x: -16.2867
+      y: -18.5487
+      z: 1
+    scale:
+      x: 8.5958
+      y: 8.5958
+      z: 0.1
+    rotation:
+      x: 0
+      y: 180
+      z: 0
+  app-9-name:
+    type: text
+    content: '&#283F35{meta:mm-app-9-short-name}'
+    size: 1.6775
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: 20
+    offset:
+      x: -16.1042
+      y: -25.687
+      z: 2
+  app-10-tile:
+    type: rectangle
+    width: 10.4205
+    height: 5.7512
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -18.6314
+      z: 0
+  app-10-tile-top-0:
+    type: rectangle
+    width: 8.5507
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -14.6218
+      z: 0
+  app-10-tile-bottom-0:
+    type: rectangle
+    width: 8.5507
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -23.0873
+      z: 0
+  app-10-tile-top-1:
+    type: rectangle
+    width: 9.6254
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -15.0794
+      z: 0
+  app-10-tile-bottom-1:
+    type: rectangle
+    width: 9.6254
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -22.6297
+      z: 0
+  app-10-tile-top-2:
+    type: rectangle
+    width: 10.156
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -15.537
+      z: 0
+  app-10-tile-bottom-2:
+    type: rectangle
+    width: 10.156
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -22.1721
+      z: 0
+  app-10-tile-top-3:
+    type: rectangle
+    width: 10.3921
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -15.9946
+      z: 0
+  app-10-tile-bottom-3:
+    type: rectangle
+    width: 10.3921
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 0.0
+      y: -21.7145
+      z: 0
+  app-10-icon:
+    type: item
+    material: '{meta:mm-app-10-material}'
+    context: GUI
+    offset:
+      x: 0.0
+      y: -18.5487
+      z: 1
+    scale:
+      x: 8.5958
+      y: 8.5958
+      z: 0.1
+    rotation:
+      x: 0
+      y: 180
+      z: 0
+  app-10-name:
+    type: text
+    content: '&#283F35{meta:mm-app-10-short-name}'
+    size: 1.6775
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: 20
+    offset:
+      x: 0.0
+      y: -25.687
+      z: 2
+  app-11-tile:
+    type: rectangle
+    width: 10.4205
+    height: 5.7512
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: -18.6314
+      z: 0
+  app-11-tile-top-0:
+    type: rectangle
+    width: 8.5507
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: -14.6218
+      z: 0
+  app-11-tile-bottom-0:
+    type: rectangle
+    width: 8.5507
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: -23.0873
+      z: 0
+  app-11-tile-top-1:
+    type: rectangle
+    width: 9.6254
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: -15.0794
+      z: 0
+  app-11-tile-bottom-1:
+    type: rectangle
+    width: 9.6254
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: -22.6297
+      z: 0
+  app-11-tile-top-2:
+    type: rectangle
+    width: 10.156
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: -15.537
+      z: 0
+  app-11-tile-bottom-2:
+    type: rectangle
+    width: 10.156
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: -22.1721
+      z: 0
+  app-11-tile-top-3:
+    type: rectangle
+    width: 10.3921
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: -15.9946
+      z: 0
+  app-11-tile-bottom-3:
+    type: rectangle
+    width: 10.3921
+    height: 0.5001
+    color: *phone-white
+    opacity: 255
+    offset:
+      x: 16.4734
+      y: -21.7145
+      z: 0
+  app-11-icon:
+    type: item
+    material: '{meta:mm-app-11-material}'
+    context: GUI
+    offset:
+      x: 16.2867
+      y: -18.5487
+      z: 1
+    scale:
+      x: 8.5958
+      y: 8.5958
+      z: 0.1
+    rotation:
+      x: 0
+      y: 180
+      z: 0
+  app-11-name:
+    type: text
+    content: '&#283F35{meta:mm-app-11-short-name}'
+    size: 1.6775
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: 20
+    offset:
+      x: 16.1042
+      y: -25.687
+      z: 2
+  apps-previous-bg:
+    type: rectangle
+    width: 7.1669
+    height: 2.4722
+    color: &phone-pale '#EAE8DF'
+    opacity: 255
+    offset:
+      x: -19.2274
+      y: -30.6587
+      z: 1
+  apps-previous-bg-top-0:
+    type: rectangle
+    width: 6.0115
+    height: 0.309
+    color: *phone-pale
+    opacity: 255
+    offset:
+      x: -19.2274
+      y: -28.63
+      z: 1
+  apps-previous-bg-bottom-0:
+    type: rectangle
+    width: 6.0115
+    height: 0.309
+    color: *phone-pale
+    opacity: 255
+    offset:
+      x: -19.2274
+      y: -32.8713
+      z: 1
+  apps-previous-bg-top-1:
+    type: rectangle
+    width: 6.6755
+    height: 0.309
+    color: *phone-pale
+    opacity: 255
+    offset:
+      x: -19.2274
+      y: -28.9127
+      z: 1
+  apps-previous-bg-bottom-1:
+    type: rectangle
+    width: 6.6755
+    height: 0.309
+    color: *phone-pale
+    opacity: 255
+    offset:
+      x: -19.2274
+      y: -32.5886
+      z: 1
+  apps-previous-bg-top-2:
+    type: rectangle
+    width: 7.0034
+    height: 0.309
+    color: *phone-pale
+    opacity: 255
+    offset:
+      x: -19.2274
+      y: -29.1955
+      z: 1
+  apps-previous-bg-bottom-2:
+    type: rectangle
+    width: 7.0034
+    height: 0.309
+    color: *phone-pale
+    opacity: 255
+    offset:
+      x: -19.2274
+      y: -32.3058
+      z: 1
+  apps-previous-bg-top-3:
+    type: rectangle
+    width: 7.1493
+    height: 0.309
+    color: *phone-pale
+    opacity: 255
+    offset:
+      x: -19.2274
+      y: -29.4782
+      z: 1
+  apps-previous-bg-bottom-3:
+    type: rectangle
+    width: 7.1493
+    height: 0.309
+    color: *phone-pale
+    opacity: 255
+    offset:
+      x: -19.2274
+      y: -32.023
+      z: 1
+  apps-previous-label:
+    type: text
+    content: '&#183E35‹'
+    size: 3.1314
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: -19.0119
+      y: -32.2665
+      z: 2
+  page-count:
+    type: text
+    content: '&#183E35{meta:mm-apps-page} / {meta:mm-apps-pages}'
+    size: 2.013
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: 20
+    offset:
+      x: 0.0
+      y: -31.0033
+      z: 2
+  apps-next-bg:
+    type: rectangle
+    width: 7.1669
+    height: 2.4722
+    color: *phone-pale
+    opacity: 255
+    offset:
+      x: 19.2274
+      y: -30.6587
+      z: 1
+  apps-next-bg-top-0:
+    type: rectangle
+    width: 6.0115
+    height: 0.309
+    color: *phone-pale
+    opacity: 255
+    offset:
+      x: 19.2274
+      y: -28.63
+      z: 1
+  apps-next-bg-bottom-0:
+    type: rectangle
+    width: 6.0115
+    height: 0.309
+    color: *phone-pale
+    opacity: 255
+    offset:
+      x: 19.2274
+      y: -32.8713
+      z: 1
+  apps-next-bg-top-1:
+    type: rectangle
+    width: 6.6755
+    height: 0.309
+    color: *phone-pale
+    opacity: 255
+    offset:
+      x: 19.2274
+      y: -28.9127
+      z: 1
+  apps-next-bg-bottom-1:
+    type: rectangle
+    width: 6.6755
+    height: 0.309
+    color: *phone-pale
+    opacity: 255
+    offset:
+      x: 19.2274
+      y: -32.5886
+      z: 1
+  apps-next-bg-top-2:
+    type: rectangle
+    width: 7.0034
+    height: 0.309
+    color: *phone-pale
+    opacity: 255
+    offset:
+      x: 19.2274
+      y: -29.1955
+      z: 1
+  apps-next-bg-bottom-2:
+    type: rectangle
+    width: 7.0034
+    height: 0.309
+    color: *phone-pale
+    opacity: 255
+    offset:
+      x: 19.2274
+      y: -32.3058
+      z: 1
+  apps-next-bg-top-3:
+    type: rectangle
+    width: 7.1493
+    height: 0.309
+    color: *phone-pale
+    opacity: 255
+    offset:
+      x: 19.2274
+      y: -29.4782
+      z: 1
+  apps-next-bg-bottom-3:
+    type: rectangle
+    width: 7.1493
+    height: 0.309
+    color: *phone-pale
+    opacity: 255
+    offset:
+      x: 19.2274
+      y: -32.023
+      z: 1
+  apps-next-label:
+    type: text
+    content: '&#183E35›'
+    size: 3.1314
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 19.0119
+      y: -32.2665
+      z: 2
+backend:
+  header-back:
+    x: -23.7949
+    y: 37.294
+    width: 5.9487
+    height: 7.3215
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:home'
+  dock-apps:
+    x: -16.4734
+    y: -40.0396
+    width: 12.3551
+    height: 9.1519
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:apps'
+  dock-profile:
+    x: 0.0
+    y: -40.0396
+    width: 12.3551
+    height: 9.1519
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:profile'
+  dock-close:
+    x: 16.4734
+    y: -40.0396
+    width: 12.3551
+    height: 9.1519
+    priority: 10
+    actions:
+      all:
+      - close
+  home-gesture:
+    x: 0.0
+    y: -46.5603
+    width: 21.507
+    height: 2.5168
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:home'
+    tooltip:
+    - '&7返回桌面'
+    update: 20
+  app-0-open:
+    x: -16.4734
+    y: 20.1342
+    width: 13.2703
+    height: 13.2703
+    priority: 10
+    actions:
+      left:
+      - 'open: mainmenu:feature {meta:mm-app-0-id} left'
+      right:
+      - 'open: mainmenu:feature {meta:mm-app-0-id} right'
+      shift-left:
+      - 'open: mainmenu:feature {meta:mm-app-0-id} shift-left'
+      shift-right:
+      - 'open: mainmenu:feature {meta:mm-app-0-id} shift-right'
+      middle:
+      - 'open: mainmenu:feature {meta:mm-app-0-id} middle'
+    tooltip:
+    - '{meta:mm-app-0-tooltip}'
+    update: 20
+    condition: '{meta:mm-app-0-available} == true'
+  app-1-open:
+    x: 0.0
+    y: 20.1342
+    width: 13.2703
+    height: 13.2703
+    priority: 10
+    actions:
+      left:
+      - 'open: mainmenu:feature {meta:mm-app-1-id} left'
+      right:
+      - 'open: mainmenu:feature {meta:mm-app-1-id} right'
+      shift-left:
+      - 'open: mainmenu:feature {meta:mm-app-1-id} shift-left'
+      shift-right:
+      - 'open: mainmenu:feature {meta:mm-app-1-id} shift-right'
+      middle:
+      - 'open: mainmenu:feature {meta:mm-app-1-id} middle'
+    tooltip:
+    - '{meta:mm-app-1-tooltip}'
+    update: 20
+    condition: '{meta:mm-app-1-available} == true'
+  app-2-open:
+    x: 16.4734
+    y: 20.1342
+    width: 13.2703
+    height: 13.2703
+    priority: 10
+    actions:
+      left:
+      - 'open: mainmenu:feature {meta:mm-app-2-id} left'
+      right:
+      - 'open: mainmenu:feature {meta:mm-app-2-id} right'
+      shift-left:
+      - 'open: mainmenu:feature {meta:mm-app-2-id} shift-left'
+      shift-right:
+      - 'open: mainmenu:feature {meta:mm-app-2-id} shift-right'
+      middle:
+      - 'open: mainmenu:feature {meta:mm-app-2-id} middle'
+    tooltip:
+    - '{meta:mm-app-2-tooltip}'
+    update: 20
+    condition: '{meta:mm-app-2-available} == true'
+  app-3-open:
+    x: -16.4734
+    y: 6.4063
+    width: 13.2703
+    height: 13.2703
+    priority: 10
+    actions:
+      left:
+      - 'open: mainmenu:feature {meta:mm-app-3-id} left'
+      right:
+      - 'open: mainmenu:feature {meta:mm-app-3-id} right'
+      shift-left:
+      - 'open: mainmenu:feature {meta:mm-app-3-id} shift-left'
+      shift-right:
+      - 'open: mainmenu:feature {meta:mm-app-3-id} shift-right'
+      middle:
+      - 'open: mainmenu:feature {meta:mm-app-3-id} middle'
+    tooltip:
+    - '{meta:mm-app-3-tooltip}'
+    update: 20
+    condition: '{meta:mm-app-3-available} == true'
+  app-4-open:
+    x: 0.0
+    y: 6.4063
+    width: 13.2703
+    height: 13.2703
+    priority: 10
+    actions:
+      left:
+      - 'open: mainmenu:feature {meta:mm-app-4-id} left'
+      right:
+      - 'open: mainmenu:feature {meta:mm-app-4-id} right'
+      shift-left:
+      - 'open: mainmenu:feature {meta:mm-app-4-id} shift-left'
+      shift-right:
+      - 'open: mainmenu:feature {meta:mm-app-4-id} shift-right'
+      middle:
+      - 'open: mainmenu:feature {meta:mm-app-4-id} middle'
+    tooltip:
+    - '{meta:mm-app-4-tooltip}'
+    update: 20
+    condition: '{meta:mm-app-4-available} == true'
+  app-5-open:
+    x: 16.4734
+    y: 6.4063
+    width: 13.2703
+    height: 13.2703
+    priority: 10
+    actions:
+      left:
+      - 'open: mainmenu:feature {meta:mm-app-5-id} left'
+      right:
+      - 'open: mainmenu:feature {meta:mm-app-5-id} right'
+      shift-left:
+      - 'open: mainmenu:feature {meta:mm-app-5-id} shift-left'
+      shift-right:
+      - 'open: mainmenu:feature {meta:mm-app-5-id} shift-right'
+      middle:
+      - 'open: mainmenu:feature {meta:mm-app-5-id} middle'
+    tooltip:
+    - '{meta:mm-app-5-tooltip}'
+    update: 20
+    condition: '{meta:mm-app-5-available} == true'
+  app-6-open:
+    x: -16.4734
+    y: -7.3215
+    width: 13.2703
+    height: 13.2703
+    priority: 10
+    actions:
+      left:
+      - 'open: mainmenu:feature {meta:mm-app-6-id} left'
+      right:
+      - 'open: mainmenu:feature {meta:mm-app-6-id} right'
+      shift-left:
+      - 'open: mainmenu:feature {meta:mm-app-6-id} shift-left'
+      shift-right:
+      - 'open: mainmenu:feature {meta:mm-app-6-id} shift-right'
+      middle:
+      - 'open: mainmenu:feature {meta:mm-app-6-id} middle'
+    tooltip:
+    - '{meta:mm-app-6-tooltip}'
+    update: 20
+    condition: '{meta:mm-app-6-available} == true'
+  app-7-open:
+    x: 0.0
+    y: -7.3215
+    width: 13.2703
+    height: 13.2703
+    priority: 10
+    actions:
+      left:
+      - 'open: mainmenu:feature {meta:mm-app-7-id} left'
+      right:
+      - 'open: mainmenu:feature {meta:mm-app-7-id} right'
+      shift-left:
+      - 'open: mainmenu:feature {meta:mm-app-7-id} shift-left'
+      shift-right:
+      - 'open: mainmenu:feature {meta:mm-app-7-id} shift-right'
+      middle:
+      - 'open: mainmenu:feature {meta:mm-app-7-id} middle'
+    tooltip:
+    - '{meta:mm-app-7-tooltip}'
+    update: 20
+    condition: '{meta:mm-app-7-available} == true'
+  app-8-open:
+    x: 16.4734
+    y: -7.3215
+    width: 13.2703
+    height: 13.2703
+    priority: 10
+    actions:
+      left:
+      - 'open: mainmenu:feature {meta:mm-app-8-id} left'
+      right:
+      - 'open: mainmenu:feature {meta:mm-app-8-id} right'
+      shift-left:
+      - 'open: mainmenu:feature {meta:mm-app-8-id} shift-left'
+      shift-right:
+      - 'open: mainmenu:feature {meta:mm-app-8-id} shift-right'
+      middle:
+      - 'open: mainmenu:feature {meta:mm-app-8-id} middle'
+    tooltip:
+    - '{meta:mm-app-8-tooltip}'
+    update: 20
+    condition: '{meta:mm-app-8-available} == true'
+  app-9-open:
+    x: -16.4734
+    y: -21.0494
+    width: 13.2703
+    height: 13.2703
+    priority: 10
+    actions:
+      left:
+      - 'open: mainmenu:feature {meta:mm-app-9-id} left'
+      right:
+      - 'open: mainmenu:feature {meta:mm-app-9-id} right'
+      shift-left:
+      - 'open: mainmenu:feature {meta:mm-app-9-id} shift-left'
+      shift-right:
+      - 'open: mainmenu:feature {meta:mm-app-9-id} shift-right'
+      middle:
+      - 'open: mainmenu:feature {meta:mm-app-9-id} middle'
+    tooltip:
+    - '{meta:mm-app-9-tooltip}'
+    update: 20
+    condition: '{meta:mm-app-9-available} == true'
+  app-10-open:
+    x: 0.0
+    y: -21.0494
+    width: 13.2703
+    height: 13.2703
+    priority: 10
+    actions:
+      left:
+      - 'open: mainmenu:feature {meta:mm-app-10-id} left'
+      right:
+      - 'open: mainmenu:feature {meta:mm-app-10-id} right'
+      shift-left:
+      - 'open: mainmenu:feature {meta:mm-app-10-id} shift-left'
+      shift-right:
+      - 'open: mainmenu:feature {meta:mm-app-10-id} shift-right'
+      middle:
+      - 'open: mainmenu:feature {meta:mm-app-10-id} middle'
+    tooltip:
+    - '{meta:mm-app-10-tooltip}'
+    update: 20
+    condition: '{meta:mm-app-10-available} == true'
+  app-11-open:
+    x: 16.4734
+    y: -21.0494
+    width: 13.2703
+    height: 13.2703
+    priority: 10
+    actions:
+      left:
+      - 'open: mainmenu:feature {meta:mm-app-11-id} left'
+      right:
+      - 'open: mainmenu:feature {meta:mm-app-11-id} right'
+      shift-left:
+      - 'open: mainmenu:feature {meta:mm-app-11-id} shift-left'
+      shift-right:
+      - 'open: mainmenu:feature {meta:mm-app-11-id} shift-right'
+      middle:
+      - 'open: mainmenu:feature {meta:mm-app-11-id} middle'
+    tooltip:
+    - '{meta:mm-app-11-tooltip}'
+    update: 20
+    condition: '{meta:mm-app-11-available} == true'
+  apps-previous:
+    x: -19.4478
+    y: -31.1165
+    width: 7.3215
+    height: 4.576
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:apps -1'
+  apps-next:
+    x: 19.4478
+    y: -31.1165
+    width: 7.3215
+    height: 4.576
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:apps 1'
+events:
+  open: []
+  close: []

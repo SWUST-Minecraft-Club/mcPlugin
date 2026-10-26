@@ -48,6 +48,10 @@ public final class MenuService {
         }
         lastOpen.put(player.getUniqueId(), now);
 
+        if (plugin.displayMenus() != null && plugin.displayMenus().openHome(player)) {
+            return;
+        }
+
         final MenuHolder holder = new MenuHolder(player.getUniqueId(), player.getName());
         final Inventory inventory = Bukkit.createInventory(holder, MenuLayout.SIZE, plugin.menuTitle());
         holder.attach(inventory);

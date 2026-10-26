@@ -34,4 +34,6 @@
 - [arcmenu-yml知识库.md](./arcmenu-yml知识库.md) — ArcMenu YAML 菜单配置知识库（AI 可直读的完整语法 / 动作 / 自检清单；基于 0.1.0 快照整理，运行时已升 3.2.0，以 <https://docs.myarc.icu> 为准）
 - [town-transactions-migration.md](./town-transactions-migration.md) — 小镇支付与背包交付恢复、重叠迁移、CraftEngine 家具身份及异步投影清理
 - [town-vault-economy.md](./town-vault-economy.md) — Vault 调用意图与人工核对、经济来源隔离、可选 API 类加载及金额精度
+- [mainmenu-arcmenu-migration.md](./mainmenu-arcmenu-migration.md) — 原生 YAML 主页、动态物品与空提示限制、配置不覆盖和 26.3 截图校准
+- [arcmenu-item-angles.md](./arcmenu-item-angles.md) — UltimateShop-ArcMenu 1.0.0 的物品分类、GUI/FIXED、Y 轴旋转和深度参数，附字节码证据与手机界面验证边界
 - [town-resource-packs.md](./town-resource-packs.md) — 小镇首次合包与托管、GitLab 原生分发、CE 配置阶段回执、地图图片锚点补偿

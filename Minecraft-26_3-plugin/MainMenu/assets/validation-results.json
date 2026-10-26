@@ -1,0 +1,674 @@
+{
+  "verifiedAtUtc": "2026-10-26T18:32:05.012671+00:00",
+  "pluginVersion": "Beta_1_6_0",
+  "environment": {
+    "minecraft": "26.3",
+    "foliaBuild": 5,
+    "java": 25,
+    "arcmenu": "3.2.0 premium",
+    "framebuffer": [
+      1600,
+      900
+    ],
+    "gui": [
+      800,
+      450
+    ],
+    "guiScale": 2,
+    "fov": 70,
+    "pixelsPerBlock": 42.7,
+    "distance": 2
+  },
+  "artifact": {
+    "path": "./release/MainMenu/MainMenu-mc26_3-plugin-Beta_1_6_0.jar",
+    "sha256": "9a67f18f22f689aa725b5066e0f74689c69b76cf9a26ce0bbc499eadecb974ea",
+    "bundledYamlMatchesSource": true,
+    "sourceYamlSha256": {
+      "mainmenu-features.yml": "4439f15e6cbf9000e4cb65f45f535dbfe1bae7530bbd1c50c843e019516fe5a0",
+      "mainmenu-profile.yml": "14d32b6116f002fa9ec908c1f6856bd4b2f45a2bdbb935a3ae59c024609353e5",
+      "mainmenu-manage.yml": "b61775722e052120a3ff1873b6ec6a45c551496f97d646ec57664223ef20c7fe",
+      "mainmenu-attribute-placeholder.yml": "4345db247d9800ce898fa00ec3828f114539a843c15778b47870705ae51a71a3",
+      "mainmenu-home.yml": "0a7cd9a4448d30e47b8e4f7353d4d5f7ebcd1266ab1f958fd6749e7e57a51be6",
+      "mainmenu-position.yml": "e1eec3ce546a7639e7d7545e37fe391e919ae7d19745bb9addb078f6e72f0679",
+      "mainmenu-attribute-function.yml": "6597af6546c8738b882ee55d602a1660376019d003300614f4530253e050f5a0",
+      "mainmenu-custom.yml": "ad5f69affd6e68e9306ca417bea41fb23ad30807ff8556b3af76cd130b541a2a",
+      "mainmenu-attribute-fixed.yml": "cbaf5cc1d44ac070139e0dd6704786c3f58cf8eefc0b831bf1e97d078a7d5332"
+    }
+  },
+  "junit": [
+    {
+      "name": "com.example.mainmenu.arcmenu.MenuTemplatesTest",
+      "tests": "4",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-26T18:25:19.808Z"
+    }
+  ],
+  "migrationBeforePhoneRestyle": [
+    {
+      "check": "旧配置默认绑定与每秒更新",
+      "pass": true
+    },
+    {
+      "check": "真实点击：首页→全部功能",
+      "pass": true
+    },
+    {
+      "check": "管理页",
+      "pass": true
+    },
+    {
+      "check": "真实点击：管理列表→普通属性",
+      "pass": true
+    },
+    {
+      "check": "真实点击：隐藏功能",
+      "pass": true
+    },
+    {
+      "check": "恢复显示",
+      "pass": true
+    },
+    {
+      "check": "排序±1、±4",
+      "pass": true
+    },
+    {
+      "check": "真实点击：转固定位置",
+      "pass": true
+    },
+    {
+      "check": "真实点击：位置选择",
+      "pass": true
+    },
+    {
+      "check": "真实点击：设为位置8",
+      "pass": true
+    },
+    {
+      "check": "转回功能区",
+      "pass": true
+    },
+    {
+      "check": "占位符属性",
+      "pass": true
+    },
+    {
+      "check": "真实点击：删除占位符",
+      "pass": true
+    },
+    {
+      "check": "原生铁砧输入创建自定义功能",
+      "pass": true
+    },
+    {
+      "check": "取消输入不创建功能",
+      "pass": true
+    },
+    {
+      "check": "后一次输入请求保持活动",
+      "pass": true
+    },
+    {
+      "check": "重复输入取消不误创建",
+      "pass": true
+    },
+    {
+      "check": "提交前权限失效时拒绝创建",
+      "pass": true
+    },
+    {
+      "check": "无权限不能打开管理页或执行管理路由",
+      "pass": true
+    },
+    {
+      "check": "功能区21项分页",
+      "pass": true
+    },
+    {
+      "check": "真实点击下一页",
+      "pass": true
+    },
+    {
+      "check": "真实左键转发原回调",
+      "pass": true
+    },
+    {
+      "check": "真实右键转发原回调",
+      "pass": true
+    },
+    {
+      "check": "路由点击类型 shift-left",
+      "pass": true
+    },
+    {
+      "check": "路由点击类型 shift-right",
+      "pass": true
+    },
+    {
+      "check": "路由点击类型 middle",
+      "pass": true
+    },
+    {
+      "check": "真实点击管理左栏独立翻页",
+      "pass": true
+    },
+    {
+      "check": "管理右栏分页越界钳制",
+      "pass": true
+    },
+    {
+      "check": "自定义命令回调执行",
+      "pass": true
+    },
+    {
+      "check": "真实点击小镇卡片转入Town",
+      "pass": true
+    },
+    {
+      "check": "真实点击公告卡片",
+      "pass": true
+    },
+    {
+      "check": "钱包原回调 attack",
+      "pass": true
+    },
+    {
+      "check": "钱包原回调 use",
+      "pass": true
+    },
+    {
+      "check": "音乐入口回调关闭主菜单",
+      "pass": true
+    },
+    {
+      "check": "展示功能不触发点击",
+      "pass": true
+    },
+    {
+      "check": "重载不覆盖手改主页",
+      "pass": true
+    },
+    {
+      "check": "真实点击执行YAML自定义动作",
+      "pass": true
+    },
+    {
+      "check": "错误YAML明确报告失败",
+      "pass": true
+    },
+    {
+      "check": "校验失败保留已发布主页",
+      "pass": true
+    },
+    {
+      "check": "YML禁用绑定、新增绑定及内置兜底",
+      "pass": true
+    },
+    {
+      "check": "删除绑定清理旧META",
+      "pass": true
+    },
+    {
+      "check": "关闭ArcMenu后回退背包",
+      "pass": true
+    },
+    {
+      "check": "重新启用并由YML切换主页ID",
+      "pass": true
+    },
+    {
+      "check": "重启保留手改主页字节",
+      "pass": true
+    }
+  ],
+  "phone": [
+    {
+      "check": "手机主页与真实时钟日期",
+      "pass": true
+    },
+    {
+      "check": "周期刷新保持会话",
+      "pass": true
+    },
+    {
+      "check": "真实点击全部应用",
+      "pass": true
+    },
+    {
+      "check": "真实点击我的",
+      "pass": true
+    },
+    {
+      "check": "底部手势条返回桌面",
+      "pass": true
+    },
+    {
+      "check": "真实点击桌面管理",
+      "pass": true
+    },
+    {
+      "check": "管理固定位置标签",
+      "pass": true
+    },
+    {
+      "check": "管理功能区标签",
+      "pass": true
+    },
+    {
+      "check": "物品应用打开属性",
+      "pass": true
+    },
+    {
+      "check": "手机属性隐藏功能",
+      "pass": true
+    },
+    {
+      "check": "隐藏后直接路由不能调用",
+      "pass": true
+    },
+    {
+      "check": "手机属性恢复显示",
+      "pass": true
+    },
+    {
+      "check": "手机排序四个按钮",
+      "pass": true
+    },
+    {
+      "check": "手机切为固定位置",
+      "pass": true
+    },
+    {
+      "check": "手机位置列表",
+      "pass": true
+    },
+    {
+      "check": "手机选择逻辑位置8",
+      "pass": true
+    },
+    {
+      "check": "手机转回功能区",
+      "pass": true
+    },
+    {
+      "check": "手机占位符属性",
+      "pass": true
+    },
+    {
+      "check": "手机删除占位符",
+      "pass": true
+    },
+    {
+      "check": "手机新建应用页面",
+      "pass": true
+    },
+    {
+      "check": "手机按钮进入原生名称输入",
+      "pass": true
+    },
+    {
+      "check": "取消输入返回管理",
+      "pass": true
+    },
+    {
+      "check": "普通玩家工具图标和文案切换",
+      "pass": true
+    },
+    {
+      "check": "普通玩家工具进入我的",
+      "pass": true
+    },
+    {
+      "check": "普通玩家不能进入管理",
+      "pass": true
+    },
+    {
+      "check": "手机12项分页计数",
+      "pass": true
+    },
+    {
+      "check": "所有应用跨页无遗漏无重复",
+      "pass": true
+    },
+    {
+      "check": "手机末页越界钳制",
+      "pass": true
+    },
+    {
+      "check": "真实点击上一页",
+      "pass": true
+    },
+    {
+      "check": "手机应用左键回调",
+      "pass": true
+    },
+    {
+      "check": "手机应用右键回调",
+      "pass": true
+    },
+    {
+      "check": "手机管理独立翻页",
+      "pass": true
+    },
+    {
+      "check": "固定位置保留自己的页码",
+      "pass": true
+    },
+    {
+      "check": "切回功能区保留页码",
+      "pass": true
+    },
+    {
+      "check": "手机YAML重载不覆盖字节",
+      "pass": true
+    },
+    {
+      "check": "手机YAML自定义按钮动作",
+      "pass": true
+    },
+    {
+      "check": "手机时区可配置",
+      "pass": true
+    },
+    {
+      "check": "底部关闭返回游戏",
+      "pass": true
+    }
+  ],
+  "noArcMenu": {
+    "check": "未安装ArcMenu真实启动与背包回退",
+    "pass": true,
+    "screen": {
+      "class": "net.minecraft.client.gui.screens.inventory.ContainerScreen",
+      "title": "主菜单",
+      "width": 800,
+      "height": 450,
+      "pausesGame": false
+    },
+    "mainmenuEnabled": true,
+    "noArcClassFailure": true
+  },
+  "phoneRestart": {
+    "check": "手机版手改主页重启字节保留",
+    "pass": true,
+    "beforeSha256": "e1b5d0fb4a704a3386a9376a1ed1d5ef911cb02960e8e33d1bd1441ba63d209e",
+    "afterSha256": "e1b5d0fb4a704a3386a9376a1ed1d5ef911cb02960e8e33d1bd1441ba63d209e"
+  },
+  "layerCorrectionClick": {
+    "check": "按钮层级修正后真实点击与排序恢复",
+    "pass": true
+  },
+  "geometry": [
+    {
+      "page": "home",
+      "element": "机身",
+      "expectedPx": [
+        579.84,
+        76.76,
+        1020.16,
+        823.24
+      ],
+      "measuredPxInclusive": [
+        580,
+        76,
+        1020,
+        823
+      ],
+      "maxErrorDesignUnits": 0.442,
+      "pass": true
+    },
+    {
+      "page": "home",
+      "element": "内屏",
+      "expectedPx": [
+        591.88,
+        88.8,
+        1008.12,
+        811.2
+      ],
+      "measuredPxInclusive": [
+        592,
+        88,
+        1008,
+        811
+      ],
+      "maxErrorDesignUnits": 0.465,
+      "pass": true
+    },
+    {
+      "page": "home",
+      "element": "时钟小组件",
+      "expectedPx": [
+        617.68,
+        236.72,
+        982.32,
+        369.16
+      ],
+      "measuredPxInclusive": [
+        618,
+        237,
+        982,
+        368
+      ],
+      "maxErrorDesignUnits": 0.674,
+      "pass": true
+    },
+    {
+      "page": "home",
+      "element": "底部快捷栏",
+      "expectedPx": [
+        617.68,
+        714.88,
+        982.32,
+        787.12
+      ],
+      "measuredPxInclusive": [
+        618,
+        715,
+        982,
+        786
+      ],
+      "maxErrorDesignUnits": 0.651,
+      "pass": true
+    },
+    {
+      "page": "home",
+      "element": "小镇底板",
+      "expectedPx": [
+        631.44,
+        401.84,
+        720.88,
+        489.56
+      ],
+      "measuredPxInclusive": [
+        631,
+        402,
+        720,
+        489
+      ],
+      "maxErrorDesignUnits": 0.512,
+      "pass": true
+    },
+    {
+      "page": "home",
+      "element": "钱包底板",
+      "expectedPx": [
+        755.28,
+        401.84,
+        844.72,
+        489.56
+      ],
+      "measuredPxInclusive": [
+        755,
+        402,
+        844,
+        489
+      ],
+      "maxErrorDesignUnits": 0.419,
+      "pass": true
+    },
+    {
+      "page": "home",
+      "element": "音乐底板",
+      "expectedPx": [
+        879.12,
+        401.84,
+        968.56,
+        489.56
+      ],
+      "measuredPxInclusive": [
+        879,
+        402,
+        968,
+        489
+      ],
+      "maxErrorDesignUnits": 0.326,
+      "pass": true
+    },
+    {
+      "page": "home",
+      "element": "管理底板",
+      "expectedPx": [
+        879.12,
+        541.16,
+        968.56,
+        628.88
+      ],
+      "measuredPxInclusive": [
+        879,
+        541,
+        968,
+        628
+      ],
+      "maxErrorDesignUnits": 0.512,
+      "pass": true
+    },
+    {
+      "page": "attribute-function",
+      "element": "显示面板",
+      "expectedPx": [
+        617.68,
+        384.64,
+        982.32,
+        468.92
+      ],
+      "measuredPxInclusive": [
+        618,
+        385,
+        982,
+        468
+      ],
+      "maxErrorDesignUnits": 0.535,
+      "pass": true
+    },
+    {
+      "page": "attribute-function",
+      "element": "切换显示按钮",
+      "expectedPx": [
+        815.48,
+        407.0,
+        958.24,
+        448.28
+      ],
+      "measuredPxInclusive": [
+        816,
+        407,
+        958,
+        447
+      ],
+      "maxErrorDesignUnits": 0.744,
+      "pass": true
+    },
+    {
+      "page": "attribute-function",
+      "element": "排序面板",
+      "expectedPx": [
+        617.68,
+        486.12,
+        982.32,
+        608.24
+      ],
+      "measuredPxInclusive": [
+        618,
+        486,
+        982,
+        607
+      ],
+      "maxErrorDesignUnits": 0.721,
+      "pass": true
+    },
+    {
+      "page": "attribute-function",
+      "element": "减4按钮",
+      "expectedPx": [
+        634.88,
+        548.04,
+        708.84,
+        589.32
+      ],
+      "measuredPxInclusive": [
+        635,
+        548,
+        708,
+        589
+      ],
+      "maxErrorDesignUnits": 0.488,
+      "pass": true
+    },
+    {
+      "page": "attribute-function",
+      "element": "转固定按钮",
+      "expectedPx": [
+        805.16,
+        644.36,
+        958.24,
+        683.92
+      ],
+      "measuredPxInclusive": [
+        805,
+        645,
+        958,
+        683
+      ],
+      "maxErrorDesignUnits": 0.535,
+      "pass": true
+    },
+    {
+      "page": "attribute-fixed",
+      "element": "选择位置按钮",
+      "expectedPx": [
+        641.76,
+        563.52,
+        958.24,
+        596.2
+      ],
+      "measuredPxInclusive": [
+        642,
+        564,
+        958,
+        595
+      ],
+      "maxErrorDesignUnits": 0.698,
+      "pass": true
+    }
+  ],
+  "screenshotsSha256": {
+    "apps.png": "4764761cd06a080bf9752fe402543f9a1402693303da158366491db1b5f6d3c3",
+    "attribute-fixed.png": "64e7bde0ee40942056839b9e2278a95762f018b498fb4902ef15b0fa5dada6f3",
+    "attribute-function.png": "128cd6165bdd36e29c343b18204b22a176da09efd9c36ae1ef2a4b74c8a5d222",
+    "attribute-placeholder.png": "02dba4cdbd62058c2548b1baaf178a76c994ce7c3a445e8a22dd66705c3d0c87",
+    "custom.png": "283f081ff8b2b0bb32254bed2325edcce703b39afa2eb3f55ede52b04a72853d",
+    "home.png": "2ef4feac3fa1649bb6b2ab359ea9ed1de2495a35b883d094f8e5e0516d7e1f8b",
+    "manage.png": "1f1acc7674bcbf619357bcc06873e9fe2ac76e7568de24f989ef499fc2693e74",
+    "position.png": "6a2144b19af80442e5aa80f58790c36d9cde1085bd34affeaa2cd62557c92914",
+    "profile.png": "7d4420e8b1a287f8b55156c1d0d3d1cd69b14f035c7c68bc1e22b92144ec918e"
+  },
+  "limits": [
+    "Wallet 仅验证原回调，未验证经济读写",
+    "未安装 Concerto 客户端，未验证音乐界面",
+    "未验证正式账号皮肤下载链路",
+    "资源包自定义模型需单独核对"
+  ]
+}

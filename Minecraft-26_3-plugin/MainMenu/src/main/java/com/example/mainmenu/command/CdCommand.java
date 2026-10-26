@@ -51,7 +51,7 @@ public final class CdCommand {
                         .executes(context -> {
                             plugin.reloadConfig();
                             plugin.reloadCustomFeatures();
-                            plugin.message(context.getSource().getSender(), "messages.reloaded");
+                            plugin.reloadDisplayMenus(context.getSource().getSender());
                             return Command.SINGLE_SUCCESS;
                         }))
                 .then(Commands.literal("debug")

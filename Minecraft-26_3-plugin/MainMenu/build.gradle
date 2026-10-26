@@ -4,9 +4,17 @@
 //   - 手持时钟右键
 // 其它插件通过 com.example.mainmenu.api 注册自己的功能，规范见 ./docs/dev/功能插件接入规范.md
 
-version = 'Beta_1_5_1'
+version = 'Beta_1_6_0'
 
 dependencies {
     // 其它插件以 compileOnly project(':MainMenu') 依赖本插件来使用 API；
-    // 本插件自身不需要额外依赖：JSON 解析用服务端自带的 Gson。
+    compileOnly files(rootProject.file('libs/arcmenu-api-3.2.0.jar'))
+    testImplementation "dev.folia:folia-api:${foliaApiVersion}"
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
 }

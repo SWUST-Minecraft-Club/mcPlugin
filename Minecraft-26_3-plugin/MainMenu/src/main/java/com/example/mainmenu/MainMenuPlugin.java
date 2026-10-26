@@ -11,6 +11,7 @@ import com.example.mainmenu.listener.ClockInteractListener;
 import com.example.mainmenu.listener.CustomClickListener;
 import com.example.mainmenu.menu.AdminListener;
 import com.example.mainmenu.menu.AdminService;
+import com.example.mainmenu.menu.DisplayMenus;
 import com.example.mainmenu.menu.MenuListener;
 import com.example.mainmenu.menu.MenuService;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
@@ -46,6 +47,7 @@ public final class MainMenuPlugin extends JavaPlugin {
     private MenuService menus;
     private AdminService admin;
     private DebugReporter debug;
+    private DisplayMenus displayMenus;
 
     /** 供引导阶段注册的点击回调使用（那时插件实例还不存在） */
     public static MainMenuPlugin instance() {
@@ -81,6 +83,11 @@ public final class MainMenuPlugin extends JavaPlugin {
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event ->
                 event.registrar().register(CdCommand.create(this), "打开主菜单", List.of()));
 
+        this.displayMenus = DisplayMenus.create(this);
+        if (displayMenus != null) {
+            displayMenus.reload(null);
+        }
+
         getComponentLogger().info(Component.text(
                 "已启用（服务端 " + getServer().getMinecraftVersion() + "）；ESC 菜单按钮状态见 /cd debug",
                 NamedTextColor.GREEN));
@@ -88,6 +95,9 @@ public final class MainMenuPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (displayMenus != null) {
+            displayMenus.shutdown();
+        }
         if (menus != null) {
             menus.shutdown();
         }
@@ -107,6 +117,22 @@ public final class MainMenuPlugin extends JavaPlugin {
 
     public AdminService admin() {
         return admin;
+    }
+
+    public DisplayMenus displayMenus() {
+        return displayMenus;
+    }
+
+    /** Re-evaluate the optional renderer after /cd reload, including first enable. */
+    public void reloadDisplayMenus(final org.bukkit.command.CommandSender sender) {
+        if (displayMenus == null) {
+            displayMenus = DisplayMenus.create(this);
+        }
+        if (displayMenus != null) {
+            displayMenus.reload(sender);
+        } else {
+            message(sender, "messages.reloaded");
+        }
     }
 
     public FeatureStateStore states() {

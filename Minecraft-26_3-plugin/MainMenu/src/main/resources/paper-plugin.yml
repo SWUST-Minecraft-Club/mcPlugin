@@ -8,9 +8,16 @@ bootstrapper: com.example.mainmenu.MainMenuBootstrap
 api-version: '26.3'
 # 声明支持 Folia；没有这一项的插件会被 Folia 拒绝加载
 folia-supported: true
-description: 主菜单：ESC 菜单按钮 / /cd / 手持时钟右键 打开 6×9 功能菜单
+description: 主菜单：原生 YAML 方块手机、物品应用桌面与管理界面
 authors: [zhou-BZDDX]
 website: https://github.com/zhou-BZDDX/mcPlugin
+
+dependencies:
+  server:
+    ArcMenu:
+      load: BEFORE
+      required: false
+      join-classpath: true
 
 permissions:
   mainmenu.use:
@@ -18,4 +25,7 @@ permissions:
     default: true
   mainmenu.reload:
     description: 允许使用 /cd reload、/cd debug
+    default: op
+  mainmenu.admin:
+    description: 允许管理主菜单功能、排序与固定位置
     default: op
