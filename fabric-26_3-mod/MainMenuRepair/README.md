@@ -6,6 +6,8 @@
 | --- | --- |
 | 去掉服务器自定义选项按钮上的 *注：自定义选项由第三方服务器或内容提供。请小心操作！* | Mixin `PauseScreen.addCustomDialogButtons`，把 `Button$Builder.tooltip(...)` 的参数置空 |
 | 移除右下角 4 个原版图标按钮：报告 Bug / 给予反馈 / 好友 / 举报玩家 | Mixin `PauseScreen.createPauseMenu`，把图标行 `LinearLayout.horizontal()` 换成不接收子控件的 `EmptyIconRow`，4 个按钮不会被创建 |
+| 跳过 ESC →「主菜单」的中间 dialog 页 | Fabric API `ScreenEvents.AFTER_INIT` 把按钮换成直接发 `/cd`；Mixin `Gui#setScreen` 拦下 dialog 界面兜底 |
+| 手持时钟右键空气打开主菜单 | `ClientTickEvents.END_CLIENT_TICK` 检测“按下使用键 + 瞄准空气”，发 `/cd clockair`；仅在服务端提供该命令（装了 MainMenu）时启用 |
 
 ## 为什么需要模组
 
@@ -57,5 +59,7 @@ dependencies {
 
 - 两处注入都用 `require = 0`：将来 Minecraft 改了方法名或调用点，模组不会让客户端崩溃，只是那一项改动失效（此时按新版客户端更新 mixin 目标即可）。
 - 模组只影响**客户端界面**，不改服务端行为。
+- 「时钟右键空气」只在服务端命令树里存在 `/cd clockair`（即装了 MainMenu）时判定；没装的服务器上不会发任何指令，
+  状态文件会记录“功能不启用”。
 - 想只保留其中一项：删掉 `PauseScreenMixin` 里对应的那个注入方法。
 - 目标方法/调用点取自 26.3 官方客户端 jar：`PauseScreen#addCustomDialogButtons`、`PauseScreen#createPauseMenu`、`LinearLayout#horizontal()`、`Button$Builder#tooltip(Tooltip)`。

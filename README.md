@@ -401,7 +401,7 @@ dependencies {
 | --- | --- | --- |
 | MainMenu | `1_0_1`（2026.10.18） | `Beta_1_5_1`（管理页功能占位符 + 自定义插件功能；兼容 PlayerTitle 等事件式子命令） |
 | RealTime | `1_0_0`（2026.10.18） | `Beta_1_1_0`（适配 Folia；去掉固定位提示） |
-| MainMenuRepair（fabric） | `1_0_0`（2026.10.18） | `Beta_1_0_1`（修 jar 元数据里的仓库地址） |
+| MainMenuRepair（fabric） | `1_0_0`（2026.10.18） | `Beta_1_0_2`（时钟右键空气仅在服务端装了 MainMenu 时判定） |
 | YudreamPlaytime | `1_0_0`（2026.10.19） | `Beta_1_1_0`（适配 Folia；台账缓存加锁） |
 | yudream-minecraft-server | `2_0_0`（2026.10.19） | `Beta_2_1_0`（反射适配 Folia，保持 Java 8 / 1.13.2 兼容） |
 | Town | — | `Beta_0_5_0`（11 页浅灰像素卡片风 + 真实渲染圈地小地图；修复地图线程与资源包生命周期） |

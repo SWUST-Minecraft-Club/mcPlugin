@@ -27,6 +27,18 @@
   + `src/mixin-stubs/java` 下的注解桩。网络正常、需要用 `runClient` 调试时，可按 README 里的官方模板写法换回去。
 - **来源**：2026.10.17 起；`./fabric-26_3-mod/MainMenuRepair/build.gradle`、同目录 README。
 
+## 客户端判断服务端是否装了某插件：查命令树
+
+- **场景**：MainMenuRepair 的「时钟右键空气」要发 `/cd clockair`，但纯客户端模组默认不知道服务端有没有 MainMenu，
+  在别的服务器上每按一次右键就会发出一条未知命令。
+- **做法**：用 `ClientPacketListener#getCommands()` 拿服务端随登录包下发的 Brigadier 命令树，
+  检查 `getRoot().getChild("cd")` 下有没有 `clockair`。根节点没有任何子命令说明命令包还没到，
+  此时返回「未知」、下个 tick 再看，不要过早缓存成「没装」。
+- **注意**：命令树按权限过滤。`mainmenu.use` 默认 `true`，普通玩家也能看到；如果某天把权限改成 `op`，
+  无权限玩家本来也用不了 `/cd`，此时功能不启用是正确行为。编译需要 brigadier 的桩
+  （`src/mixin-stubs/java/com/mojang/brigadier/`），它不在客户端 jar 里。
+- **来源**：MainMenuRepair `Beta_1_0_2`；`MainMenuRepairClient#detectClockAirCommand`。
+
 ## 客户端模组的排查输出不要用 System.out
 
 - **现象**：用 `System.out.println` 打的排查信息，在游戏的 `latest.log` 里完全看不到，导致误判"代码没执行"。
