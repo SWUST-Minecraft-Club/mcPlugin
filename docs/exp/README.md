@@ -33,3 +33,4 @@
 - [build-and-repo.md](./build-and-repo.md) — 构建与仓库环境：工具链 fork、下载镜像、绝对路径、产物可复现
 - [arcmenu-yml知识库.md](./arcmenu-yml知识库.md) — ArcMenu YAML 菜单配置知识库（AI 可直读的完整语法 / 动作 / 自检清单；基于 0.1.0 快照整理，运行时已升 3.2.0，以 <https://docs.myarc.icu> 为准）
 - [town-transactions-migration.md](./town-transactions-migration.md) — 小镇支付与背包交付恢复、重叠迁移、CraftEngine 家具身份及异步投影清理
+- [town-resource-packs.md](./town-resource-packs.md) — 小镇首次合包与托管、CE 配置阶段回执、地图图片锚点补偿

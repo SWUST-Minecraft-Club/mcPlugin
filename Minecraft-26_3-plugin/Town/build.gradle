@@ -2,7 +2,7 @@
 // 公共配置（Java 工具链、Folia API 依赖、仓库、processResources、Folia 测试服版本）
 // 统一在仓库根目录的 build.gradle 里，改一次对所有插件生效。
 
-version = 'Beta_0_6_0'
+version = 'Beta_0_6_1'
 
 dependencies {
     // 主菜单入口（软依赖，隔离在 hook 包）

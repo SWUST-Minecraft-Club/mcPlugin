@@ -25,7 +25,7 @@ class TownMenusTest {
     @Test
     void generatesElevenValidSelfContainedMenus() {
         Map<String, MenuBuilder> menus = TownMenus.all(CONFIG);
-        assertEquals(11 + TownOperationMenus.all().size(), menus.size());
+        assertEquals(12 + TownOperationMenus.all().size(), menus.size());
         for (Map.Entry<String, MenuBuilder> entry : menus.entrySet()) {
             String json = entry.getValue().dump(entry.getKey());
             JsonObject doc = JsonParser.parseString(json).getAsJsonObject();
@@ -105,6 +105,16 @@ class TownMenusTest {
         assertEquals("command: town claimmap center",
                 backend.getAsJsonObject("recenter").getAsJsonObject("actions")
                         .getAsJsonArray("all").get(0).getAsString());
+    }
+
+    @Test
+    void waitingMapUsesNoPackGlyphsButKeepsAllClaimActions() {
+        JsonObject waiting = doc(TownMenus.CLAIM_WAITING);
+        assertFalse(waiting.getAsJsonObject("frontend").entrySet().stream()
+                .anyMatch(entry -> "image".equals(entry.getValue().getAsJsonObject().get("type").getAsString())));
+        assertEquals(doc(TownMenus.CLAIM).getAsJsonObject("backend"), waiting.getAsJsonObject("backend"));
+        assertEquals(49, waiting.getAsJsonObject("frontend").keySet().stream()
+                .filter(id -> id.startsWith("cell-bg-")).count());
     }
 
     @Test

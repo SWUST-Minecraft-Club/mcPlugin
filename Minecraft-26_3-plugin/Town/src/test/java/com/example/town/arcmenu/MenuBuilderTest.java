@@ -46,7 +46,7 @@ class MenuBuilderTest {
     }
 
     @Test
-    void imageKeepsMeasuredGeometryWithoutDoubleCompensation() {
+    void squareImageCompensatesGlyphBearingAndBaseline() {
         MenuBuilder menu = new MenuBuilder();
         menu.image("map-image", "/town/map/%arcmenu_meta_map_key%.png",
                 20, 68, 326, 326, 1, 20);
@@ -54,6 +54,11 @@ class MenuBuilderTest {
                 .getAsJsonObject().getAsJsonObject("frontend").getAsJsonObject("map-image");
         assertEquals(62.136, image.get("width").getAsDouble(), 0.001);
         assertEquals(62.136, image.get("height").getAsDouble(), 0.001);
+        double scale = 1 - 2 * MenuBuilder.ZK;
+        assertEquals(MenuBuilder.G * (-217 - 326.0 / 16) / scale,
+                image.getAsJsonObject("offset").get("x").getAsDouble(), 0.001);
+        assertEquals(MenuBuilder.G * (225 - 68 - 163 - 326.0 / 4) / scale,
+                image.getAsJsonObject("offset").get("y").getAsDouble(), 0.001);
         assertEquals(-2, image.getAsJsonObject("offset").get("z").getAsInt());
         assertEquals("/town/map/%arcmenu_meta_map_key%.png", image.get("source").getAsString());
     }

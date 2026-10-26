@@ -2,7 +2,7 @@
 
 面向 **Minecraft/Folia 26.3、Java 25** 的休闲经营小镇系统。以政厅核心和玩家自建建筑为中心，提供自主区块领土、XZ 矩形地块、出租与授权、镇库发展、玩家商业及建筑迁移。
 
-- 版本：`Beta_0_6_0`，见 [ChangeLog](./Town-mc26_3-plugin-ChangeLog-Beta.md)。
+- 版本：`Beta_0_6_1`，见 [ChangeLog](./Town-mc26_3-plugin-ChangeLog-Beta.md)。
 - 主类：`com.example.town.TownPlugin`；公开查询接口：`com.example.town.api.TownApi`。
 - [实机验证记录](./assets/VALIDATION.md) · [美术素材与原始提示词](./assets/README.md)。
 
@@ -12,7 +12,7 @@
 
 | 依赖 | 装有时 | 缺少时 |
 | --- | --- | --- |
-| ArcMenu 3.2 | 25 页世界内菜单、原生文本输入与每玩家动态内容 | 使用 `/town` 指令、聊天列表和文本地图 |
+| ArcMenu 3.2 | 26 页世界内菜单、原生文本输入与每玩家动态内容 | 使用 `/town` 指令、聊天列表和文本地图 |
 | Wallet | 成立、扩张、租金、镇库、商品及迁移结算 | 收费与钱包相关操作提示不可用 |
 | CraftEngine | `town:town_hall` 核心、`town:surveyor` 测绘工具；保存自定义方块和家具 | 核心回落为磁石，工具回落为木棍；仍支持原版建筑迁移 |
 | MainMenu | 主菜单注册 `town:main`，按查看者显示信息 | 使用 `/town` 打开 |
@@ -21,10 +21,20 @@
 
 1. 将 Town jar 与所需依赖放入服务端插件目录，启动服务端。
 2. Town 首次释放 `plugins/Town/config.yml`，新增键有默认值，已有运营配置保留。
-3. 自有 CraftEngine 资源释放到 `plugins/CraftEngine/resources/town/`，已有同名文件不会覆盖。首次安装后执行 `/ce reload`，并让客户端接收更新的资源包。
+3. 自有 CraftEngine 资源在加载阶段释放到 `plugins/CraftEngine/resources/town/`，已有同名文件不会覆盖。等待 CE 延迟配置加载完成后，Town 自动执行 `reload_pack` 工作流（生成、校验、合并 ArcMenu、上传、发送）。客户端启用服务器资源包后重连即可。
 4. ArcMenu 菜单自动生成到 `plugins/ArcMenu/menus/town-*.yml`。布局调整应修改生成器；Town 重载会重新生成菜单。
 
 CraftEngine 已安装且配置了核心 ID 时，必须成功放置真实自定义方块；定义未加载时提示错误，不以原版方块代替成功结果。
+
+### 资源包与领地地图
+
+- `arcmenu resources` 只生成 ArcMenu 本地资源，必须继续执行 CE 合包和托管流程。默认支持 CE 26.9.2 的 `reload_pack` 工作流及其 ZIP 输出路径；工作流需保留 `generate`、`zip`、`upload` 和 `send_pack`。
+- 地图只有在最终包包含当前 PNG 与字体映射，并且该玩家成功加载对应 SHA-1 / UUID 的资源包后才显示。等待、拒绝、下载失败时使用原版区块网格，仍可圈地；未安装 CE 时也使用网格。
+- CE 配置阶段的下载不会触发普通玩家资源包事件；Town 在进入游戏后补发缓存包，取得可核验的加载回执。新增地形图会触发资源包更新，保留 30 秒节流和尾随构建。
+- CE 的 HTTP 托管默认与游戏共享端口；`self-host.ip: auto` 对本机连接使用回环地址。局域网、端口映射或代理环境需要设置玩家能访问的 `resource-pack.self-host.ip` / `url`，修改后 `/ce reload host`、`/ce reload pack` 并重连。见 [CE 托管文档](https://xiao-momi.github.io/craft-engine-wiki/getting_start/set_up_host/self/)。
+- 已有服升级仅替换 Town jar，保留世界和 Town 数据目录；资源释放不覆盖已有 CE 自定义文件。
+
+仅服务端打包脚本：`python3 ./scripts/package-town-server.py --base <上一版服务端ZIP>`。依赖 jar 来自指定的已交付最小包，Town 来自本仓留档，不夹带本机配置、世界、玩家数据或客户端。
 
 ## 成立、政厅与领土
 

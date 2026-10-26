@@ -332,7 +332,20 @@ public final class TownUi {
         current.put(player.getUniqueId(), menuId);
         // 不强制切换输入模式：默认 mouse（客户端 Mod 本地渲染光标，最跟手），
         // 玩家可用 /arcmenu mode 自选 touch / vision，服务器策略由 ArcMenu config 决定。
-        api.open(player, menuId);
+        api.open(player, renderedMenu(player, menuId));
+    }
+
+    /** 等待页完全不创建图片字形，未接收资源包的客户端也能正常操作网格。 */
+    private String renderedMenu(Player player, String menuId) {
+        if (!TownMenus.CLAIM.equals(menuId)) return menuId;
+        ChunkKey center = claimCenter.get(player.getUniqueId());
+        return center != null && mapRenderer != null && mapRenderer.isReady(TownMapRenderer.fileKey(center))
+                && plugin.resourcePacks().loaded(player) ? TownMenus.CLAIM : TownMenus.CLAIM_WAITING;
+    }
+
+    /** 供 CE 手工重建后的回执验证使用，只读取资源文件。 */
+    public boolean verifyMapPack(Path pack) throws IOException {
+        return mapRenderer != null && mapRenderer.containsCurrentMaps(pack);
     }
 
     // ------------------------------------------------------------------ API 输入与地图拖动
@@ -444,7 +457,13 @@ public final class TownUi {
             default -> {
             }
         }
-        api.refresh(player);
+        String rendered = renderedMenu(player, screen);
+        var session = api.sessions().current(player);
+        if (TownMenus.CLAIM.equals(screen) && session != null && !rendered.equals(session.getId())) {
+            api.open(player, rendered);
+        } else {
+            api.refresh(player);
+        }
     }
 
     /** 全局周期任务调用；实际写入和刷新仍回到各玩家区域线程。 */
@@ -510,12 +529,13 @@ public final class TownUi {
 
     /** close 后下一 tick 再查会话；同页翻页/重开与真正关闭因此可区分。 */
     public void closed(final Player player, final String menuId) {
-        if (!menuId.equals(current.get(player.getUniqueId()))) {
+        final String logicalId = TownMenus.CLAIM_WAITING.equals(menuId) ? TownMenus.CLAIM : menuId;
+        if (!logicalId.equals(current.get(player.getUniqueId()))) {
             return;
         }
         player.getScheduler().runDelayed(plugin, task -> {
             if (api.sessions().current(player) == null
-                    && menuId.equals(current.get(player.getUniqueId()))) {
+                    && logicalId.equals(current.get(player.getUniqueId()))) {
                 clear(player.getUniqueId());
             }
         }, null, 1L);
@@ -762,11 +782,14 @@ public final class TownUi {
         final TownSnapshotView own = plugin.service().townOf(player.getUniqueId());
         set(player, "claim_center", center.world() + " · " + center.x() + ", " + center.z());
         final String key = TownMapRenderer.fileKey(center);
+        set(player, "map_status", plugin.resourcePacks().loaded(player)
+                ? (mapRenderer != null && mapRenderer.isReady(key) ? "真实地形" : "正在绘制当前位置地形")
+                : plugin.resourcePacks().message(player));
         if (mapRenderer != null && mapRenderer.isReady(key)) {
             set(player, "map_key", key);
         } else {
             set(player, "map_key", "default");
-            if (mapRenderer != null) {
+            if (mapRenderer != null && plugin.craftEngine() != null) {
                 mapRenderer.ensureRendered(center).thenAccept(ready -> {
                     if (!ready) {
                         return;
@@ -778,8 +801,7 @@ public final class TownUi {
                                 || !mapRenderer.isReady(key)) {
                             return;
                         }
-                        set(player, "map_key", key);
-                        api.refresh(player);
+                        refresh(player);
                     });
                 });
             }

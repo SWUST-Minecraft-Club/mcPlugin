@@ -9,6 +9,8 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -42,5 +44,33 @@ class TownMapRendererTest {
 
         Files.delete(renderer.fileFor(key));
         assertFalse(renderer.isReady(key), "索引存在但文件被删除也不能使用");
+    }
+
+    @Test
+    void finalPackMustContainMatchingFontProvidersAndImageBytes() throws Exception {
+        Path arcDir = tempDir.resolve("ArcMenu");
+        Path arc = arcDir.resolve("generated/arcmenu-resourcepack.zip");
+        Files.createDirectories(arc.getParent());
+        String font = "{\"providers\":[{\"type\":\"bitmap\",\"file\":\"arcmenu:images/town/map/test.png\",\"chars\":[\"\\uE001\"],\"height\":8,\"ascent\":7}]}";
+        pack(arc, font, "current-image");
+        Path merged = tempDir.resolve("merged.zip");
+        TownMapRenderer renderer = new TownMapRenderer(null, arcDir);
+        var verify = TownMapRenderer.class.getDeclaredMethod("verifyMergedPack", Path.class, Set.class, long.class);
+        verify.setAccessible(true);
+        pack(merged, "{\"providers\":[]}", "current-image");
+        assertFalse((boolean) verify.invoke(renderer, merged, Set.of("test"), 0L), "有 PNG 没有字体映射不能发布");
+        pack(merged, font, "stale-image");
+        assertFalse((boolean) verify.invoke(renderer, merged, Set.of("test"), 0L), "旧 PNG 不能被本次构建误认");
+        pack(merged, font, "current-image");
+        assertTrue((boolean) verify.invoke(renderer, merged, Set.of("test"), 0L));
+    }
+
+    private void pack(Path path, String font, String image) throws Exception {
+        try (var out = new ZipOutputStream(Files.newOutputStream(path))) {
+            out.putNextEntry(new ZipEntry("assets/arcmenu/font/images.json"));
+            out.write(font.getBytes(java.nio.charset.StandardCharsets.UTF_8)); out.closeEntry();
+            out.putNextEntry(new ZipEntry("assets/arcmenu/textures/images/town/map/test.png"));
+            out.write(image.getBytes(java.nio.charset.StandardCharsets.UTF_8)); out.closeEntry();
+        }
     }
 }

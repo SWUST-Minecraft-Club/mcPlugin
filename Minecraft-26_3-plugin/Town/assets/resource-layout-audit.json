@@ -1,0 +1,45 @@
+{
+  "capture": "./screenshots/town-map-resources.png",
+  "runtime": "Folia 26.3 / ArcMenu 3.2.0 / Town Beta_0_6_1",
+  "pixelsPerBlock": 42.7,
+  "canvas": [
+    800,
+    450
+  ],
+  "viewport": [
+    1280,
+    720
+  ],
+  "windowScale": 0.7,
+  "canvasOriginPixels": [
+    192,
+    108
+  ],
+  "pixelsPerCanvasUnit": 1.12,
+  "imageDesignBounds": [
+    20,
+    68,
+    346,
+    394
+  ],
+  "expectedImageBoundsPixels": [
+    214.4,
+    184.16,
+    579.52,
+    549.28
+  ],
+  "measuredImageBoundsPixels": [
+    214,
+    184,
+    579,
+    549
+  ],
+  "edgeErrorsInCanvasUnits": [
+    -0.357,
+    -0.143,
+    -0.464,
+    -0.25
+  ],
+  "maximumEdgeErrorInCanvasUnits": 0.464,
+  "measurement": "以原始地图 PNG 的实际调色板匹配截图中地形像素，右/下边界使用半开区间；范围不含 frame 描边。"
+}

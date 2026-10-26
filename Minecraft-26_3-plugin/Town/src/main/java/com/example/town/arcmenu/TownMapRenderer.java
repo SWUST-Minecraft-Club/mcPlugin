@@ -24,7 +24,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 
 /**
- * 原版地图风格的小地图渲染器。真实 key 只有在 PNG 写盘且本次资源包重建验证成功后才会标记为 ready，
+ * 原版地图风格的小地图渲染器。真实 key 只有在 PNG 写盘且本次 CE 最终资源包验证成功后才会标记为 ready，
  * 防止“文件存在但资源包里没有”导致 image 空白。所有回调仅表达结果，ArcMenu META 由 TownUi 在玩家线程写入。
  */
 public final class TownMapRenderer {
@@ -231,7 +231,7 @@ public final class TownMapRenderer {
         }
     }
 
-    /** 启动/重载时在全局区域线程同步执行，完成后再由调用方发布菜单。 */
+    /** 在全局区域线程发起本地索引重建；最终合包与投递验证在异步工作流完成。 */
     public boolean rebuildNow() {
         final Set<String> batch;
         synchronized (this) {
@@ -277,6 +277,29 @@ public final class TownMapRenderer {
         } catch (final RuntimeException e) {
             plugin.getLogger().warning("ArcMenu 资源包重建失败：" + e.getMessage());
         }
+        if (ok) {
+            // arcmenu resources 只构建本地字体索引，必须继续完成 CE 的合包、上传和发送工作流。
+            plugin.resourcePacks().rebuild().whenComplete((pack, error) -> {
+                boolean delivered = false;
+                if (error == null && pack != null) {
+                    try {
+                        delivered = verifyMergedPack(pack, batch, startedAt);
+                        if (delivered) plugin.resourcePacks().published(pack);
+                    } catch (Exception failure) {
+                        plugin.getLogger().warning("小镇最终资源包验证失败：" + failure.getMessage());
+                    }
+                } else if (error != null) {
+                    plugin.getLogger().warning("CE 小镇资源包构建失败：" + error.getMessage());
+                }
+                finishBatch(batch, delivered);
+            });
+        } else {
+            finishBatch(batch, false);
+        }
+        return ok;
+    }
+
+    private void finishBatch(final Set<String> batch, final boolean ok) {
         final boolean again;
         final Map<String, List<CompletableFuture<Boolean>>> done = new HashMap<>();
         synchronized (this) {
@@ -302,9 +325,40 @@ public final class TownMapRenderer {
             requestResourceRebuild();
         }
         if (!ok) {
-            plugin.getLogger().warning("ArcMenu 资源包未包含本批小地图，继续使用占位图（" + batch.size() + " 张）。");
+            plugin.getLogger().warning("最终资源包未就绪，地图继续显示区块网格（" + batch.size() + " 张）。");
         }
-        return ok;
+    }
+
+    /** PNG 和字体映射必须同时进入最终包；只有图片而没有字体依然会出现放大的缺字白框。 */
+    private boolean verifyMergedPack(Path merged, Set<String> batch, long startedAt) throws IOException {
+        if (!Files.exists(merged) || Files.getLastModifiedTime(merged).toMillis() < startedAt - 1000L) return false;
+        try (ZipFile arc = new ZipFile(packFile.toFile()); ZipFile ce = new ZipFile(merged.toFile())) {
+            final String font = "assets/arcmenu/font/images.json";
+            var sourceFont = arc.getEntry(font);
+            var mergedFont = ce.getEntry(font);
+            if (sourceFont == null || mergedFont == null) return false;
+            try (var source = arc.getInputStream(sourceFont); var target = ce.getInputStream(mergedFont)) {
+                var expectedProviders = com.google.gson.JsonParser.parseString(new String(source.readAllBytes(),
+                        java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject().getAsJsonArray("providers");
+                var actualProviders = com.google.gson.JsonParser.parseString(new String(target.readAllBytes(),
+                        java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject().getAsJsonArray("providers");
+                if (expectedProviders == null || actualProviders == null) return false;
+                for (var provider : expectedProviders) if (!actualProviders.contains(provider)) return false;
+            }
+            for (String key : batch) {
+                String path = "assets/arcmenu/textures/images/town/map/" + key + ".png";
+                var source = arc.getEntry(path);
+                var target = ce.getEntry(path);
+                if (source == null || target == null || source.getCrc() != target.getCrc()) return false;
+            }
+            return true;
+        }
+    }
+
+    public boolean containsCurrentMaps(Path pack) throws IOException {
+        final Set<String> keys;
+        synchronized (this) { keys = Set.copyOf(indexed); }
+        return verifyMergedPack(pack, keys, 0L);
     }
 
     /** 必须看到本次生成包且包内真的有每个 key，不能把固定延迟当成成功。 */

@@ -206,7 +206,7 @@ public final class MenuBuilder {
         putFrontend(id, o);
     }
 
-    /** 图片元素（source 为含占位符的虚拟路径；update 为重解析周期 tick）。 */
+    /** 不透明方形地图：补偿 ArcMenu 字形半像素左边距和基线偏移；update 为重解析周期 tick。 */
     public void image(final String id, final String source, final double l, final double t,
                       final double w, final double h, final int layer, final int updateTicks) {
         bounds(id, l, t, w, h);
@@ -218,7 +218,9 @@ public final class MenuBuilder {
         o.addProperty("height", r3(G * h / scale));
         o.addProperty("opacity", 255);
         o.addProperty("update", updateTicks);
-        o.add("offset", offset(l + w / 2 - W / 2.0, H / 2.0 - (t + h / 2), layer));
+        // 方形字体 height=8、advance=9、ascent=4；实测图片偏右 w/16、偏上 h/4。
+        o.add("offset", offset(l + w / 2 - W / 2.0 - w / 16,
+                H / 2.0 - (t + h / 2) - h / 4, layer));
         putFrontend(id, o);
     }
 

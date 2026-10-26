@@ -37,6 +37,7 @@ public final class TownPlugin extends JavaPlugin {
     private TownEvents events;
     private WalletHook wallet;
     private CraftEngineHook craftEngine;
+    private com.example.town.hook.TownResourcePacks resourcePacks;
     private TownHalls townHalls;
     private TownService service;
     private PlotService plots;
@@ -83,6 +84,7 @@ public final class TownPlugin extends JavaPlugin {
         events = new TownEvents();
         wallet = WalletHook.create(this);
         craftEngine = CraftEngineHook.create(this);
+        resourcePacks = new com.example.town.hook.TownResourcePacks(this);
         townHalls = new TownHalls(this, craftEngine);
         service = new TownService(this, registry, store, messages, events, wallet);
         plots = new PlotService(registry, service::requestSave, plotLimits());
@@ -120,6 +122,11 @@ public final class TownPlugin extends JavaPlugin {
         ui = TownUi.create(this);
         if (ui != null) {
             ui.installMenus();
+        } else if (craftEngine != null) {
+            resourcePacks.rebuild().thenAccept(pack -> {
+                try { if (pack != null) resourcePacks.published(pack); }
+                catch (Exception error) { getLogger().warning("小镇资源包发布失败：" + error.getMessage()); }
+            }).exceptionally(error -> { getLogger().warning("小镇资源包构建失败：" + error.getMessage()); return null; });
         }
         menuHook = MainMenuHook.create(this);
         if (menuHook != null) {
@@ -209,6 +216,7 @@ public final class TownPlugin extends JavaPlugin {
     public com.example.town.relocation.RelocationService relocation() {return relocation;}
     public com.example.town.market.MarketService market() {return market;}
     public CraftEngineHook craftEngine() {return craftEngine;}
+    public com.example.town.hook.TownResourcePacks resourcePacks() { return resourcePacks; }
     public TownStore store() { return store; }
     public TownEvents events() { return events; }
     public SelectionService selections() { return selections; }

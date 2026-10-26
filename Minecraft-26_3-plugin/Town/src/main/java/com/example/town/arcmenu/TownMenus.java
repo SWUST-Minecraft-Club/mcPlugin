@@ -38,6 +38,7 @@ public final class TownMenus {
     public static final String MEMBER_DETAIL = "town-member-detail";
     public static final String INVITE_PICKER = "town-invite-picker";
     public static final String CLAIM = "town-claim";
+    public static final String CLAIM_WAITING = "town-claim-waiting";
     public static final String BUFFS = "town-buffs";
     public static final String CONFIRM = "town-confirm";
     public static final String CREATE = "town-create";
@@ -377,6 +378,10 @@ public final class TownMenus {
     // ------------------------------------------------------------------ 圈地与祝福
 
     public static MenuBuilder claim() {
+        return claim(true);
+    }
+
+    private static MenuBuilder claim(boolean terrain) {
         final MenuBuilder m = chrome("领地地图", "真实渲染地形 · 角标=领地状态 · 确认时目标区块会标出", true);
         final int n = TownUi.CLAIM_GRID;
         final double cell = 44;
@@ -384,7 +389,13 @@ public final class TownMenus {
         final double l0 = 20;
         final double t0 = 68;
         final double grid = n * cell + (n - 1) * gap;
-        m.image("map-image", "/town/map/%arcmenu_meta_map_key%.png", l0, t0, grid, grid, 1, 20);
+        if (terrain) {
+            m.image("map-image", "/town/map/%arcmenu_meta_map_key%.png", l0, t0, grid, grid, 1, 20);
+        } else {
+            for (int r = 0; r < n; r++) for (int c = 0; c < n; c++)
+                m.rect("cell-bg-" + r + "-" + c, l0 + c * (cell + gap), t0 + r * (cell + gap),
+                        cell, cell, PANEL, 1);
+        }
         m.frame("map-frame", l0 - 2, t0 - 2, grid + 4, grid + 4, LINE, 3, 2);
         m.frame("cell-mark", l0 + (n / 2) * (cell + gap) - 1, t0 + (n / 2) * (cell + gap) - 1,
                 cell + 2, cell + 2, GOLD, 3, 2);
@@ -410,7 +421,7 @@ public final class TownMenus {
         m.text("side-center", t(MUTE, "中心 {meta:claim_center}"), sx + sw / 2, 118, 11, 5, CENTER, dyn());
         m.text("side-count", t(MUTE, "领地 ") + t(TEXT, "{meta:claim_count} / {meta:claim_max}"),
                 sx + sw / 2, 142, 12, 5, CENTER, dyn());
-        m.text("legend-terrain-title", t(ACC, "真实地形"), sx, 174, 11, 5, LEFT, null);
+        m.text("legend-terrain-title", t(ACC, "{meta:map_status}"), sx + sw / 2, 174, 11, 5, CENTER, dyn());
         m.text("legend-terrain-1", t(MUTE, "逐方块渲染，颜色随群系 / 水深 / 高度变化"),
                 sx, 196, 10, 5, LEFT, null);
         m.text("legend-terrain-2", t(MUTE, "深绿=林地　蓝=水　黄=沙　灰=岩　白=雪"),
@@ -494,6 +505,7 @@ public final class TownMenus {
         all.put(MEMBER_DETAIL, memberDetail());
         all.put(INVITE_PICKER, invitePicker());
         all.put(CLAIM, claim());
+        all.put(CLAIM_WAITING, claim(false));
         all.put(BUFFS, buffs());
         all.put(CONFIRM, confirm());
         all.putAll(TownOperationMenus.all());
