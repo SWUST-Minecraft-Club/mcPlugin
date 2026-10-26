@@ -413,7 +413,7 @@ dependencies {
 | --- | --- | --- |
 | MainMenu | `1_0_1`（2026.10.18） | `Beta_1_5_1`（管理页功能占位符 + 自定义插件功能；兼容 PlayerTitle 等事件式子命令） |
 | RealTime | `1_0_0`（2026.10.18） | `Beta_1_1_0`（适配 Folia；去掉固定位提示） |
-| MainMenuRepair（fabric） | `1_0_0`（2026.10.18） | `Beta_1_0_2`（时钟右键空气仅在服务端装了 MainMenu 时判定） |
+| MainMenuRepair（fabric） | `1_0_0`（2026.10.18） | `Beta_1_1_0`（去掉服务端 dialog 右上角的「自定义屏幕」警告图标） |
 | MinecraftMcp（fabric） | — | `Beta_0_1_0`（MCP 客户端测试工具；核心与游戏版本适配器分离） |
 | YudreamPlaytime | `1_0_0`（2026.10.19） | `Beta_1_1_0`（适配 Folia；台账缓存加锁） |
 | yudream-minecraft-server | `2_0_0`（2026.10.19） | `Beta_2_1_0`（反射适配 Folia，保持 Java 8 / 1.13.2 兼容） |

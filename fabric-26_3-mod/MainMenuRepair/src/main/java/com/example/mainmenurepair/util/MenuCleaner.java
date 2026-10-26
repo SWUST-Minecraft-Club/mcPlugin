@@ -7,6 +7,7 @@ import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.SpriteIconButton;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.PauseScreen;
@@ -95,8 +96,12 @@ public final class MenuCleaner {
         }
     }
 
-    /** 对暂停菜单做清理：隐藏并移除 4 个图标按钮、清空按钮上的提示 */
+    /** 清理界面：暂停菜单去掉 4 个图标按钮和第三方警告；服务端 dialog 去掉右上角的警告按钮 */
     public static void clean(final Screen screen, final String source) {
+        if (screen instanceof DialogScreen) {
+            removeDialogWarning(screen, source);
+            return;
+        }
         if (!(screen instanceof PauseScreen)) {
             return;
         }
@@ -135,5 +140,33 @@ public final class MenuCleaner {
 
         StatusLog.append(source + "：控件 " + children.size() + " 个，图标 " + icons
                 + " 个（移除 " + removed + "），清空提示 " + tooltips + " 个");
+    }
+
+    /**
+     * 去掉服务端 dialog 标题右侧的「自定义屏幕」警告按钮。
+     *
+     * <p>{@code DialogScreen.init()} 会无条件创建一个 {@link ImageButton} 并挂进标题行，
+     * 按钮本身和它打开的说明页都由客户端提供，服务端控制不了。这里按提示文本识别
+     * （{@code menu.custom_screen_info.*}，不受客户端语言影响），隐藏后把尺寸归零，
+     * 标题行会重新按居中排版。
+     */
+    private static void removeDialogWarning(final Screen screen, final String source) {
+        final String warningText =
+                Component.translatable("menu.custom_screen_info.button_narration").getString();
+        int hidden = 0;
+        for (final GuiEventListener child : new ArrayList<>(screen.children())) {
+            if (!(child instanceof ImageButton button)) {
+                continue;
+            }
+            if (!button.getMessage().getString().equals(warningText)) {
+                continue;
+            }
+            button.visible = false;
+            button.active = false;
+            button.setWidth(0);
+            button.setHeight(0);
+            hidden++;
+        }
+        StatusLog.append(source + "：dialog 警告按钮 " + hidden + " 个");
     }
 }

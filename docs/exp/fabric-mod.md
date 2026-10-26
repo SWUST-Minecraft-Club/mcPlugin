@@ -47,6 +47,16 @@
   记录各条钩子是否生效，并带上时间与工作目录。
 - **来源**：MainMenuRepair `Beta` 排查期；`src/main/java/com/example/mainmenurepair/util/StatusLog.java`。
 
+## 服务端 dialog 右上角的「自定义屏幕」警告按钮
+
+- **现象**：服务端下发的 dialog（进服公告等）右上角有一个黄色警告图标，点击会打开“自定义屏幕”说明页，和自定义界面风格不搭。
+- **根因**：`DialogScreen.init()` 无条件调用 `createWarningButton()` 创建 `ImageButton`，再 `addRenderableWidget` 挂进标题行；
+  按钮提示文本 key 是 `menu.custom_screen_info.*`，由客户端提供，服务端控制不了。
+- **规避/解决**：在 `ScreenEvents.AFTER_INIT` 中对 `DialogScreen` 遍历 children，用
+  `getMessage()` 等于 `Component.translatable("menu.custom_screen_info.button_narration").getString()` 识别
+  （不受客户端语言影响），隐藏后 `setWidth(0)/setHeight(0)`，标题行会重新按居中排版。
+- **来源**：MainMenuRepair `Beta_1_1_0`；`MenuCleaner#removeDialogWarning`。
+
 ## 26.3 的屏幕、键盘与容器 API 需要按官方 jar 核对
 
 - **现象**：沿用旧版示例中的 `Minecraft.screen/setScreen`、GLFW 键码、`ClickType/handleInventoryMouseClick` 会引用不存在的接口或产生错误输入。

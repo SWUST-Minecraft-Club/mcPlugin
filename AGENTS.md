@@ -52,9 +52,9 @@
 - 不要在文档里写 `C:/D:` 盘符路径 —— 仓库改过名，写死路径的脚本已经因此坏过一次。
 - 不要把规范复制到 README 与 docs 两处：规范只写在 `docs/dev/`，README 只留指针。
 
-## 现状快照（2026-10-26，新增 MinecraftMcp 分层客户端测试模组；MainMenuRepair 时钟右键空气加服务端探测后更新本行）
+## 现状快照（2026-10-26，新增 MinecraftMcp 分层客户端测试模组；MainMenuRepair 服务端探测与 dialog 警告清理后更新本行）
 
-插件 MainMenu（正式版 `1_0_1` / 测试中 `Beta_1_5_1`，管理页可添加功能占位符与自定义插件功能）· RealTime（`1_0_0` / `Beta_1_1_0`）· MainMenuRepair Fabric 模组（`1_0_0` / `Beta_1_0_2`，时钟右键空气先在服务端命令树里确认 `/cd clockair` 存在，未装 MainMenu 不判定）·
+插件 MainMenu（正式版 `1_0_1` / 测试中 `Beta_1_5_1`，管理页可添加功能占位符与自定义插件功能）· RealTime（`1_0_0` / `Beta_1_1_0`）· MainMenuRepair Fabric 模组（`1_0_0` / `Beta_1_1_0`，时钟右键空气先在服务端命令树里确认 `/cd clockair` 存在，未装 MainMenu 不判定；并隐藏服务端 dialog 右上角的「自定义屏幕」警告图标）·
 MinecraftMcp Fabric 模组（`Beta_0_1_0`，本机 MCP 26 项客户端测试工具；Java 21 协议核心 + Java 25 的 26.3 独立适配器，支持后续新增版本模块分别构建与发布）·
 YudreamPlaytime（正式版 `1_0_0` / 测试中 `Beta_1_1_0`，MainMenu 伴侣插件：菜单里显示查看者自己的在线时长）· Wallet（`Beta_0_5_0`，主菜单钱包；含本地测试模式 test-mode，默认关：货币/余额/流水 + 管理员可切换本服货币启停 + `/walletin` / `/walletout` 在线玩家调币指令 + 供后续插件依赖的 WalletApi）·
 ConcertoMenu（`Beta_0_2_0`，主菜单唱片机 → 发 `concerto:menu` 指令打开客户端 Concerto 主界面）·
