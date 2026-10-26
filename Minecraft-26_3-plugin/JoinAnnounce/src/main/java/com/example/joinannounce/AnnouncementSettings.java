@@ -20,6 +20,8 @@ public final class AnnouncementSettings {
     private final boolean announceEnabled;
     private final DisplayMode display;
     private final int delayTicks;
+    private final boolean oncePerDay;
+    private final int dayZoneOffsetHours;
     private final List<String> lines;
     private final boolean firstJoinEnabled;
     private final List<String> firstJoinLines;
@@ -34,6 +36,8 @@ public final class AnnouncementSettings {
             final boolean announceEnabled,
             final DisplayMode display,
             final int delayTicks,
+            final boolean oncePerDay,
+            final int dayZoneOffsetHours,
             final List<String> lines,
             final boolean firstJoinEnabled,
             final List<String> firstJoinLines,
@@ -46,6 +50,8 @@ public final class AnnouncementSettings {
         this.announceEnabled = announceEnabled;
         this.display = display;
         this.delayTicks = delayTicks;
+        this.oncePerDay = oncePerDay;
+        this.dayZoneOffsetHours = dayZoneOffsetHours;
         this.lines = lines;
         this.firstJoinEnabled = firstJoinEnabled;
         this.firstJoinLines = firstJoinLines;
@@ -111,6 +117,8 @@ public final class AnnouncementSettings {
 
         return new AnnouncementSettings(announceEnabled, displayMode(config, logger),
                 Math.max(0, config.getInt("announce.delay-ticks", 20)),
+                config.getBoolean("announce.once-per-day", false),
+                Math.max(-18, Math.min(18, config.getInt("announce.day-zone-offset-hours", 8))),
                 lines, firstJoinEnabled, firstJoinLines, title, sound, dialog, joinBroadcast, quitBroadcast, menu);
     }
 
@@ -124,6 +132,14 @@ public final class AnnouncementSettings {
 
     public int delayTicks() {
         return this.delayTicks;
+    }
+
+    public boolean oncePerDay() {
+        return this.oncePerDay;
+    }
+
+    public int dayZoneOffsetHours() {
+        return this.dayZoneOffsetHours;
     }
 
     public List<String> lines() {

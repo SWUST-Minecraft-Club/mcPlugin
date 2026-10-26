@@ -1,6 +1,6 @@
 // JoinAnnounce：玩家进服公告（本人公告 + 首次进服文案 + 进出服广播 + 主菜单「服务器公告」入口）。
 // 主菜单入口只是附加入口：compileOnly 依赖 MainMenu 工程，运行期由服务端提供（软依赖）。
-version = 'Beta_0_2_2'
+version = 'Beta_0_3_0'
 
 dependencies {
     compileOnly project(':MainMenu')

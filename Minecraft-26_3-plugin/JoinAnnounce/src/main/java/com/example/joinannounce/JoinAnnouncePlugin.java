@@ -24,6 +24,8 @@ public final class JoinAnnouncePlugin extends JavaPlugin {
     private volatile MenuHook menuHook;
     private volatile boolean menuRegistered;
 
+    private final DailyNoticeGate dailyGate = new DailyNoticeGate();
+
     private AnnouncementService announcements;
     private AnnouncementDialog dialogs;
 
@@ -78,6 +80,10 @@ public final class JoinAnnouncePlugin extends JavaPlugin {
 
     AnnouncementDialog dialogs() {
         return this.dialogs;
+    }
+
+    DailyNoticeGate dailyGate() {
+        return this.dailyGate;
     }
 
     /** 读取并渲染一条配置消息（用于命令回执） */

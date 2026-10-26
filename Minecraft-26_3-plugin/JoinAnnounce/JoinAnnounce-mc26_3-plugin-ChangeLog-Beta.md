@@ -34,3 +34,9 @@
 [Beta_0_2_1 -> Beta_0_2_2] 2026.10.26 12:47:20
 1.调整：`config-simple.yml` 恢复为 SWUST MINECRAFT 社团公告文案（星空社、社团配色、长期生存服说明），
    保持无徽章的纯 dialog 弹窗形式
+
+[Beta_0_2_2 -> Beta_0_3_0] 2026.10.26 20:53:44
+1.新增：`announce.once-per-day` —— 每位玩家每天只在当天第一次进服时弹公告：
+   跨天在线的玩家不打断，退出后在新的一天再次进服时才弹；记录只存在内存里，服务器重启即重置；
+   「一天」按 `announce.day-zone-offset-hours` 划分（默认东 8 区）；`preview` 与主菜单入口不受限制
+2.调整：`config-simple.yml` 打开 `once-per-day: true`

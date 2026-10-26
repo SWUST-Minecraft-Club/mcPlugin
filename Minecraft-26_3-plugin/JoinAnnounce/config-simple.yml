@@ -8,6 +8,10 @@ announce:
   enabled: true
   display: dialog
   delay-ticks: 20
+  # 每位玩家每天只在当天第一次进服时弹一次（服务器重启后重置）
+  once-per-day: true
+  # 「一天」按东 8 区划分
+  day-zone-offset-hours: 8
   lines:
     - "<gradient:#2E4A6B:#7A93B5><bold>西南科技大学 · Minecraft 星空社</bold></gradient>"
     - "<white>SWUST MINECRAFT · 长期生存服</white>"

@@ -9,6 +9,7 @@
 | 能力 | 配置段 | 说明 |
 | --- | --- | --- |
 | 进服公告 | `announce` | 延迟 N tick（默认 20 = 1 秒）发送；`display` 决定 channel |
+| 每日一次 | `announce.once-per-day` | 每位玩家每天只在当天第一次进服时弹；跨天在线不打断，服务器重启后重置；时区用 `announce.day-zone-offset-hours` |
 | 公告弹窗 | `announce.dialog` | dialog 的标题、正文宽度、按钮文字、ESC 关闭开关；正文就是 `announce.lines` |
 | 标题 / 音效 | `announce.title` / `announce.sound` | 可选，默认关闭；音效键写错只告警并跳过 |
 | 首次进服文案 | `first-join` | 接在正文后面，只对第一次进服的玩家生效 |
@@ -43,6 +44,9 @@ dialog 用的是 26.3 的运行时 API（`Dialog.create(...)` + `player.showDial
 ## 配置要点
 
 - `announce.delay-ticks`：进服后延迟多少 tick 发送，避开原版进服消息刷屏；`0` 表示下一 tick 就发。
+- `announce.once-per-day`：默认 `false`（每次进服都弹）；设为 `true` 后每位玩家每天只在当天第一次进服时弹——
+  跨天在线的玩家不会被打断，退出后在新的一天再次进服时才弹；记录只在内存里，**服务器重启即重置**。
+  「一天」按 `announce.day-zone-offset-hours` 划分（默认东 8 区）。`/joinannounce preview` 和主菜单入口不受此限制。
 - `announce.enabled: false`：关闭进服公告（弹窗、聊天栏、标题、音效一并关闭），但进出服广播与主菜单入口不受影响。
 - `announce.lines`：弹窗正文与聊天栏文本共用；`first-join.lines` 排队追加在后面。
 - `announce.dialog.width` 单位为像素（60~600，默认 260），过长的行建议自己拆成多行。
@@ -67,7 +71,7 @@ dialog 用的是 26.3 的运行时 API（`Dialog.create(...)` + `player.showDial
 
 ```bash
 ./gradlew :JoinAnnounce:build
-# 产物：./Minecraft-26_3-plugin/JoinAnnounce/build/libs/JoinAnnounce-mc26_3-plugin-Beta_0_2_2.jar
+# 产物：./Minecraft-26_3-plugin/JoinAnnounce/build/libs/JoinAnnounce-mc26_3-plugin-Beta_0_3_0.jar
 ```
 
 测试服：`./gradlew :JoinAnnounce:runServer`（共用仓库根目录的 `./run/`）。

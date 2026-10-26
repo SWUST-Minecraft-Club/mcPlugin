@@ -39,6 +39,10 @@ public final class AnnouncementService {
         if (!settings.announceEnabled()) {
             return;
         }
+        if (settings.oncePerDay()
+                && !this.plugin.dailyGate().markIfDue(player.getUniqueId(), settings.dayZoneOffsetHours())) {
+            return;
+        }
         deliver(player, joinContext, settings.display());
     }
 
