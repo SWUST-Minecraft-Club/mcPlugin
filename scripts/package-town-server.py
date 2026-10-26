@@ -7,6 +7,89 @@ from pathlib import Path
 import re
 import zipfile
 from io import BytesIO
+from urllib.parse import urlsplit
+
+
+def distribution(files, root, host, gitlab_url, project_id):
+    """仅调整分发配置与启动时的凭据读取；凭据不参与打包。"""
+    for path, marker in (("start.sh", "#"), ("start.bat", "rem")):
+        script = files[path].decode()
+        script = re.sub(rf"(?ms)^{marker} BEGIN CE_GITLAB_TOKEN\n.*?^{marker} END CE_GITLAB_TOKEN\n", "", script)
+        files[path] = script.encode()
+    if host == "self":
+        return """CE 使用内置 HTTP 托管，资源包下载与游戏共用 TCP 25565。
+局域网、端口映射或代理环境需设置客户端能访问的 resource-pack.self-host.ip / url。
+修改后执行 /ce reload host、/ce reload pack 并重连。
+"""
+    parsed = urlsplit(gitlab_url)
+    if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password or parsed.query or parsed.fragment:
+        raise ValueError("GitLab 地址必须为无凭据、查询参数或片段的 HTTPS 地址")
+    if not re.fullmatch(r"[0-9]+", project_id):
+        raise ValueError("GitLab 项目 ID 必须为数字")
+    gitlab_url = gitlab_url.rstrip("/")
+    fragment = (root / "Minecraft-26_3-plugin/Town/deploy/craftengine-gitlab.yml").read_text()
+    fragment = fragment.replace('gitlab_url: "https://gitlab.yudream.online"', f'gitlab_url: {json.dumps(gitlab_url)}').replace(
+        'project_id: "51"', f'project_id: "{project_id}"')
+    block = fragment.split("resource-pack:\n", 1)[1].rstrip()
+    ce = files["plugins/CraftEngine/config.yml"].decode()
+    start = ce.index("  packs:\n")
+    end = ce.index("\n  # Players apply", start)
+    files["plugins/CraftEngine/config.yml"] = (ce[:start] + block + "\n" + ce[end:]).encode()
+    files["craftengine-gitlab.yml"] = fragment.encode()
+    files["gitlab-token.txt.example"] = b"REPLACE_WITH_PROJECT_ACCESS_TOKEN\n"
+    shell = """# BEGIN CE_GITLAB_TOKEN
+if [ -z "${CE_GITLAB_ACCESS_TOKEN:-}" ]; then
+  token_file=${CE_GITLAB_TOKEN_FILE:-./gitlab-token.txt}
+  if [ -f "$token_file" ]; then
+    IFS= read -r CE_GITLAB_ACCESS_TOKEN < "$token_file" || :
+    CE_GITLAB_ACCESS_TOKEN=$(printf '%s' "$CE_GITLAB_ACCESS_TOKEN" | tr -d '\\r')
+  fi
+fi
+case ${CE_GITLAB_ACCESS_TOKEN:-} in
+  ''|REPLACE_WITH_*)
+    echo "请设置 CE_GITLAB_ACCESS_TOKEN，或将项目上传令牌单独保存到 gitlab-token.txt。"
+    exit 1 ;;
+esac
+export CE_GITLAB_ACCESS_TOKEN
+# END CE_GITLAB_TOKEN
+"""
+    windows = """rem BEGIN CE_GITLAB_TOKEN
+if not defined CE_GITLAB_TOKEN_FILE set "CE_GITLAB_TOKEN_FILE=%~dp0gitlab-token.txt"
+if not defined CE_GITLAB_ACCESS_TOKEN if exist "%CE_GITLAB_TOKEN_FILE%" set /p "CE_GITLAB_ACCESS_TOKEN="<"%CE_GITLAB_TOKEN_FILE%"
+if not defined CE_GITLAB_ACCESS_TOKEN (
+  echo Set CE_GITLAB_ACCESS_TOKEN or put the project upload token in gitlab-token.txt.
+  pause
+  exit /b 1
+)
+if "%CE_GITLAB_ACCESS_TOKEN%"=="REPLACE_WITH_PROJECT_ACCESS_TOKEN" (
+  echo Replace the example value in gitlab-token.txt with a project upload token.
+  pause
+  exit /b 1
+)
+rem END CE_GITLAB_TOKEN
+"""
+    for path, anchor, addition in (("start.sh", 'exec "$java_bin"', shell),
+                                   ("start.bat", '"%JAVA_CMD%" -Xms', windows)):
+        script = files[path].decode()
+        if script.count(anchor) != 1:
+            raise ValueError(f"启动脚本缺少唯一启动位置：{path}")
+        files[path] = script.replace(anchor, addition + anchor, 1).encode()
+    return f"""本包通过 GitLab 实例 {gitlab_url} 的项目 {project_id} 分发，使用 CE 原生 GitLab host。
+默认项目为 https://gitlab.yudream.online/yudream/mc-texture。
+启动前设置环境变量 CE_GITLAB_ACCESS_TOKEN，或复制 gitlab-token.txt.example 为 gitlab-token.txt，
+将项目访问令牌单独写入其中（单行 UTF-8、无 BOM）。也可用 CE_GITLAB_TOKEN_FILE 指定令牌文件。
+需要项目 Developer 角色及 api scope；仅有 write_repository 或包仓库 Deploy Token 不适用于 CE 上传接口。
+令牌只用于服务端上传，玩家无需登录 GitLab。请在令牌到期前更新文件并重启服务端。
+
+Town 自动执行生成、合包、GitLab 上传和发送。CE 使用项目 Uploads API 存储 ZIP，
+下载地址由每次上传返回，不是仓库网页或分支 raw 地址，也不会把每张地图的 ZIP 提交进 Git 历史。
+公开项目必须允许匿名下载上传附件。无需为资源包另开游戏服下载端口。
+
+已有服：将 craftengine-gitlab.yml 的 packs.default 合并到 plugins/CraftEngine/config.yml，
+保留已有工作流的 generate / zip / upload / send_pack；upload 和 send_pack 的 pack 均应为 default。
+让 Java 进程获得 CE_GITLAB_ACCESS_TOKEN 后重启；后续配置修改可 /ce reload host、/ce reload pack。
+本包和配置片段不包含真实令牌。
+"""
 
 
 def main():
@@ -14,15 +97,20 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base", type=Path, required=True, help="上一版仅服务端 ZIP")
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--host", choices=("gitlab", "self"), default="gitlab")
+    parser.add_argument("--gitlab-url", default="https://gitlab.yudream.online")
+    parser.add_argument("--gitlab-project-id", default="51")
     args = parser.parse_args()
     version = re.search(r"version = '([^']+)'", (root / "Minecraft-26_3-plugin/Town/build.gradle").read_text()).group(1)
-    name = f"Town-Server-mc26_3-{version}"
+    name = f"Town-Server-mc26_3-{version}" + ("-GitLab" if args.host == "gitlab" else "")
     output = args.output or root.parent / f"{name}.zip"
     with zipfile.ZipFile(args.base) as archive:
         files = {entry.filename.split("/", 1)[1]: archive.read(entry) for entry in archive.infolist()
                  if not entry.is_dir() and "/" in entry.filename}
     files = {path: data for path, data in files.items()
-             if not path.startswith("plugins/Town-mc26_3-plugin-") and path not in ("README.md", "SHA256SUMS.json")}
+             if not path.startswith("plugins/Town-mc26_3-plugin-") and path not in (
+                 "README.md", "SHA256SUMS.json", "plugins/CraftEngine/config.yml", "plugins/ArcMenu/config.yml",
+                 "craftengine-gitlab.yml", "gitlab-token.txt.example")}
     # 只接受已知的最小包，不把来源 ZIP 内的其它数据夹带发布。
     expected = {"folia-26.3-5.jar", "start.sh", "start.bat", "eula.txt", "server.properties",
                 "plugins/Town/config.yml", "plugins/Wallet/config.yml", "plugins/CraftEngine-26.9.2.jar",
@@ -46,6 +134,7 @@ def main():
         arc = archive.read("config.yml").decode()
     arc = arc.replace("assume-resource-pack-loaded: true", "assume-resource-pack-loaded: false")
     files["plugins/ArcMenu/config.yml"] = arc.encode()
+    hosting = distribution(files, root, args.host, args.gitlab_url, args.gitlab_project_id)
     files["README.md"] = f"""# Town 服务端 {version}
 
 仅服务端：Folia 26.3 build 5 / Java 25+，含 Town、MainMenu、Wallet、CraftEngine 26.9.2、ArcMenu 3.2.0。
@@ -54,20 +143,16 @@ def main():
 ## 首次运行
 
 1. 安装 Java 25 或更新版本。阅读 Minecraft EULA，同意后将 eula.txt 改为 eula=true。
-2. Windows 运行 start.bat，Linux 运行 ./start.sh。默认正版验证，端口 25565，白名单关闭。
+2. GitLab 包先按下方说明配置上传令牌。Windows 运行 start.bat，Linux 运行 ./start.sh。默认正版验证，端口 25565，白名单关闭。
 3. 首次联网会下载 Folia/CE 所需依赖。等待 Done 和 CE 资源包上传成功；Town 会自动生成、合并并发送资源包。
 4. 客户端添加服务器时将“服务器资源包”设为“启用”。本机连接 127.0.0.1:25565。
 5. /town 开始小镇。Wallet 是本地测试模式，初始 100000 TEST，方便测试成立和购买。
 
 资源包未加载时，地图显示可操作的区块网格；正确加载后自动显示地形。移动地图到未缓存位置会生成新图片，资源包更新有 30 秒节流。
 
-## 下载地址
+## 资源包分发
 
-CE 默认 resource-pack.self-host.ip 和 port 都为 auto，资源包 HTTP 下载与游戏共用 TCP 25565。
-本机连接由 CE 使用回环下载地址；公网连接使用自动检测的公网地址。
-若用局域网、端口映射或反向代理，请在 plugins/CraftEngine/config.yml 设置客户端可访问的
-resource-pack.self-host.ip，或 resource-pack.self-host.url（带 http:// 或 https:// 和实际外部端口）。
-修改后执行 /ce reload host，再执行 /ce reload pack 并重进服务器。
+{hosting}
 无需把生成的资源包手动放到客户端。
 
 ## 已有服升级

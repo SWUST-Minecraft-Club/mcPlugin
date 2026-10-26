@@ -1,5 +1,28 @@
 # Town 验证记录
 
+## Beta_0_6_1 GitLab 分发验证
+
+日期：2026-10-26。使用 CE 26.9.2 原生 GitLab host，分发项目为 `yudream/mc-texture`（项目 ID `51`，公开项目）。本轮调整部署配置与打包脚本，Town jar 与已留档的 `Beta_0_6_1` 字节一致；此前的 61 项测试结果见下方资源修复记录。
+
+### 上传、下载与客户端
+
+- 干净最小服启动后自动完成 ArcMenu 资源生成、CE 合包及 GitLab 上传。CE 缓存保存实际附件 URL 和 SHA-1；无需将每个资源 ZIP 提交到 Git 仓库。
+- MinecraftMcp 控制的 Minecraft 26.3 客户端 PackTester 从 GitLab 下载中心地图包，客户端记录为 `862629` 字节、SHA-1 `687036d527b959f0e868cfb14dae1b285453c72c`。
+- 执行 `/town claimmap move 3 0` 后自动合包、上传并发送新地形。最新包为 `866166` 字节、SHA-1 `a7f1d2d40589fc92300ca125427943cd7bfbc865`；匿名 HTTP GET 返回 `200`，下载内容、CE 最终 ZIP、CE 缓存与客户端实际下载记录的 SHA-1 全部一致。
+- 截图人工复核：中心与移动后地形均正常显示，地图位于面板边框内，无缺字白框。截图：[中心地图](./screenshots/town-gitlab-map.png) · [移动后的地图](./screenshots/town-gitlab-panned.png)。
+- 分发仓库的 `README.md` 与 `craftengine-host.yml` 可匿名读取，配置片段未含真实凭据。CE 26.9.2 的实际配置结构为 `resource-pack.packs.default`，以本版 jar 配置与实测为准；官方网页仍展示旧版结构。
+
+### 交付审计
+
+- GitLab 服务端包共 18 个文件，包内 SHA-256 清单覆盖其余 17 个文件，全部校验通过；Linux 启动脚本保留可执行权限，默认 `eula=false`、正版验证开启。
+- 全包检查未包含本机真实上传令牌；随包仅提供令牌示例。Linux 启动脚本已验证缺少凭据时拒绝启动、正确读取 CRLF 单行令牌文件并传入 Java 环境，且不输出令牌内容。
+- 以 GitLab 包再次打包，输出逐字节一致；`--host self` 能恢复 CE 内置托管并移除 GitLab 启动凭据要求。
+- Windows 启动脚本已检查配置与注入逻辑，未在 Windows 实机执行。本轮游戏测试使用独立离线测试服；交付包仍启用正版验证。日志仍有既有 Wallet 菜单构造警告。
+
+```text
+Town-Server-mc26_3-Beta_0_6_1-GitLab.zip  575e7bb273e62b15dce14868a6ea97c7c47cf17bdce5638f31142a697bd7d43e
+```
+
 ## Beta_0_6_1 资源修复验证
 
 日期：2026-10-26。Folia 26.3 build 5 / Java 25 / ArcMenu 3.2.0 / CraftEngine 26.9.2。使用同仓库 `./fabric-26_3-mod/MinecraftMcp/` 控制 Minecraft 26.3 客户端，玩家 PackTester，1280×720；资源测试使用普通客户端操作，无需客户端安装 ArcMenu Editor。

@@ -15,7 +15,7 @@ Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-2
 **[JoinAnnounce](./Minecraft-26_3-plugin/JoinAnnounce)**（进服公告：dialog 弹窗 / 聊天栏可切换 + 首次进服文案 / 进出服广播 + 主菜单公告入口）、
 **[ChatPrivacy](./Minecraft-26_3-plugin/ChatPrivacy)**（聊天防举报：把公开聊天改写为无签名系统消息，客户端无法把它作为举报证据）、
 **[Town](./Minecraft-26_3-plugin/Town)**（小镇经营：政厅核心 / 自主连通领土 / 矩形地块与租赁 / 镇库科技政策 / 玩家商业 / 建筑迁移，
-25 页 ArcMenu 界面、WalletApi 经济和 CraftEngine 素材）、
+26 页 ArcMenu 界面、WalletApi 经济、CraftEngine 素材及 GitLab 资源分发；部署见模块 README）、
 **[yudream-minecraft-server](./Minecraft-26_3-plugin/yudream-minecraft-server)**（把玩家动态上报给 YuDream Admin 的 Bukkit 桥接插件，
 自带本地时长统计与断线补发，运行期反射兼容 Folia）。新增插件用 `./gradlew newPlugin -PpluginName=你的插件名`。
 

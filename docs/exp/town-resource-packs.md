@@ -1,5 +1,12 @@
 # Town / CraftEngine / ArcMenu 资源投递
 
+### 自建 GitLab 分发应接入 CE 原生 GitLab host
+
+- **现象**：将资源分发迁至 `gitlab.yudream.online/yudream/mc-texture`，希望新地图合包后自动更新，玩家不必登录 GitLab。
+- **根因**：Git 仓库网页不提供客户端所需的直接 ZIP 内容；Git 推送登录凭据、包仓库 Deploy Token 与 CE 使用的项目 Uploads API 也不是同一种认证。
+- **规避/解决**：使用 CE 26.9.2 的 `type: gitlab`、实例 URL 和项目 ID `51`，通过 `use_environment_variables: true` / `CE_GITLAB_ACCESS_TOKEN` 提供项目 Developer + `api` 访问凭据，保留原工作流的 `upload`、`send_pack`。CE 从上传响应读取 `full_path`，保存 URL / SHA-1 缓存，并向客户端发送实际附件链接；无需把每个 ZIP 提交到 Git。分发包只含无凭据配置和示例文件，启动时从环境或独立令牌文件读取。匿名 GET 的 ZIP SHA-1 必须等于 CE 本地最终包，不能只看到仓库公开就判定可用。
+- **来源**：2026-10-26，Town Beta_0_6_1 GitLab 部署配置；[CE GitLab 文档](https://xiao-momi.github.io/craft-engine-wiki/getting_start/set_up_host/gitlab/)、CE 26.9.2 `GitLabHost` 与项目 `51` 实际上传、匿名下载校验。配置见 `./Minecraft-26_3-plugin/Town/deploy/craftengine-gitlab.yml`。
+
 ### 服务器上有图片和本地 ZIP，不代表客户端能显示地图
 
 - **现象**：干净服务端首次启动后 CE 核心材质缺失，地图出现超出面板的大白框；菜单文字、矩形与区块角标正常。

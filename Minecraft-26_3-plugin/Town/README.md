@@ -31,10 +31,23 @@ CraftEngine 已安装且配置了核心 ID 时，必须成功放置真实自定�
 - `arcmenu resources` 只生成 ArcMenu 本地资源，必须继续执行 CE 合包和托管流程。默认支持 CE 26.9.2 的 `reload_pack` 工作流及其 ZIP 输出路径；工作流需保留 `generate`、`zip`、`upload` 和 `send_pack`。
 - 地图只有在最终包包含当前 PNG 与字体映射，并且该玩家成功加载对应 SHA-1 / UUID 的资源包后才显示。等待、拒绝、下载失败时使用原版区块网格，仍可圈地；未安装 CE 时也使用网格。
 - CE 配置阶段的下载不会触发普通玩家资源包事件；Town 在进入游戏后补发缓存包，取得可核验的加载回执。新增地形图会触发资源包更新，保留 30 秒节流和尾随构建。
-- CE 的 HTTP 托管默认与游戏共享端口；`self-host.ip: auto` 对本机连接使用回环地址。局域网、端口映射或代理环境需要设置玩家能访问的 `resource-pack.self-host.ip` / `url`，修改后 `/ce reload host`、`/ce reload pack` 并重连。见 [CE 托管文档](https://xiao-momi.github.io/craft-engine-wiki/getting_start/set_up_host/self/)。
+- CE 原版默认使用与游戏共享端口的 HTTP 托管；本仓服务端打包默认改用下方 GitLab 分发。选择 `self` 时，局域网、端口映射或代理环境需要设置玩家能访问的 `resource-pack.self-host.ip` / `url`。见 [CE 托管文档](https://xiao-momi.github.io/craft-engine-wiki/getting_start/set_up_host/self/)。
 - 已有服升级仅替换 Town jar，保留世界和 Town 数据目录；资源释放不覆盖已有 CE 自定义文件。
 
 仅服务端打包脚本：`python3 ./scripts/package-town-server.py --base <上一版服务端ZIP>`。依赖 jar 来自指定的已交付最小包，Town 来自本仓留档，不夹带本机配置、世界、玩家数据或客户端。
+
+### GitLab 分发
+
+分发项目为 [yudream/mc-texture](https://gitlab.yudream.online/yudream/mc-texture)，项目 ID `51`；使用 CE 26.9.2 原生 `gitlab` host。完整流程为 ArcMenu 资源索引 → CE 生成/校验/合包 → GitLab 上传 → 向玩家发送 HTTPS 下载链接。Town 仍为 `Beta_0_6_1`，本次只调整部署配置和打包。
+
+- [CE 配置片段](./deploy/craftengine-gitlab.yml) 合并到 `plugins/CraftEngine/config.yml`，保留现有工作流；`upload`、`send_pack` 的 `pack` 与此处均为 `default`。
+- Java 进程需获得环境变量 `CE_GITLAB_ACCESS_TOKEN`，使用该项目的 Developer 角色和 `api` scope 项目访问令牌。启用 `use_environment_variables: true` 后，不在 YAML 中写入令牌。详见 [CE GitLab 文档](https://xiao-momi.github.io/craft-engine-wiki/getting_start/set_up_host/gitlab/)。
+- 新服务端包的 `start.sh` / `start.bat` 可将根目录 `gitlab-token.txt` 的单行内容注入上述变量；也可由 `CE_GITLAB_TOKEN_FILE` 指定文件。复制示例文件后填写令牌，UTF-8 无 BOM；文件与真实环境变量均不参与打包。更换文件后重启 Java 进程。
+- 已有服首次切换需设置上述环境变量并重启；后续配置修改可 `/ce reload host`、`/ce reload pack`。客户端保持服务器资源包“启用”。
+- CE 使用项目 Uploads API 保存 ZIP，下载地址由上传响应返回；仓库网页、分支 raw 地址、Git 推送密码或仅有 `write_repository` 的令牌均不能直接代替这条上传链路。公开项目的实际 ZIP 链接需可匿名下载。
+- 新地图继续触发自动上传和发送，保留 30 秒节流；地图就绪判断仍使用最终 PNG、字体映射及玩家加载回执。
+
+打包默认生成带 `-GitLab` 后缀的新 ZIP；可用 `--host self` 生成内置托管包。支持以已交付的 `Beta_0_6_0` / `Beta_0_6_1` 最小包为依赖来源，拒绝夹带真实令牌文件等额外内容。分发验证见 [验证记录](./assets/VALIDATION.md)。
 
 ## 成立、政厅与领土
 
@@ -118,7 +131,7 @@ CraftEngine 已安装且配置了核心 ID 时，必须成功放置真实自定�
 
 ## 菜单与指令
 
-25 页菜单采用暖象牙、玉绿与黄铜配色，覆盖成立与成员、真实领土地图、地块、镇库、采购、商业、收件箱、审批、迁移规划和工程验收。无需 PlaceholderAPI，动态内容按每玩家 META 写入。
+26 页菜单采用暖象牙、玉绿与黄铜配色，覆盖成立与成员、真实领土地图、地块、镇库、采购、商业、收件箱、审批、迁移规划和工程验收。无需 PlaceholderAPI，动态内容按每玩家 META 写入。
 
 `pixels-per-block` 保持 **42.7**，视觉和命中区按 70% 居中缩放。玩家可用 `/arcmenu mode` 选择本服和客户端支持的输入模式。文本走 `ArcMenuTextInput`：本次未装 ArcMenu Editor 的客户端使用铁砧输入，填写后点击右侧结果提交；其他客户端方式由 ArcMenu 决定，原生模式上限 50 字符。
 

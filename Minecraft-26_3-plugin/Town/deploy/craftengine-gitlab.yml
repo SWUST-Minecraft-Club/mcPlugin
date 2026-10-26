@@ -1,0 +1,10 @@
+# 合并到现有 CE config.yml；保留原有工作流和其他配置。
+# Java 进程需获得环境变量 CE_GITLAB_ACCESS_TOKEN。
+resource-pack:
+  packs:
+    default:
+      default: true
+      type: gitlab
+      gitlab_url: "https://gitlab.yudream.online"
+      project_id: "51"
+      use_environment_variables: true
