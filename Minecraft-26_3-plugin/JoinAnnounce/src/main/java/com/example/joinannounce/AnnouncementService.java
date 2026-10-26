@@ -114,6 +114,7 @@ public final class AnnouncementService {
         this.plugin.dialogs().show(player,
                 render(dialog.title(), player),
                 render(dialog.button(), null),
+                dialog.linkUrl() == null ? null : render(dialog.linkText(), null),
                 lines,
                 dialog);
     }

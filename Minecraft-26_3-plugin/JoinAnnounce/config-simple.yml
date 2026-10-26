@@ -18,12 +18,24 @@ announce:
     - "<yellow>欢迎 <player> 加入本服！</yellow>"
     - "<gray>本服<green>长期运营</green>，会不定期新增<#FF8800>玩法与活动</#FF8800>，<red>敬请期待</red>。</gray>"
     - "<gray>社团服务器 / 活动 / 小游戏报名请留意社团群公告。</gray>"
+    - ""
+    - ""
+    - ""
+    - ""
+    - ""
+    - ""
   dialog:
     title: "<#2E4A6B><bold>SWUST · MINECRAFT</bold></#2E4A6B>"
     # 正文宽度（像素）
     width: 260
-    # 底部按钮文字
+    # 底部主按钮文字与宽度（像素）——「开始冒险」占比更大
     button: "开始冒险"
+    button-width: 220
+    # 第二个按钮：查看完整更新日志（点击用浏览器打开外部链接）；url 留空则不显示
+    link:
+      text: "查看完整更新日志"
+      url: "https://github.com/zhou-BZDDX/mcPlugin/releases"
+      width: 130
     can-close-with-escape: true
 
 # 首次进服不再追加额外文案

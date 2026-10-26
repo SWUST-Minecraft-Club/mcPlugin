@@ -28,8 +28,14 @@ announce:
     title: "<gold>服务器公告</gold>"
     # 正文宽度（像素）
     width: 260
-    # 底部按钮文字
+    # 底部主按钮文字与宽度（像素）
     button: "知道了"
+    button-width: 220
+    # 第二个按钮：查看完整更新日志（点击用浏览器打开外部链接）；url 留空则不显示
+    link:
+      text: "查看完整更新日志"
+      url: ""
+      width: 130
     # 是否允许按 ESC 关闭
     can-close-with-escape: true
 
