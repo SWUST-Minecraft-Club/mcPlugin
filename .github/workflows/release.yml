@@ -28,8 +28,13 @@ jobs:
       - name: Build all plugins
         run: ./gradlew build --no-daemon --stacktrace
 
-      - name: Build Fabric mod
-        run: ./gradlew -p ./fabric-26_3-mod/MainMenuRepair build --no-daemon --stacktrace
+      - name: Build Fabric mods
+        run: |
+          for project in ./fabric-26_3-mod/*/; do
+            if [ -f "${project}build.gradle" ]; then
+              ./gradlew -p "$project" build --no-daemon --stacktrace
+            fi
+          done
 
       - name: Create GitHub Release
         env:

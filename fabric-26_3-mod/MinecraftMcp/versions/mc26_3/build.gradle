@@ -1,0 +1,122 @@
+import groovy.json.JsonSlurper
+import java.security.MessageDigest
+
+def targetProperties = new Properties()
+file('gradle.properties').withInputStream { targetProperties.load(it) }
+targetProperties.each { key, value -> ext.set(key.toString(), value) }
+
+def clientJar = layout.buildDirectory.file('minecraft/client-26.3.jar')
+def manifestFile = layout.buildDirectory.file('minecraft/26.3.json')
+def librariesDir = layout.buildDirectory.dir('minecraft/libraries')
+def clientUrl = project.client_jar_url.toString()
+def clientSha1 = project.client_jar_sha1.toString()
+def manifestUrl = project.version_manifest_url.toString()
+def offline = gradle.startParameter.offline
+def modVersion = project.version.toString()
+def downloadCache = rootProject.file('.gradle/minecraft-downloads')
+def compileLibraries = [
+        'com.google.code.gson:gson', 'com.google.guava:guava', 'com.google.guava:failureaccess',
+        'com.mojang:authlib', 'com.mojang:brigadier', 'com.mojang:datafixerupper',
+        'io.netty:netty-buffer', 'io.netty:netty-common', 'it.unimi.dsi:fastutil',
+        'org.apache.commons:commons-lang3', 'org.joml:joml', 'org.jspecify:jspecify',
+        'org.lwjgl:lwjgl', 'org.lwjgl:lwjgl-sdl', 'org.slf4j:slf4j-api'
+] as Set
+
+// 与本仓其他 26.3 模组一致，直接编译官方未混淆 jar，不执行 remap。
+def downloadVerified = { String url, File target, String sha1 ->
+    def valid = { File f -> f.exists() && MessageDigest.getInstance('SHA-1').digest(f.bytes).encodeHex().toString() == sha1 }
+    def cached = new File(downloadCache, sha1)
+    target.parentFile.mkdirs()
+    downloadCache.mkdirs()
+    if (valid(target)) {
+        if (!valid(cached)) java.nio.file.Files.copy(target.toPath(), cached.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+        return
+    }
+    if (valid(cached)) {
+        java.nio.file.Files.copy(cached.toPath(), target.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+        return
+    }
+    if (offline && !url.startsWith('file:')) throw new GradleException("离线缓存缺少：${target.name}；请先联网构建")
+    def temporary = new File(cached.path + '.part')
+    try {
+        def connection = URI.create(url).toURL().openConnection()
+        connection.connectTimeout = 30000
+        connection.readTimeout = 120000
+        connection.getInputStream().withCloseable { input -> temporary.withOutputStream { it << input } }
+        if (MessageDigest.getInstance('SHA-1').digest(temporary.bytes).encodeHex().toString() != sha1) {
+            throw new GradleException("下载校验失败：${target.name}")
+        }
+        java.nio.file.Files.move(temporary.toPath(), cached.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+        java.nio.file.Files.copy(cached.toPath(), target.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+    } finally { temporary.delete() }
+}
+
+tasks.register('downloadMinecraftClient') {
+    inputs.property('clientJarUrl', clientUrl)
+    inputs.property('clientJarSha1', clientSha1)
+    def localClient = providers.gradleProperty('minecraftClientJar')
+    def localClientFile = localClient.isPresent() ? file(localClient.get()) : null
+    if (localClientFile != null) inputs.file(localClientFile)
+    outputs.file(clientJar)
+    outputs.file(manifestFile)
+    doLast {
+        downloadVerified(manifestUrl, manifestFile.get().asFile, '61fff1316bd50312624a858bbb5eb18fa45208ed')
+        downloadVerified(localClientFile != null ? localClientFile.toURI().toString() : clientUrl,
+                clientJar.get().asFile, clientSha1)
+    }
+}
+
+tasks.register('downloadMinecraftLibraries') {
+    dependsOn 'downloadMinecraftClient'
+    inputs.file(manifestFile)
+    inputs.property('compileLibraries', compileLibraries.sort())
+    outputs.dir(librariesDir)
+    doLast {
+        def manifest = new JsonSlurper().parse(manifestFile.get().asFile)
+        // 只下载编译边界实际引用的 Java 库；运行依赖和原生库由游戏实例管理。
+        def pool = java.util.concurrent.Executors.newFixedThreadPool(8)
+        try {
+            def downloads = manifest.libraries.findAll { !it.name.contains('natives') && compileLibraries.contains(it.name.split(':').take(2).join(':')) }.collect { library ->
+                pool.submit({
+                    def artifact = library.downloads.artifact
+                    if (artifact) downloadVerified(artifact.url, new File(librariesDir.get().asFile, artifact.path), artifact.sha1)
+                } as Runnable)
+            }
+            downloads.each { it.get() }
+        } finally { pool.shutdownNow() }
+    }
+}
+
+sourceSets {
+    fabricStubs {
+        java.srcDir 'src/fabric-stubs/java'
+        compileClasspath = files(clientJar)
+    }
+}
+dependencies {
+    implementation project(':core')
+    compileOnly files(clientJar)
+    compileOnly fileTree(librariesDir) { include '**/*.jar' }
+    compileOnly sourceSets.fabricStubs.output
+}
+tasks.withType(JavaCompile).configureEach { options.release = 25 }
+tasks.named('compileFabricStubsJava') { dependsOn 'downloadMinecraftClient' }
+tasks.named('compileJava') { dependsOn 'downloadMinecraftLibraries', 'compileFabricStubsJava' }
+processResources {
+    inputs.property('version', modVersion)
+    filesMatching('fabric.mod.json') { expand(version: modVersion) }
+}
+jar {
+    dependsOn ':core:classes'
+    from project(':core').sourceSets.main.output
+    from(rootProject.file('../../LICENSE')) { rename { 'LICENSE_MinecraftMcp' } }
+    archiveBaseName = 'MinecraftMcp-mc26_3-fabric'
+    destinationDirectory = rootProject.layout.buildDirectory.dir('libs')
+    manifest { attributes('Implementation-Version': project.version) }
+}
+tasks.register('archiveArtifact', Copy) {
+    dependsOn 'jar', 'check', ':core:check'
+    from tasks.named('jar')
+    into rootProject.file('../../release/MinecraftMcp')
+}
+tasks.named('build') { dependsOn 'archiveArtifact' }

@@ -30,7 +30,9 @@
 │   ├── plan/                        # 计划层（不提交）：阶段计划与任务拆解
 │   └── local.md                     # 机密（不提交）：本机路径 / 账密 / 代理 / token
 ├── Minecraft-26_3-plugin/<插件名>/   # Folia 插件（沿用 paper-plugin.yml），一个目录一个插件
-├── fabric-26_3-mod/MainMenuRepair/  # Fabric 客户端模组（独立 Gradle 工程）
+├── fabric-26_3-mod/
+│   ├── MainMenuRepair/             # 界面修复模组（独立 Gradle 工程）
+│   └── MinecraftMcp/               # MCP 测试模组（共享 core + versions 独立版本适配器）
 ├── templates/plugin-template/       # newPlugin 脚手架模板
 ├── release/<项目名>/                 # 构建产物留档（提交进仓库）
 ├── run/                             # 共用的 Folia 测试服（不提交）

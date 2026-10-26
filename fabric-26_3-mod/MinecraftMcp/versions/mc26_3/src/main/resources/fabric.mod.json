@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "minecraft-mcp",
+  "version": "${version}",
+  "name": "MinecraftMcp",
+  "description": "通过本机 MCP 提供客户端截图、界面、输入、背包、物品和世界测试能力。",
+  "authors": ["zhou-BZDDX"],
+  "contact": {"sources": "https://github.com/zhou-BZDDX/mcPlugin"},
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {"client": ["com.example.minecraftmcp.mc26_3.MinecraftMcpClient"]},
+  "depends": {
+    "fabricloader": ">=0.20.0",
+    "fabric-api": ">=0.161.0",
+    "minecraft": "~26.3",
+    "java": ">=25"
+  }
+}

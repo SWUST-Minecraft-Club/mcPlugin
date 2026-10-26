@@ -34,3 +34,10 @@
 - **规避/解决**：状态单独写到游戏目录下的 `mainmenu-repair-status.txt`（`com.example.mainmenurepair.util.StatusLog`），
   记录各条钩子是否生效，并带上时间与工作目录。
 - **来源**：MainMenuRepair `Beta` 排查期；`src/main/java/com/example/mainmenurepair/util/StatusLog.java`。
+
+## 26.3 的屏幕、键盘与容器 API 需要按官方 jar 核对
+
+- **现象**：沿用旧版示例中的 `Minecraft.screen/setScreen`、GLFW 键码、`ClickType/handleInventoryMouseClick` 会引用不存在的接口或产生错误输入。
+- **根因**：26.3 当前屏幕位于 `Minecraft.gui.screen()`，设置屏幕用 `gui.setScreen(...)`；输入后端为 SDL，`KeyEvent` 的前两个参数是扫描码和键码；容器操作使用 `ContainerInput` 与 `MultiPlayerGameMode.handleContainerInput(...)`。
+- **规避/解决**：用官方 26.3 客户端 jar 的 `javap` 输出核对签名；协议核心使用 `w/enter/escape` 等游戏键名，扫描码、SDL 键码和菜单类型只留在版本适配器。截图用 `Screenshot.takeScreenshot(RenderTarget, Consumer<NativeImage>)` 异步回调，PNG 编码后关闭 `NativeImage`；`getPixels()` 返回 ARGB，可传给 `BufferedImage.setRGB`。
+- **来源**：2026.10.26，MinecraftMcp `Beta_0_1_0`；官方客户端 SHA-1 `e877b6a07acd633fb3bb475002175cec036e7b87`，实现位于 `./fabric-26_3-mod/MinecraftMcp/versions/mc26_3/`。Fabric tick/停机接口另用 26.3 的 lifecycle API jar 核对。

@@ -31,8 +31,13 @@ jobs:
         run: ./gradlew build --no-daemon --stacktrace
 
       # Fabric 客户端模组是独立工程（不依赖 fabric-loom，只下载官方客户端 jar）
-      - name: Build Fabric mod
-        run: ./gradlew -p ./fabric-26_3-mod/MainMenuRepair build --no-daemon --stacktrace
+      - name: Build Fabric mods
+        run: |
+          for project in ./fabric-26_3-mod/*/; do
+            if [ -f "${project}build.gradle" ]; then
+              ./gradlew -p "$project" build --no-daemon --stacktrace
+            fi
+          done
 
       - name: Upload plugin jars
         uses: actions/upload-artifact@v7
