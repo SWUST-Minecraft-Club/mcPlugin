@@ -54,7 +54,10 @@ final class AnnouncementDialog {
                         .build())
                 .type(link == null
                         ? DialogType.notice(primary)
-                        : DialogType.multiAction(List.of(primary, link), null, 2)));
+                        // confirmation 的两个按钮进固定页脚（multiAction 的按钮在可滚动正文里，会跟着内容滚走）。
+                        // 顺序：链接按钮在前、主按钮在后——对话框关闭时会执行 no 按钮的动作，
+                        // 把空回调的主按钮放 no，按 ESC 才不会触发打开浏览器。
+                        : DialogType.confirmation(link, primary)));
 
         player.showDialog(dialog);
     }

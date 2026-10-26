@@ -18,6 +18,12 @@ announce:
     - "<yellow>欢迎 <player> 加入本服！</yellow>"
     - "<gray>本服<green>长期运营</green>，会不定期新增<#FF8800>玩法与活动</#FF8800>，<red>敬请期待</red>。</gray>"
     - "<gray>社团服务器 / 活动 / 小游戏报名请留意社团群公告。</gray>"
+    - ""
+    - ""
+    - ""
+    - ""
+    - ""
+    - ""
   dialog:
     title: "<#2E4A6B><bold>SWUST · MINECRAFT</bold></#2E4A6B>"
     # 正文宽度（像素）

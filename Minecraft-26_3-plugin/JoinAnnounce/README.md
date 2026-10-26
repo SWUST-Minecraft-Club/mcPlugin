@@ -51,8 +51,9 @@ dialog 用的是 26.3 的运行时 API（`Dialog.create(...)` + `player.showDial
 - `announce.enabled: false`：关闭进服公告（弹窗、聊天栏、标题、音效一并关闭），但进出服广播与主菜单入口不受影响。
 - `announce.lines`：弹窗正文与聊天栏文本共用；`first-join.lines` 排队追加在后面。
 - `announce.dialog.width` 单位为像素（60~600，默认 260），过长的行建议自己拆成多行。
-- `announce.dialog.button-width` / `link.width` 是底部两个按钮的宽度（像素）：主按钮（开始冒险）更宽，
-  两个按钮并排显示；`link.url` 留空则只保留主按钮（notice 单按钮布局）。
+- `announce.dialog.button-width` / `link.width` 是底部两个按钮的宽度（像素）：主按钮（开始冒险）更宽。
+  两个按钮用 `confirmation` 类型渲染，**固定在弹窗底部页脚**、不随正文滚动：链接在左、主按钮在右；
+  `link.url` 留空则只保留主按钮（notice 单按钮布局）。
 - `broadcast.*` 默认关闭：进服公告不碰聊天栏；打开后才接管原版进服 / 退服消息，`message` 留空则关闭该条（原版消息也不再显示）。
 - `menu.enabled: false`：不注册主菜单入口；`menu.order` 是功能区排序值（越小越靠前）。
 - `menu.material` 无效时回退 `WRITTEN_BOOK` 并在控制台告警。
@@ -74,7 +75,7 @@ dialog 用的是 26.3 的运行时 API（`Dialog.create(...)` + `player.showDial
 
 ```bash
 ./gradlew :JoinAnnounce:build
-# 产物：./Minecraft-26_3-plugin/JoinAnnounce/build/libs/JoinAnnounce-mc26_3-plugin-Beta_0_4_0.jar
+# 产物：./Minecraft-26_3-plugin/JoinAnnounce/build/libs/JoinAnnounce-mc26_3-plugin-Beta_0_4_1.jar
 ```
 
 测试服：`./gradlew :JoinAnnounce:runServer`（共用仓库根目录的 `./run/`）。
