@@ -10,7 +10,7 @@ Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-2
 目前仓库里有 9 个插件：**[MainMenu](./Minecraft-26_3-plugin/MainMenu)**（主菜单框架，其它插件以它为依赖注册功能）、
 **[RealTime](./Minecraft-26_3-plugin/RealTime)**（在主菜单里显示当前时间）、
 **[YudreamPlaytime](./Minecraft-26_3-plugin/YudreamPlaytime)**（主菜单里显示查看者自己的在线时长，MainMenu 的伴侣插件）、
-**[Wallet](./Minecraft-26_3-plugin/Wallet)**（主菜单里的钱包：货币 / 余额 / 流水 + `/walletin` / `/walletout`）、
+**[Wallet](./Minecraft-26_3-plugin/Wallet)**（本地多币种 / Vault 主币种 / 旧官网一次性迁入 + 钱包 API 和管理指令）、
 **[ConcertoMenu](./Minecraft-26_3-plugin/ConcertoMenu)**（主菜单唱片机 → 打开客户端 Concerto 界面）、
 **[JoinAnnounce](./Minecraft-26_3-plugin/JoinAnnounce)**（进服公告：dialog 弹窗 / 聊天栏可切换 + 首次进服文案 / 进出服广播 + 主菜单公告入口）、
 **[ChatPrivacy](./Minecraft-26_3-plugin/ChatPrivacy)**（聊天防举报：把公开聊天改写为无签名系统消息，客户端无法把它作为举报证据）、
@@ -152,9 +152,9 @@ Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-2
 
 ### ArcMenu 页面与 YAML 编辑
 
-`Beta_1_6_0` 优先使用 ArcMenu 3.2：竖屏机身、状态栏、现实时间小组件、原版物品应用图标与底部快捷栏。
-首页常用入口、每页 12 项的应用抽屉、“我的”、管理列表、三种属性页、位置选择与自定义功能创建，共 9 页。
-小镇、钱包、音乐和公告从桌面直接打开；在线时长在“我的”中查看，所有注册功能自动进入应用抽屉。
+`Beta_1_7_0` 优先使用 ArcMenu 3.2：竖屏机身、状态栏、现实时间小组件、原版物品应用图标与底部快捷栏。
+首页常用入口、每页 12 项的应用抽屉、“我的”、管理列表、三种属性页、位置选择与自定义功能创建，新增 Vault 资产页，共 10 页。
+小镇、Vault 资产、音乐和公告从桌面直接打开；在线时长在“我的”中查看，所有注册功能自动进入应用抽屉。
 
 启动后直接编辑 `plugins/ArcMenu/menus/mainmenu/mainmenu-home.yml`，可控制布局、配色、文案、模型、悬停提示和按钮动作，执行 `/cd reload` 生效。
 已有 YAML 在升级、重载和重启时均不覆盖。绑定、自定义主页与 META / 路由说明见 [MainMenu 配置指南](./Minecraft-26_3-plugin/MainMenu/README.md)，截图和实测边界见 [验证记录](./Minecraft-26_3-plugin/MainMenu/assets/VALIDATION.md)。
@@ -426,14 +426,14 @@ dependencies {
 
 | 项目 | 正式版 | 测试版（进行中） |
 | --- | --- | --- |
-| MainMenu | `1_0_1`（2026.10.18） | `Beta_1_6_0`（ArcMenu 3.2 方块手机与 9 页原生 YAML；物品应用图标、管理和背包回退） |
+| MainMenu | `1_0_1`（2026.10.18） | `Beta_1_7_0`（10 页 YAML 手机；Vault 资产页、首页下一页、头像纹理校验与默认头回退） |
 | RealTime | `1_0_0`（2026.10.18） | `Beta_1_1_0`（适配 Folia；去掉固定位提示） |
 | MainMenuRepair（fabric） | `1_0_0`（2026.10.18） | `Beta_1_1_2`（去掉 dialog 警告图标并居中；移除暂停菜单图标后收掉空行） |
 | MinecraftMcp（fabric） | — | `Beta_0_1_0`（MCP 客户端测试工具；核心与游戏版本适配器分离） |
 | YudreamPlaytime | `1_0_0`（2026.10.19） | `Beta_1_1_0`（适配 Folia；台账缓存加锁） |
 | yudream-minecraft-server | `2_0_0`（2026.10.19） | `Beta_2_1_0`（反射适配 Folia，保持 Java 8 / 1.13.2 兼容） |
 | Town | — | `Beta_0_7_1`（经营与可恢复建筑迁移；26 页 ArcMenu、图标角度与余额布局优化、GitLab 资源分发、Wallet / Vault Economy 可选及交易核对） |
-| Wallet | —（还在测试版阶段） | `Beta_0_5_0`（新增本地测试模式 test-mode：不连官网、本地账本落盘，默认关闭；须手动开启并会打启动警告） |
+| Wallet | —（还在测试版阶段） | `Beta_0_6_0`（本地持久多币种、Vault 可配主币种、旧官网一次性迁入；保留 API 和原钱包界面） |
 | ConcertoMenu | —（还在测试版阶段） | `Beta_0_2_0`（适配 Folia；首个版本：主菜单唱片机入口） |
 | JoinAnnounce | —（还在测试版阶段） | `Beta_0_4_1`（dialog 弹窗公告、默认不发聊天栏消息；默认每位玩家每天首次进服才弹；底部固定「开始冒险」+「查看完整更新日志」双按钮；`config-simple.yml` 为 SWUST 社团公告示例） |
 | ChatPrivacy | —（还在测试版阶段） | `Beta_0_1_0`（首个版本：公开聊天改写为无签名系统消息，客户端无法举报） |
@@ -487,6 +487,7 @@ dependencies {
 | `Beta_1_5_0` | 未提交 | 新增：管理页第 1 行第 3 格添加自定义插件功能（dialog 输入名称，`custom-features.yml` 配置图标/描述/指令） |
 | `Beta_1_5_1` | 未提交 | 修复：自定义功能执行 PlayerTitle 等事件式子命令时只显示帮助页（补触发 `PlayerCommandPreprocessEvent`） |
 | `Beta_1_6_0` | 本次提交 | 新增：原生 YAML 方块手机、物品应用图标、应用抽屉及管理页面；配置不覆盖、动态 META、原功能点击桥接 |
+| `Beta_1_7_0` | 本次提交 | 新增 Vault 资产页与首页下一页，校验头像纹理并回退默认头；10 页模板与实际 Folia/Vault 联调 |
 
 **RealTime（插件）**
 
@@ -553,6 +554,8 @@ dependencies {
 | `Beta_0_2_1` | `6c54d9f` | 修：停用币种后流水页仍显示该币种（流水按本服启用币种过滤）；新增按币种过滤的 `transactions` 重载 |
 | `Beta_0_3_0` | `31fcf90` | 新增管理员指令 `/walletin` / `/walletout`（在线玩家、按资产精度校验、写官网流水）；`wallet.adjust` / `wallet.admin` 权限声明 |
 | `Beta_0_4_0` | 未提交 | 新增：适配 Folia 26.3（界面回调走玩家实体调度器，异步回复回到执行者区域线程） |
+| `Beta_0_5_0` | `b645a8e` | 新增：本地测试模式 `test-mode`，余额与流水写入本机账本，默认关闭 |
+| `Beta_0_6_0` | 本次提交 | 新增本地持久多币种及 Vault 主币种经济服务、旧 YuDream 官网一次性迁入；修复钱包菜单桥接 |
 
 **ConcertoMenu（插件）**
 

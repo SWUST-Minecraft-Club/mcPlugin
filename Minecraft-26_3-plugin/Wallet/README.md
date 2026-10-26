@@ -1,92 +1,90 @@
 # Wallet
 
-主菜单里的钱包功能，同时给后续插件提供钱包 API。**货币、余额、流水全部以 YuDream 官网为准**
-（接口前缀 `/api/plugins/yudream-wallet`），本插件不在本地保存余额，只做短时缓存用于菜单显示。
+`Beta_0_6_0`，Folia 26.3 / Java 25。本地持久多币种钱包，向 Vault 提供一个可配置的主币种；保留 WalletApi、原钱包界面和旧 YuDream 官网后端。
 
-## 菜单里长什么样
+## 配置与升级
 
-主菜单里的**绿宝石**图标（按查看者渲染）：
-
-| 玩家 | 操作 | 效果 |
-| --- | --- | --- |
-| 普通玩家 | 悬停 | 逐行显示本服启用货币的余额（按货币的 `scale` 格式化；未绑定官网账号显示「未绑定网站账号」） |
-| 普通玩家 | 左键 | 打开**流水页**：第 1~5 行是流水（纸图标，按时间倒序，**只显示本服启用的币种**），第 6 行 **47 上一页 / 49 返回主菜单 / 51 下一页** |
-| 管理员（`wallet.admin`） | 左键 | 打开**玩家货币页**：列出在本服有在线时长记录的玩家（读 `plugins/YudreamMinecraftServer/playtime.yml`）及各自余额 |
-| 管理员（`wallet.admin`） | 右键 | 打开**货币类型页**：黄绿色羊毛 = 本服启用且官网启用，红色羊毛 = 未启用/官网停用；**点击羊毛切换本服启用状态**（写 `plugins/Wallet/assets.yml`） |
-
-本服没有任何启用货币时，图标显示**暂无货币**，点击只提示不打开界面。
-
-## 配置
+停服并备份原 Wallet 配置和数据；替换旧 JAR，同一插件只保留一个版本。在 `plugins/Wallet/config.yml` 合并以下内容，保留原 `base-url` / `api-key`：
 
 ```yaml
-base-url: "https://www.swustmc.cn"   # 官网地址，不带结尾斜杠
-api-key: ""                          # 需要 plugin:yudream-wallet:manage 权限
-assets: []                           # 本服启用的**初始**列表；留空 = 官网所有 enabled 的货币
-                                    # 管理员在游戏内切换后写 plugins/Wallet/assets.yml，后者优先
-assets-cache-seconds: 60
-balance-cache-seconds: 30
-request-timeout-ms: 8000
-match-mode: auto                     # auto / uuid / name（玩家 → 站内用户的映射方式）
-history-page-size: 45
-admin-page-size: 45
-timezone: "Asia/Shanghai"            # 流水时间显示时区
+backend: local
+currencies:
+  coin:
+    name: 金币
+    symbol: 金币
+    scale: 2
+    enabled: true
+    transfer-enabled: true
+  gem:
+    name: 宝石
+    symbol: 宝石
+    scale: 0
+    enabled: true
+    transfer-enabled: true
+vault:
+  enabled: true
+  currency: coin
+test-mode:
+  enabled: false
 ```
 
-> **API Key 权限**：余额查询、流水、加/减货币都在钱包的管理端接口下，需要
-> `plugin:yudream-wallet:manage`（只读货币种类需要 `view`）。
+- `currencies` 决定本地币种；code 不区分大小写，长度 1～32，仅字母、数字、下划线、横线。小数位 `scale` 为 0～6。新账户余额为 0。
+- **迁入前将旧官网币种 code、scale 原样对应配置**；`coin`、`gem` 是示例，不会自动换算或重命名旧币种。
+- 标准 Vault Economy 一次提供一个主币种，`vault.currency` 从已启用币种中选择。其它币种使用 WalletApi 和钱包界面；世界参数共用全局 UUID 账户。
+- 安装适配 Folia 的 Vault，并重启；日志应出现 `Wallet 已向 Vault 注册主币种`。已有其它 Vault 经济提供者时拒绝启用 Wallet，避免同时使用两套余额。
+- `assets: []` 初始启用所有后端币种；游戏内管理员启停写入 `plugins/Wallet/assets.yml` 并优先生效，停用 Vault 主币种会暂停 Vault 资金操作。
+- `backend: website` 保留旧官网读写，不注册本地 Vault 服务。`test-mode.enabled: true` 仍使用隔离测试账本，不注册生产 Vault 服务。
+- 修改币种选择、精度和后端后需重启。已有余额的 code / scale 应保持稳定，切换 Vault 主币种前先核对 Town 等消费插件的待处理交易。
+- Town 使用 Vault 时，将 `plugins/Town/config.yml` 的 `economy.provider` 设为 `vault` 并重启；旧 Wallet 来源待处理交易沿用 Town 原有来源隔离，不自动重放到新账本。
 
-> **返回主菜单**：界面第 6 行第 5 格的屏障会重新打开主菜单。优先用 MainMenu `Beta_1_2_0` 起的
-> `MainMenuApi.open(player)`；如果服务端还是旧版 MainMenu，会自动退回执行 `/cd`。
+## 旧 YuDream 官网一次性迁入
 
-## 管理员指令
+权限 `wallet.migrate`，默认 OP，控制台可执行：
 
 ```text
-/walletin <玩家名> <币种编码> <数量>
-/walletout <玩家名> <币种编码> <数量>
+/wallet migration-status
+/wallet migrate-site
+/wallet migration-status
 ```
 
-- 只对**在线玩家**生效；玩家名不区分大小写。
-- 币种必须存在于 Wallet 官网且 `enabled=true`；数量必须大于 0，并按该资产的 `scale` 校验小数位。
-- 权限：`wallet.adjust`（默认 OP）；`wallet.admin` 只控制菜单里的管理界面。
-- 操作直接调用 Wallet 的 `credit` / `debit` 写回官网，官网流水即结果；
-  `businessNo` 为 `wallet-admin-in-<uuid>` / `wallet-admin-out-<uuid>`，官网来源显示为 `ADMIN`，
-  备注包含执行命令的管理员名称。
-- 成功时回复本次变动和官网返回的余额；失败时回复 Wallet/官网返回的错误信息。
+1. 保留原官网 `base-url`、`api-key`（需要 `plugin:yudream-wallet:manage`）；配置本地全部待迁入币种及相同 `scale`，关闭测试模式并重启。
+2. 迁入期间暂停旧官网钱包的消费/入账及其它仍写官网的游戏服，保持读取期间余额稳定。当前旧接口没有全站同一时点快照。
+3. 执行 `migrate-site`：读取本服已知玩家（Bukkit 离线玩家，加本服在线时长台账中的 UUID），查询每个启用配置币种的官网余额。
+4. 全部校验通过后，**追加**旧余额到各 UUID 本地账户，并在同一账本提交中保存完成标记。成功后重启、换配置、重复命令均拒绝再次迁入。
 
-## 给后续插件用（依赖 + API）
+迁入边界：
 
-```groovy
-// build.gradle
-compileOnly project(':Wallet')
+- 仅覆盖本服已知 UUID；没有在本服留下记录的网站用户不在范围内。明确未绑定网站的玩家会跳过并报告。
+- 官网只读取余额，不扣除旧款，不持续同步；旧历史流水留在官网，本地记录 `IMPORT` 流水。
+- 网络失败、缺失/负数余额、精度不一致、重复网站身份映射到不同 UUID、返回 UUID 不一致等都会整批中止；校验失败没有部分入账，也不消耗成功迁入机会。
+- 迁入期间本地资金写入暂停；正常完成或读取失败后恢复。落盘结果不确定时停止资金操作，检查磁盘并重启恢复后再查看 `migration-status`。
+- 完成标记与余额都在 `plugins/Wallet/wallet-ledger.wal`，不得单独删除/回滚账本来重新导入；删除该文件也会删除本地余额与流水。停服备份整个 Wallet 数据目录。
+
+## 日常使用
+
+```text
+/wallet balance
+/walletin <在线玩家名> <币种编码> <数量>
+/walletout <在线玩家名> <币种编码> <数量>
 ```
 
-```yaml
-# paper-plugin.yml：保证 Wallet 先加载（不需要菜单功能时可按软依赖处理）
-dependencies:
-  server:
-    Wallet:
-      load: BEFORE
-      required: true
-```
+`wallet.adjust` 默认 OP；币种必须启用，金额为正数且符合精度。Vault 余额采用 double 接口，账本内部用 BigDecimal，并限制余额精度为 15 位，超限拒绝记账。
+Vault 玩家对象接口支持离线 UUID；旧字符串名称接口仅接受服务端缓存中的玩家名，不阻塞查询 Mojang 或猜测 UUID；不提供 Vault 银行账户。
+
+主页“我的资产”显示 Vault 主币种余额；“钱包与流水”进入原钱包功能。普通玩家左键查看个人流水；管理员左键查看玩家货币、右键管理币种启停。玩家货币列表沿用本服在线时长台账。
+
+## 给后续插件用
+
+依赖 `compileOnly project(':Wallet')`，在 `paper-plugin.yml` 声明 Wallet `load: BEFORE`。通过 `WalletApi.wallet()` 获取当前后端：
 
 ```java
-// 查余额
-WalletApi.wallet()
-        .balance(player.getUniqueId(), player.getName(), "coin")
-        .thenAccept(balance -> player.sendMessage(Component.text("余额：" + balance.balance())));
-
-// 加/减货币：直接写官网，官网流水就是上报结果；businessNo 是幂等键（重试传同一个值不会重复记账）
 WalletApi.wallet().credit(player.getUniqueId(), player.getName(), "coin",
-        new BigDecimal("100"), "order-20261020-001", "商店购买")
-        .thenAccept(tx -> player.sendMessage(Component.text("入账：" + tx.amount())));
+        new BigDecimal("100.00"), "shop-order-20261026-001", "订单入账");
 ```
 
-- `assets()` / `balance()` / `credit()` / `debit()` / `transactions()` 全部返回 `CompletableFuture`，不要在服务端主线程阻塞等待。
-- **所有货币操作都必须走这里的 `credit` / `debit`**：它们直接调用官网接口，本地没有绕过官网的写路径。
-- `cachedAssets()` / `cachedBalance()` 只读缓存、不发请求，适合渲染路径。
+`assets` / `balance` / `credit` / `debit` / `transactions` 返回 CompletableFuture，不在区域线程阻塞等待。重试同一业务必须使用相同 `businessNo`；玩家、币种、方向或金额不一致时拒绝。`account:`、`site-import:` 为内部保留前缀。
+本地模式 Vault 和 WalletApi 共用余额及流水；仅在落盘强制提交后返回成功。`cachedAssets` / `cachedBalance` 直接读内存，不发网络请求。
 
-## 面包屑
+账本为带长度和 CRC 的追加日志，单批上限 64 MiB；启动时仅裁去未写完整的末尾记录，完整记录校验失败则停止加载，不重置余额。流水完整保留，文件会随交易增长；不建议在线编辑或截断。
 
-- 流水查询需要站内 `userId`：先用 `game/balance` 让官网按 UUID/名字映射出 `userId`，再查 `/admin/transactions`。
-- 官网响应默认带一层 `{code,message,data}` 信封、长整型/BigDecimal 可能序列化成字符串 —— HTTP 客户端两种都兼容。
-- 玩家未绑定官网账号时接口会报「玩家未绑定网站用户」，菜单显示「未绑定网站账号」而不是 0。
+构建：`./gradlew :Wallet:build`。一次性迁入和 Folia/Vault 联调范围见 [验证记录](./VALIDATION.md)。

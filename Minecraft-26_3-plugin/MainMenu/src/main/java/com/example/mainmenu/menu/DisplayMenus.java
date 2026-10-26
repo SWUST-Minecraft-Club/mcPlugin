@@ -12,6 +12,8 @@ public interface DisplayMenus {
 
     boolean openManage(Player player);
 
+    boolean openEconomy(Player player);
+
     void reload(CommandSender sender);
 
     void shutdown();

@@ -1,7 +1,23 @@
 # Wallet（主菜单里的钱包）
 #
-# 货币种类、余额、流水全部以 YuDream 官网为准；本插件不在本地保存余额，
-# 只做短时缓存用于菜单显示，所有加减货币的操作都直接调用官网接口（官网流水即上报结果）。
+# local：本地持久多币种钱包，向 Vault 暴露主币种；website：保留旧官网服务。
+backend: local
+
+currencies:
+  coin:
+    name: 金币
+    symbol: 金币
+    scale: 2
+    enabled: true
+    transfer-enabled: true
+
+# 标准 Vault 每个经济服务只能提供一个主币种；其他币种继续通过 WalletApi 与钱包界面使用。
+vault:
+  enabled: true
+  currency: coin
+
+# 下面的官网配置用于 website 模式，以及 /wallet migrate-site 一次性余额迁入。
+# 迁入按币种 code 对应；请先把旧官网币种配置到上面的 currencies，保持相同 scale。
 
 # 官网地址（不要带结尾斜杠）。接口前缀固定为 /api/plugins/yudream-wallet
 base-url: "https://www.swustmc.cn"
@@ -10,8 +26,8 @@ base-url: "https://www.swustmc.cn"
 # （余额查询、流水、加/减货币都在管理端接口下）。view 权限只能读货币种类。
 api-key: ""
 
-# 本服启用的货币 code 列表（黄绿色羊毛 = 本服启用且官网启用）。
-# 注意 code 以官网「钱包 → 资产」里的 code 为准；留空 = 官网所有 enabled 的货币都算本服启用。
+# 本服启用的货币 code 初始列表（游戏内管理开关保存到 assets.yml，后者优先）。
+# local 使用 currencies 的 code，website 使用官网 code；留空 = 当前后端所有 enabled 币种。
 assets: []
 
 # 缓存时间（秒）：货币种类 / 余额。菜单每秒重绘，只读缓存，不阻塞。

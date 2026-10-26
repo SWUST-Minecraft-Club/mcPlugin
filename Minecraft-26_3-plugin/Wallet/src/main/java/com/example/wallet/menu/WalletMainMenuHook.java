@@ -83,7 +83,7 @@ public final class WalletMainMenuHook {
                 return;
             }
             registryClass.getMethod("unregister", String.class)
-                    .invoke(registry, "wallet:main");
+                    .invoke(registry, "wallet:wallet");
         } catch (final ReflectiveOperationException | LinkageError | RuntimeException ignored) {
             // MainMenu 可能已在关闭流程里
         } finally {
@@ -101,12 +101,9 @@ public final class WalletMainMenuHook {
             final Class<?> switchClass = Class.forName(
                     "com.example.wallet.internal.AssetSwitchStore");
 
-            final Object reader = readerClass.getDeclaredConstructor(WalletPlugin.class)
+            final Object reader = readerClass.getDeclaredConstructor(org.bukkit.plugin.Plugin.class)
                     .newInstance(this.plugin);
-            final Class<?> collClass = Class.forName("java.util.Collection");
-            final Object switchStore = switchClass.getDeclaredConstructor(
-                            WalletPlugin.class, collClass)
-                    .newInstance(this.plugin, this.config.enabledAssets());
+            final Object switchStore = this.plugin.assetSwitches();
             final Object menus = menusClass.getDeclaredConstructor(
                             WalletPlugin.class, WalletConfig.class, WalletService.class,
                             readerClass, switchClass)

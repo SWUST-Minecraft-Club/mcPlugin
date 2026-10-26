@@ -104,7 +104,7 @@ public final class WalletMenus {
 
         final WalletAsset asset = assets.get(slot);
         if (!asset.enabled()) {
-            player.sendMessage(Component.text("[钱包] 官网已停用该货币，无法在本服启用。", NamedTextColor.RED));
+            player.sendMessage(Component.text("[钱包] 配置已停用该货币，无法在本服启用。", NamedTextColor.RED));
             return;
         }
 
@@ -235,7 +235,7 @@ public final class WalletMenus {
         final List<WalletAsset> assets = this.service.cachedAssets();
         if (assets.isEmpty()) {
             inventory.setItem(SLOT_CENTER, item(Material.PAPER,
-                    Component.text("暂无货币（或官网未配置）", NamedTextColor.GRAY), List.of()));
+                    Component.text("暂无货币（请检查配置）", NamedTextColor.GRAY), List.of()));
         } else {
             int slot = 0;
             for (final WalletAsset asset : assets) {
@@ -248,12 +248,12 @@ public final class WalletMenus {
                 lore.add(line("code：", asset.code()));
                 lore.add(line("符号：", asset.symbol() == null || asset.symbol().isBlank() ? "（无）" : asset.symbol()));
                 lore.add(line("小数位：", String.valueOf(asset.scale())));
-                lore.add(line("官网启用：", asset.enabled() ? "是" : "否"));
+                lore.add(line("配置启用：", asset.enabled() ? "是" : "否"));
                 lore.add(line("本服启用：", localEnabled ? "是" : "否"));
                 if (asset.enabled()) {
                     lore.add(plain("点击切换本服启用状态", NamedTextColor.YELLOW));
                 } else {
-                    lore.add(plain("官网已停用，无法在本服启用", NamedTextColor.DARK_GRAY));
+                    lore.add(plain("配置已停用，无法在本服启用", NamedTextColor.DARK_GRAY));
                 }
                 inventory.setItem(slot++, item(active ? Material.LIME_WOOL : Material.RED_WOOL,
                         Component.text(asset.name() + "（" + asset.code() + "）",

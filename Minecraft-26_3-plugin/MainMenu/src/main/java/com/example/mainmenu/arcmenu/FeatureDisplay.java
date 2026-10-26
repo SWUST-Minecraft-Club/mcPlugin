@@ -45,17 +45,7 @@ record FeatureDisplay(String id, String name, String plainName, List<String> lin
             return "minecraft:paper";
         }
         if (meta instanceof SkullMeta skull) {
-            final var profile = skull.getPlayerProfile();
-            if (profile != null) {
-                for (final var property : profile.getProperties()) {
-                    if (property.getName().equals("textures")) {
-                        return "<skull:" + property.getValue() + ">";
-                    }
-                }
-            }
-            if (skull.getOwningPlayer() != null) {
-                return "<head:" + skull.getOwningPlayer().getUniqueId() + ">";
-            }
+            return HeadMaterial.of(skull.getPlayerProfile());
         }
         final StringBuilder result = new StringBuilder(item.getType().getKey().toString());
         if (meta != null && meta.hasCustomModelData()) {

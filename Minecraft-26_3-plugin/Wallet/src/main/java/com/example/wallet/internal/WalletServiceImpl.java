@@ -276,12 +276,16 @@ public final class WalletServiceImpl implements WalletService {
     private WalletBalance fetchBalance(final UUID playerId, final String playerName, final String assetCode) {
         final JsonObject payload = this.http.post("/admin/game/balance",
                 playerBody(playerId, playerName, assetCode));
+        final BigDecimal value = WalletHttp.decimal(payload, "balance");
+        if (value == null || value.signum() < 0 || WalletHttp.str(payload, "userId", "").isBlank()) {
+            throw new WalletException(0, "官网返回了缺失或无效的账户余额");
+        }
         final WalletBalance balance = new WalletBalance(
                 WalletHttp.str(payload, "userId", ""),
                 WalletHttp.str(payload, "playerName", playerName == null ? "" : playerName),
                 WalletHttp.str(payload, "playerUuid", playerId == null ? "" : playerId.toString()),
                 WalletHttp.str(payload, "assetCode", assetCode),
-                amount(WalletHttp.decimal(payload, "balance")),
+                value,
                 WalletHttp.lng(payload, "updatedAt", System.currentTimeMillis())
         );
 

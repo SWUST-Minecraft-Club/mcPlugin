@@ -1,0 +1,3 @@
+# 合并到现有 Town 配置后重启。
+economy:
+  provider: vault

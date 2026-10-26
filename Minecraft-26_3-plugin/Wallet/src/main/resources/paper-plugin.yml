@@ -4,7 +4,7 @@ main: com.example.wallet.WalletPlugin
 api-version: '26.3'
 # 声明支持 Folia；没有这一项的插件会被 Folia 拒绝加载
 folia-supported: true
-description: 主菜单里的钱包：货币种类、余额与流水（数据与操作全部走 YuDream 官网），并为后续插件提供钱包 API
+description: 本地多币种钱包、Vault 主币种经济服务与旧官网一次性迁入
 authors: [zhou-BZDDX]
 website: https://github.com/zhou-BZDDX/mcPlugin
 
@@ -14,6 +14,9 @@ dependencies:
     MainMenu:
       load: BEFORE
       required: false
+    Vault:
+      load: BEFORE
+      required: false
 
 permissions:
   wallet.admin:
@@ -21,4 +24,7 @@ permissions:
     default: op
   wallet.adjust:
     description: 允许使用 /walletin 与 /walletout 调整在线玩家货币
+    default: op
+  wallet.migrate:
+    description: 允许从旧 YuDream 官网一次性迁入本服已知玩家的余额及查看迁入状态
     default: op

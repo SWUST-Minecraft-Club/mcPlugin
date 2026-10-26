@@ -12,7 +12,8 @@ import java.util.function.Function;
 public final class MenuTemplates {
     public static final List<String> IDS = List.of("mainmenu-home", "mainmenu-features",
             "mainmenu-manage", "mainmenu-attribute-function", "mainmenu-attribute-fixed",
-            "mainmenu-attribute-placeholder", "mainmenu-position", "mainmenu-custom", "mainmenu-profile");
+            "mainmenu-attribute-placeholder", "mainmenu-position", "mainmenu-custom", "mainmenu-profile",
+            "mainmenu-economy");
 
     private MenuTemplates() {
     }

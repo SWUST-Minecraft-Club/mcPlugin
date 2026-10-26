@@ -1,0 +1,216 @@
+{
+  "verifiedDate": "2026-10-26",
+  "versions": {
+    "MainMenu": "Beta_1_7_0",
+    "Wallet": "Beta_0_6_0",
+    "Town": "Beta_0_7_1",
+    "Vault": "1.7.3-b0-folia"
+  },
+  "environment": {
+    "minecraft": "26.3",
+    "foliaBuild": 5,
+    "java": 25,
+    "arcmenu": "3.2.0 premium",
+    "framebuffer": [
+      1280,
+      720
+    ],
+    "guiScale": 2
+  },
+  "automatedTests": {
+    "MainMenu": 7,
+    "Wallet": 13,
+    "failures": 0
+  },
+  "phoneChecks": [
+    {
+      "check": "手机主页与真实时钟日期",
+      "pass": true
+    },
+    {
+      "check": "周期刷新保持会话",
+      "pass": true
+    },
+    {
+      "check": "真实点击全部应用",
+      "pass": true
+    },
+    {
+      "check": "真实点击我的",
+      "pass": true
+    },
+    {
+      "check": "底部手势条返回桌面",
+      "pass": true
+    },
+    {
+      "check": "真实点击桌面管理",
+      "pass": true
+    },
+    {
+      "check": "管理固定位置标签",
+      "pass": true
+    },
+    {
+      "check": "管理功能区标签",
+      "pass": true
+    },
+    {
+      "check": "物品应用打开属性",
+      "pass": true
+    },
+    {
+      "check": "手机属性隐藏功能",
+      "pass": true
+    },
+    {
+      "check": "隐藏后直接路由不能调用",
+      "pass": true
+    },
+    {
+      "check": "手机属性恢复显示",
+      "pass": true
+    },
+    {
+      "check": "手机排序四个按钮",
+      "pass": true
+    },
+    {
+      "check": "手机切为固定位置",
+      "pass": true
+    },
+    {
+      "check": "手机位置列表",
+      "pass": true
+    },
+    {
+      "check": "手机选择逻辑位置8",
+      "pass": true
+    },
+    {
+      "check": "手机转回功能区",
+      "pass": true
+    },
+    {
+      "check": "手机占位符属性",
+      "pass": true
+    },
+    {
+      "check": "手机删除占位符",
+      "pass": true
+    },
+    {
+      "check": "手机新建应用页面",
+      "pass": true
+    },
+    {
+      "check": "手机按钮进入原生名称输入",
+      "pass": true
+    },
+    {
+      "check": "取消输入返回管理",
+      "pass": true
+    },
+    {
+      "check": "普通玩家工具图标和文案切换",
+      "pass": true
+    },
+    {
+      "check": "普通玩家工具进入我的",
+      "pass": true
+    },
+    {
+      "check": "普通玩家不能进入管理",
+      "pass": true
+    },
+    {
+      "check": "手机12项分页计数",
+      "pass": true
+    },
+    {
+      "check": "所有应用跨页无遗漏无重复",
+      "pass": true
+    },
+    {
+      "check": "手机末页越界钳制",
+      "pass": true
+    },
+    {
+      "check": "真实点击上一页",
+      "pass": true
+    },
+    {
+      "check": "手机应用左键回调",
+      "pass": true
+    },
+    {
+      "check": "手机应用右键回调",
+      "pass": true
+    },
+    {
+      "check": "手机管理独立翻页",
+      "pass": true
+    },
+    {
+      "check": "固定位置保留自己的页码",
+      "pass": true
+    },
+    {
+      "check": "切回功能区保留页码",
+      "pass": true
+    },
+    {
+      "check": "手机YAML重载不覆盖字节",
+      "pass": true
+    },
+    {
+      "check": "手机YAML自定义按钮动作",
+      "pass": true
+    },
+    {
+      "check": "手机时区可配置",
+      "pass": true
+    },
+    {
+      "check": "底部关闭返回游戏",
+      "pass": true
+    }
+  ],
+  "migration": {
+    "source": "local mock of legacy YuDream website",
+    "realWebsiteContacted": false,
+    "failedReadNoPartialBalances": true,
+    "missingBalanceRejected": true,
+    "coinBefore": "120.00",
+    "gemBefore": "7",
+    "importCoin": "10.25",
+    "importGem": "3",
+    "coinAfter": "130.25",
+    "gemAfter": "10",
+    "completedMarkerSurvivesRestart": true,
+    "duplicateImportRejected": true,
+    "websiteMutationRequests": 0
+  },
+  "configuredMainCurrency": {
+    "provider": "Wallet/gem",
+    "currency": "宝石",
+    "scale": 0,
+    "balance": 10,
+    "precisionRejection": true,
+    "migrationMarkerRetained": true
+  },
+  "artifacts": {
+    "./release/MainMenu/MainMenu-mc26_3-plugin-Beta_1_7_0.jar": "e799ed2162ef8f7ad6aaa02883e2276596eaa517882d7d3ed2e035f55bae81d0",
+    "./release/Wallet/Wallet-mc26_3-plugin-Beta_0_6_0.jar": "77914015f29da94e883675d00a3029b6ba545c31f6111769b36090c9246fe8a2",
+    "./Minecraft-26_3-plugin/MainMenu/assets/screenshots/vault-home.png": "64edadf1b39766de075e0435be5812376721ea1bce57a7bba4fc67329a39399f",
+    "./Minecraft-26_3-plugin/MainMenu/assets/screenshots/vault-economy.png": "50f72bc09c254c58488d5bc8c9a99619dd8666ac7be94fad89cb94d7734ba00b"
+  },
+  "townAdapter": {
+    "townProvider": "vault:Wallet:Wallet/coin",
+    "before": 130.25,
+    "debited": 129.25,
+    "debitRetry": 129.25,
+    "refunded": 130.25,
+    "refundRetry": 130.25
+  }
+}

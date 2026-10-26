@@ -562,7 +562,7 @@ frontend:
       z: 2
   dock-profile-icon:
     type: item
-    material: <head:%player_name%>
+    material: '{meta:mm-player-material}'
     context: GUI
     offset:
       x: 0.0
@@ -704,7 +704,7 @@ frontend:
       z: 0
   player-head:
     type: item
-    material: <head:%player_name%>
+    material: '{meta:mm-player-material}'
     context: GUI
     offset:
       x: -20.5846
@@ -1086,7 +1086,7 @@ frontend:
       z: 9.5006
   wallet-label:
     type: text
-    content: '&#283F35我的钱包'
+    content: '&#283F35我的资产'
     size: 1.9012
     alignment: center
     opacity: 255
@@ -1568,6 +1568,108 @@ frontend:
       x: 0.0
       y: -30.5141
       z: 2
+  desktop-next-bg:
+    type: rectangle
+    width: 14.1098
+    height: 2.225
+    color: &phone-pale '#EAE8DF'
+    opacity: 255
+    offset:
+      x: 16.8522
+      y: -29.5382
+      z: 1
+  desktop-next-bg-top-0:
+    type: rectangle
+    width: 13.0699
+    height: 0.2781
+    color: *phone-pale
+    opacity: 255
+    offset:
+      x: 16.8522
+      y: -27.7123
+      z: 1
+  desktop-next-bg-bottom-0:
+    type: rectangle
+    width: 13.0699
+    height: 0.2781
+    color: *phone-pale
+    opacity: 255
+    offset:
+      x: 16.8522
+      y: -31.5295
+      z: 1
+  desktop-next-bg-top-1:
+    type: rectangle
+    width: 13.6676
+    height: 0.2781
+    color: *phone-pale
+    opacity: 255
+    offset:
+      x: 16.8522
+      y: -27.9668
+      z: 1
+  desktop-next-bg-bottom-1:
+    type: rectangle
+    width: 13.6676
+    height: 0.2781
+    color: *phone-pale
+    opacity: 255
+    offset:
+      x: 16.8522
+      y: -31.2751
+      z: 1
+  desktop-next-bg-top-2:
+    type: rectangle
+    width: 13.9627
+    height: 0.2781
+    color: *phone-pale
+    opacity: 255
+    offset:
+      x: 16.8522
+      y: -28.2213
+      z: 1
+  desktop-next-bg-bottom-2:
+    type: rectangle
+    width: 13.9627
+    height: 0.2781
+    color: *phone-pale
+    opacity: 255
+    offset:
+      x: 16.8522
+      y: -31.0206
+      z: 1
+  desktop-next-bg-top-3:
+    type: rectangle
+    width: 14.094
+    height: 0.2781
+    color: *phone-pale
+    opacity: 255
+    offset:
+      x: 16.8522
+      y: -28.4758
+      z: 1
+  desktop-next-bg-bottom-3:
+    type: rectangle
+    width: 14.094
+    height: 0.2781
+    color: *phone-pale
+    opacity: 255
+    offset:
+      x: 16.8522
+      y: -30.7661
+      z: 1
+  desktop-next-label:
+    type: text
+    content: '&#183E35下一页 ›'
+    size: 1.6775
+    alignment: center
+    opacity: 255
+    line-width: 420
+    update: -1
+    offset:
+      x: 16.6633
+      y: -30.1604
+      z: 2
   desktop-hint:
     type: text
     content: '&#747B6B点击物品，打开应用'
@@ -1671,22 +1773,13 @@ backend:
     height: 17.6174
     priority: 10
     actions:
-      left:
-      - 'open: mainmenu:feature {meta:mm-bind-wallet-id} left'
-      right:
-      - 'open: mainmenu:feature {meta:mm-bind-wallet-id} right'
-      shift-left:
-      - 'open: mainmenu:feature {meta:mm-bind-wallet-id} shift-left'
-      shift-right:
-      - 'open: mainmenu:feature {meta:mm-bind-wallet-id} shift-right'
-      middle:
-      - 'open: mainmenu:feature {meta:mm-bind-wallet-id} middle'
+      all:
+      - 'open: mainmenu:economy'
     tooltip:
-    - '{meta:mm-bind-wallet-tooltip}'
+    - '&f我的资产'
+    - '&7余额：{meta:mm-economy-short-balance} {meta:mm-economy-currency}'
+    - '&7{meta:mm-economy-status}'
     update: 20
-    condition: '{meta:mm-bind-wallet-available} == true'
-    deny:
-    - 'tell: &7该功能暂不可用。'
   music-open:
     x: 16.4734
     y: -1.716
@@ -1758,6 +1851,27 @@ backend:
     tooltip:
     - '{meta:mm-tools-tooltip}'
     update: 20
+  desktop-pages:
+    x: 0.0
+    y: -29.9725
+    width: 14.1854
+    height: 4.576
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:apps'
+    tooltip:
+    - '&f第二屏 · 全部应用'
+    update: 20
+  desktop-next:
+    x: 17.0454
+    y: -29.9725
+    width: 14.4142
+    height: 4.1184
+    priority: 10
+    actions:
+      all:
+      - 'open: mainmenu:apps'
 events:
   open: []
   close: []

@@ -3,7 +3,7 @@ package com.example.wallet.api;
 import java.math.BigDecimal;
 
 /**
- * 一条钱包流水（来自官网）。
+ * 当前后端的一条钱包流水。
  *
  * @param type       {@code CREDIT} / {@code DEBIT} / {@code TRANSFER}
  * @param direction  {@code IN} / {@code OUT} / {@code TRANSFER}（可能为空）

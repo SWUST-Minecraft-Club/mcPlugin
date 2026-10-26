@@ -88,13 +88,24 @@ class MenuTemplatesTest {
     void homeHasEditableFeatureBindingsAndDoesNotEscalateCommands() throws IOException {
         final Map<String, Object> home = document("arcmenu/mainmenu-home.yml");
         final Map<?, ?> backend = (Map<?, ?>) home.get("backend");
-        for (final String alias : List.of("town", "wallet", "music", "notice")) {
+        for (final String alias : List.of("town", "music", "notice")) {
             final Map<?, ?> region = (Map<?, ?>) backend.get(alias + "-open");
             assertEquals("{meta:mm-bind-" + alias + "-available} == true", region.get("condition"));
             final Map<?, ?> clicks = (Map<?, ?>) region.get("actions");
             for (final String click : List.of("left", "right", "shift-left", "shift-right")) {
                 assertEquals(List.of("open: mainmenu:feature {meta:mm-bind-" + alias + "-id} " + click),
                         clicks.get(click));
+            }
+        }
+        assertEquals(List.of("open: mainmenu:economy"),
+                ((Map<?, ?>) ((Map<?, ?>) backend.get("wallet-open")).get("actions")).get("all"));
+        assertEquals(List.of("open: mainmenu:apps"),
+                ((Map<?, ?>) ((Map<?, ?>) backend.get("desktop-next")).get("actions")).get("all"));
+        for (final String id : MenuTemplates.IDS) {
+            final Map<?, ?> front = (Map<?, ?>) document("arcmenu/" + id + ".yml").get("frontend");
+            for (final Object value : front.values()) {
+                final Object material = ((Map<?, ?>) value).get("material");
+                assertNotEquals("<head:%player_name%>", material, "Avatar must not depend on remote head lookup");
             }
         }
         for (final String id : MenuTemplates.IDS) {

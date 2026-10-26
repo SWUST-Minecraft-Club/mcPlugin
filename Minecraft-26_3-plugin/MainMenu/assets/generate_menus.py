@@ -145,7 +145,7 @@ def base(m, title=None, subtitle=None, back='home'):
     m.rounded('dock-bg', 294, 379, 212, 42, 'dock', 3, 12)
     for id, material, x, label, action in [
         ('apps', 'minecraft:compass', 328, '应用', 'open: mainmenu:apps'),
-        ('profile', '<head:%player_name%>', 400, '我的', 'open: mainmenu:profile'),
+        ('profile', p('player-material'), 400, '我的', 'open: mainmenu:profile'),
         ('close', 'minecraft:barrier', 472, '关闭', 'close')]:
         m.item('dock-'+id+'-icon', material, x, 394, 24 if id == 'profile' else 20,
                'GUI' if id == 'profile' else 'FIXED')
@@ -158,7 +158,7 @@ def base(m, title=None, subtitle=None, back='home'):
 def home():
     m = Menu('mainmenu-home')
     base(m)
-    m.item('player-head', '<head:%player_name%>', 309, 67, 40, 'GUI')
+    m.item('player-head', p('player-material'), 309, 67, 40, 'GUI')
     m.text('page-title', p('greeting'), 421, 58, 13, 'green', 'center')
     m.text('player-name', p('player-short'), 421, 79, 10, 'muted', 'center')
     m.region('player-profile', 294, 46, 212, 44, {'all': ['open: mainmenu:profile']})
@@ -170,7 +170,7 @@ def home():
              [p('bind-time-tooltip')])
     apps = [
         ('town', '我的小镇', 'minecraft:emerald', 'sage'),
-        ('wallet', '我的钱包', 'minecraft:gold_ingot', 'gold'),
+        ('wallet', '我的资产', 'minecraft:gold_ingot', 'gold'),
         ('music', '音乐电台', 'minecraft:jukebox', 'sage'),
         ('notice', '服务器公告', 'minecraft:bell', 'gold'),
         ('nav-features', '全部应用', 'minecraft:compass', 'sage'),
@@ -186,11 +186,17 @@ def home():
             route = 'apps' if id == 'nav-features' else 'tools'
             m.region(id, x-5, y-3, 62, 77, {'all': ['open: mainmenu:'+route]},
                      [p('tools-tooltip')] if id == 'nav-admin' else ['&f全部应用', '&7查看所有已接入的功能'])
+        elif id == 'wallet':
+            m.region(id+'-open', x-5, y-3, 62, 77, {'all': ['open: mainmenu:economy']},
+                     ['&f我的资产', '&7余额：'+p('economy-short-balance')+' '+p('economy-currency'),
+                      '&7'+p('economy-status')])
         else:
             m.region(id+'-open', x-5, y-3, 62, 77, feature_actions(p('bind-'+id+'-id')),
                      [p('bind-'+id+'-tooltip')], p('bind-'+id+'-available')+' == true',
                      ['tell: &7该功能暂不可用。'])
     m.text('desktop-page', '●  ○', 400, 357, 7.5, 'green', 'center')
+    m.region('desktop-pages', 369, 346, 62, 20, {'all': ['open: mainmenu:apps']}, ['&f第二屏 · 全部应用'])
+    m.button('desktop-next', '下一页 ›', 443, 347, 63, 18, 'open: mainmenu:apps', 'pale', 'green', 7.5)
     m.text('desktop-hint', '点击物品，打开应用', 400, 370, 6.5, 'muted', 'center')
     m.save()
 
@@ -311,7 +317,7 @@ def custom():
 def profile():
     m = Menu('mainmenu-profile')
     base(m, '我的', '记录你与这个世界的时光。')
-    m.item('profile-head', '<head:%player_name%>', 400, 134, 64, 'GUI')
+    m.item('profile-head', p('player-material'), 400, 134, 64, 'GUI')
     m.text('profile-name', p('player-short'), 400, 177, 17, 'green', 'center')
     m.text('profile-greeting', p('greeting'), 400, 200, 9, 'muted', 'center')
     m.rounded('playtime-panel', 294, 220, 212, 78, 'sage', radius=10)
@@ -326,6 +332,29 @@ def profile():
     m.save()
 
 
+def economy():
+    m = Menu('mainmenu-economy')
+    base(m, '我的资产', '把每一次收获，存进冒险。')
+    m.item('economy-icon', 'minecraft:gold_ingot', 400, 128, 66)
+    m.rounded('balance-panel', 294, 171, 212, 110, 'gold', radius=12)
+    m.text('balance-caption', '当前余额', 400, 187, 9, 'muted', 'center')
+    m.text('balance-value', p('economy-short-balance'), 400, 214, 27, 'green', 'center')
+    m.text('balance-currency', p('economy-currency'), 400, 240, 9, 'ink', 'center')
+    m.text('balance-status', p('economy-status'), 400, 263, 7, 'muted', 'center')
+    m.region('balance-details', 294, 171, 212, 110,
+             tooltip=['&f完整余额：'+p('economy-balance')+' '+p('economy-currency'),
+                      '&7经济服务：'+p('economy-provider'), '&7'+p('economy-status')])
+    m.rounded('provider-panel', 294, 292, 212, 32, 'sage', radius=8)
+    m.text('provider-caption', '经济服务', 309, 308, 8, 'muted')
+    m.text('provider-value', p('economy-provider'), 438, 308, 9, 'green', 'center')
+    m.text('payment-help', '币种、余额与流水，都在你的钱包。', 400, 335, 7, 'muted', 'center')
+    m.button('economy-refresh', '刷新余额', 294, 350, 102, 23, 'open: mainmenu:economy', 'green', 'white', 8)
+    m.button('economy-wallet', '钱包与流水', 404, 350, 102, 23,
+             'open: mainmenu:feature '+p('bind-wallet-id')+' left', 'pale', 'green', 8)
+    m.b['economy-wallet']['condition'] = p('bind-wallet-available')+' == true'
+    m.save()
+
+
 if __name__ == '__main__':
     home()
     features()
@@ -335,4 +364,5 @@ if __name__ == '__main__':
     position()
     custom()
     profile()
-    print('Generated 9 editable native YAML phone pages.')
+    economy()
+    print('Generated 10 editable native YAML phone pages.')

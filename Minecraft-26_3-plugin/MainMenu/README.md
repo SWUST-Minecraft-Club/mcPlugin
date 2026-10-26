@@ -1,6 +1,6 @@
 # MainMenu · 方块手机
 
-`Beta_1_6_0`：Folia 26.3，Java 25。安装 ArcMenu 3.2 后，`/cd`、ESC 主菜单按钮、时钟入口统一打开原生 YAML 主页。
+`Beta_1_7_0`：Folia 26.3，Java 25。安装 ArcMenu 3.2 后，`/cd`、ESC 主菜单按钮、时钟入口统一打开原生 YAML 主页。
 竖屏机身、暖象牙桌面、玉绿小组件、原版物品应用图标和底部快捷栏。
 首页六个常用入口，配套应用抽屉、“我的”和管理设置；手机外观全部由原生 YAML 构成，无需新增图片资源包。
 
@@ -12,6 +12,8 @@
 2. 启动一次，默认页面会释放到 `plugins/ArcMenu/menus/mainmenu/`。
 3. 直接编辑其中的 YAML，执行 `/cd reload`。不需要运行生成脚本或重新编译插件。
 
+升级到本版须备份并更新首页和公共头像节点；可将交付包的 10 页模板复制到上述目录，或备份后删除对应旧页并执行 `/cd reload`。首页“下一页”和页码圆点进入应用抽屉；其中箭头继续翻看每页 12 个应用。
+
 **已有 YAML 永不自动覆盖**，包括升级、重载和重启。需要恢复某一页默认配置时，先备份，再删除该页并执行 `/cd reload`。
 没有安装 ArcMenu、接入失败或关闭 `menu.arcmenu.enabled` 时，使用原有背包界面。
 从关闭状态重新启用后执行 `/cd reload` 即可重新接入；安装或移除插件本身仍需重启服务端。
@@ -20,6 +22,7 @@
 | --- | --- |
 | `mainmenu-home.yml` | 手机首页；状态栏、时钟、六个应用、底部快捷栏 |
 | `mainmenu-features.yml` | 应用抽屉；全部可见功能，每页 12 项原版物品图标 |
+| `mainmenu-economy.yml` | 我的资产；Vault 主币种余额、服务状态、刷新与原钱包入口 |
 | `mainmenu-profile.yml` | 我的；玩家头像、在线时长、挂机时长、在线人数 |
 | `mainmenu-manage.yml` | 桌面管理；功能区、固定位置两个标签，各 16 项独立分页 |
 | `mainmenu-attribute-function.yml` | 普通功能的显示、排序和固定方式 |
@@ -104,6 +107,8 @@ menu:
 | 键 | 内容 |
 | --- | --- |
 | `mm-player` / `mm-online` | 查看者名字 / 在线人数 |
+| `mm-player-material` | 校验后的玩家皮肤材质；无效纹理或第三方认证 URL 使用默认玩家头，避免整页失败 |
+| `mm-economy-available/balance/short-balance/currency/provider/status` | Vault 是否可用、完整/缩写余额、币种、提供者和状态；实际键用连字符连接，失败显示 `--` |
 | `mm-player-short` | 按手机宽度截短的查看者名字 |
 | `mm-clock` / `mm-date` / `mm-greeting` | 现实时间、中文日期、按时段问候；时区由 `clock-zone` 指定 |
 | `mm-tools-label/material/tooltip` | 随管理权限变化的桌面工具入口 |
@@ -154,6 +159,7 @@ menu:
 
 通用 `-material` 不可用时返回纸；`mm-app-*` 与 `mm-manager-*` 的空位材质为淡灰玻璃片。
 `-context` 是默认动态列表的 `GUI` 视角提示，需配合上述旋转与深度；不能直接写成动态 `context`。
+头像纹理只接受官方 `textures.minecraft.net/texture/` 的哈希，拒绝无效 Base64、第三方认证皮肤 URL；后者显示默认头。默认模板不再直接使用玩家名构建头颅。
 桥接可以提取原版材质、头颅纹理、传统 CustomModelData、皮革染色和旗帜图案；
 这不等同于任意 `ItemStack` 元数据无损转换。背包回退界面继续保留完整物品。
 
@@ -166,6 +172,7 @@ menu:
 | --- | --- |
 | `home` | 回到配置的首页，功能分页重置为 1 |
 | `apps [偏移]` | 手机应用抽屉；每页 12 项，`-1` / `1` 翻页 |
+| `economy` | 原生资产页；只读取 Vault，不直接修改余额 |
 | `profile` | 打开“我的” |
 | `tools` | 管理员打开桌面管理，普通玩家打开“我的” |
 | `features [偏移]` | 保留的逻辑分页路由，仍打开应用抽屉；修改 `mm-page`，供自行编写 54 位置模板使用 |
@@ -197,3 +204,5 @@ menu:
 它不自动重建新增图片的资源包；使用新图片时仍按 ArcMenu 的资源流程操作。
 
 构建与配置测试：`./gradlew :MainMenu:build`。游戏内验证、截图与适用边界见 [验证记录](./assets/VALIDATION.md)。
+
+手机与钱包更新包可由 `./scripts/package-mainmenu-wallet.py --vault-jar <Folia-Vault-JAR>` 从留档生成；部署合并片段及迁入步骤见 [安装说明](./deploy/安装说明.md)。

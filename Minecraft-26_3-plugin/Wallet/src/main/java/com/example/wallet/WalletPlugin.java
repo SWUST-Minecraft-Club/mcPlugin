@@ -2,6 +2,9 @@ package com.example.wallet;
 
 import com.example.wallet.api.WalletApi;
 import com.example.wallet.command.WalletAdminCommand;
+import com.example.wallet.command.WalletLocalCommand;
+import com.example.wallet.local.LocalWalletService;
+import com.example.wallet.local.WalletVaultBridge;
 import com.example.wallet.menu.WalletMainMenuHook;
 import com.example.wallet.internal.AssetSwitchStore;
 import com.example.wallet.internal.PlaytimeLedgerReader;
@@ -17,18 +20,22 @@ import java.util.List;
 /**
  * Wallet：主菜单里的钱包（货币种类 / 余额 / 流水），同时对外提供 {@link WalletApi} 给后续插件依赖。
  *
- * <p>货币与流水全部来自 YuDream 官网；所有加减货币都走官网接口（官网流水即上报结果），本地不存余额。
+ * <p>默认使用本地多币种账本并向 Vault 提供主币种；保留旧官网后端与一次性迁入。
  */
 public final class WalletPlugin extends JavaPlugin {
 
     private WalletConfig config;
     private WalletService service;
     private WalletMainMenuHook mainMenuHook;
+    private AssetSwitchStore assetSwitches;
+
+    public AssetSwitchStore assetSwitches() { return assetSwitches; }
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         this.config = WalletConfig.load(getConfig());
+        this.assetSwitches = new AssetSwitchStore(this, config.enabledAssets());
         if (this.config.testMode()) {
             getLogger().warning("============================================================");
             getLogger().warning("Wallet 本地测试模式已开启（test-mode.enabled=true）！");
@@ -36,6 +43,15 @@ public final class WalletPlugin extends JavaPlugin {
             getLogger().warning("上线前务必把 config.yml 的 test-mode.enabled 改回 false！");
             getLogger().warning("============================================================");
             this.service = new TestWalletServiceImpl(this, this.config);
+        } else if (this.config.backend().equals("local")) {
+            try {
+                this.service = new LocalWalletService(this, config);
+                WalletVaultBridge.register(this, (LocalWalletService) service, config);
+            } catch (java.io.IOException | RuntimeException error) {
+                getLogger().severe("本地钱包启动失败，停止插件：" + error.getMessage());
+                getServer().getPluginManager().disablePlugin(this);
+                return;
+            }
         } else {
             this.service = new WalletServiceImpl(this, this.config);
         }
@@ -47,6 +63,10 @@ public final class WalletPlugin extends JavaPlugin {
                     new WalletAdminCommand(this, this.service, true));
             commands.register("walletout", "从在线玩家扣除货币（管理员）", List.of(),
                     new WalletAdminCommand(this, this.service, false));
+            if (service instanceof LocalWalletService local) {
+                commands.register("wallet", "本地余额与旧官网一次性迁入", List.of(),
+                        new WalletLocalCommand(this, config, local));
+            }
         });
 
         this.mainMenuHook = WalletMainMenuHook.create(this, this.config, this.service);
@@ -69,10 +89,13 @@ public final class WalletPlugin extends JavaPlugin {
         }
 
         WalletApi.uninstall();
+        getServer().getServicesManager().unregisterAll(this);
         if (this.service instanceof WalletServiceImpl real) {
             real.shutdown();
         } else if (this.service instanceof TestWalletServiceImpl test) {
             test.shutdown();
+        } else if (this.service instanceof LocalWalletService local) {
+            local.close();
         }
     }
 }

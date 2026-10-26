@@ -1,7 +1,9 @@
 package com.example.mainmenu;
 
 import com.example.mainmenu.api.MainMenuApi;
+import com.example.mainmenu.api.MenuFeature;
 import com.example.mainmenu.api.MenuFeatureRegistry;
+import com.example.mainmenu.economy.VaultBalance;
 import com.example.mainmenu.command.CdCommand;
 import com.example.mainmenu.debug.DebugReporter;
 import com.example.mainmenu.internal.CustomFeatureStore;
@@ -48,6 +50,7 @@ public final class MainMenuPlugin extends JavaPlugin {
     private AdminService admin;
     private DebugReporter debug;
     private DisplayMenus displayMenus;
+    private VaultBalance economy;
 
     /** 供引导阶段注册的点击回调使用（那时插件实例还不存在） */
     public static MainMenuPlugin instance() {
@@ -65,6 +68,11 @@ public final class MainMenuPlugin extends JavaPlugin {
         this.customFeatures.load();
         this.features = new FeatureRegistryImpl(states);
         this.features.syncCustomFeatures(this.customFeatures.features());
+        this.economy = new VaultBalance(this);
+        this.features.register(MenuFeature.builder("mainmenu:economy")
+                .owner("MainMenu").icon(Material.GOLD_INGOT).name("<gold>我的资产</gold>")
+                .linesForViewer(player -> List.of(economy.read(player).message(), Component.text("点击查看 Vault 账户")))
+                .order(10).onClick((player, click) -> openEconomy(player)).build());
         this.menus = new MenuService(this);
         this.admin = new AdminService(this);
         this.debug = new DebugReporter(this);
@@ -121,6 +129,16 @@ public final class MainMenuPlugin extends JavaPlugin {
 
     public DisplayMenus displayMenus() {
         return displayMenus;
+    }
+
+    public VaultBalance economy() {
+        return economy;
+    }
+
+    public void openEconomy(final org.bukkit.entity.Player player) {
+        if (displayMenus == null || !displayMenus.openEconomy(player)) {
+            player.sendMessage(economy.read(player).message());
+        }
     }
 
     /** Re-evaluate the optional renderer after /cd reload, including first enable. */

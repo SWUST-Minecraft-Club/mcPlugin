@@ -205,6 +205,18 @@ public final class ArcMenuBridge implements DisplayMenus, Listener {
         return true;
     }
 
+    @Override
+    public boolean openEconomy(final Player player) {
+        if (!ready || !plugin.getConfig().getBoolean("menu.arcmenu.enabled", true)) {
+            return false;
+        }
+        if (!player.hasPermission("mainmenu.use")) {
+            plugin.message(player, "messages.no-permission");
+            return true;
+        }
+        return open(player, "mainmenu-economy");
+    }
+
     private boolean open(final Player player, final String id) {
         publish(player);
         return api.menus().open(plugin, player, id, List.of(), outcome -> {
@@ -251,6 +263,7 @@ public final class ArcMenuBridge implements DisplayMenus, Listener {
             open(player, "mainmenu-features");
         });
         route("profile", false, (player, args) -> open(player, "mainmenu-profile"));
+        route("economy", false, (player, args) -> openEconomy(player));
         route("tools", false, (player, args) -> {
             if (player.hasPermission("mainmenu.admin")) {
                 openManage(player);
@@ -517,6 +530,16 @@ public final class ArcMenuBridge implements DisplayMenus, Listener {
         };
         put(player, state, "player", player.getName());
         put(player, state, "player-short", compact(player.getName(), 90));
+        final String head = HeadMaterial.of(player.getPlayerProfile());
+        put(player, state, "player-material", head);
+        state.materials.put("player", head);
+        final var balance = plugin.economy().read(player);
+        put(player, state, "economy-available", balance.available());
+        put(player, state, "economy-balance", balance.balance());
+        put(player, state, "economy-short-balance", balance.shortBalance());
+        put(player, state, "economy-currency", balance.currency());
+        put(player, state, "economy-provider", compact(balance.provider(), 156));
+        put(player, state, "economy-status", balance.status());
         final ZonedDateTime now = ZonedDateTime.now(clockZone);
         put(player, state, "clock", CLOCK.format(now));
         put(player, state, "date", DATE.format(now));

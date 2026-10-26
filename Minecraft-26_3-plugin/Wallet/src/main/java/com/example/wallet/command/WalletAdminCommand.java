@@ -27,7 +27,7 @@ import java.util.concurrent.ExecutionException;
  * 管理员手动调整在线玩家货币：/walletin、/walletout。
  *
  * <p>所有操作都走 {@link WalletService#credit} / {@link WalletService#debit}，
- * 官网流水即结果；businessNo 使用 {@code wallet-admin-in/out-<uuid>}，
+ * 当前后端流水即结果；businessNo 使用 {@code wallet-admin-in/out-<uuid>}，
  * 官网会把来源识别为 ADMIN。</p>
  */
 public final class WalletAdminCommand implements BasicCommand {
@@ -76,16 +76,16 @@ public final class WalletAdminCommand implements BasicCommand {
                 : CompletableFuture.completedFuture(service.cachedAssets());
         assets.whenComplete((list, error) -> {
             if (error != null) {
-                send(sender, "读取官网货币失败：" + message(error), NamedTextColor.RED);
+                send(sender, "读取货币失败：" + message(error), NamedTextColor.RED);
                 return;
             }
             WalletAsset asset = find(list, code);
             if (asset == null) {
-                send(sender, "官网没有该币种：" + code, NamedTextColor.RED);
+                send(sender, "钱包没有该币种：" + code, NamedTextColor.RED);
                 return;
             }
             if (!asset.enabled()) {
-                send(sender, "该币种在官网已停用：" + code, NamedTextColor.RED);
+                send(sender, "该币种已停用：" + code, NamedTextColor.RED);
                 return;
             }
             if (amount.stripTrailingZeros().scale() > asset.scale()) {

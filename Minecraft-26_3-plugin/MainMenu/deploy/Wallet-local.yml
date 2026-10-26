@@ -1,0 +1,15 @@
+# 合并到现有配置，保留原 base-url / api-key，不要整文件覆盖。
+# coin 为示例：迁入旧官网前须换成旧币种的相同 code / scale。
+backend: local
+currencies:
+  coin:
+    name: 金币
+    symbol: 金币
+    scale: 2
+    enabled: true
+    transfer-enabled: true
+vault:
+  enabled: true
+  currency: coin
+test-mode:
+  enabled: false

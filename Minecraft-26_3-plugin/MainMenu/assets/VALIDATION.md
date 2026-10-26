@@ -1,5 +1,22 @@
 # MainMenu 方块手机验证记录
 
+## Beta_1_7_0 更新验证（2026-10-26）
+
+[本轮结构化结果与产物哈希](./vault-validation-results.json)。
+
+- 独立 Folia 26.3 build 5 / Java 25 / ArcMenu 3.2.0 premium / 用户提供的 Vault 1.7.3-b0-folia / Wallet Beta_0_6_0 / Town Beta_0_7_1。未使用共用测试服。
+- MainMenu 7 项 JUnit 全通过；38 项手机专项在本轮重新运行全通过，涵盖应用左右键、分页、管理权限与 YAML 不覆盖。
+- 10 页模板校验并发布；主页“下一页”和页码圆点真实点击进入应用抽屉；原生资产页显示 Wallet/coin、130.25 金币；钱包详情真实进入“玩家货币”背包页。
+- 玩家 textures 设为无效值时，主页、应用抽屉、我的和管理页仍正常打开；玩家及动态功能图标回退默认头。有效格式官方哈希在当前 ArcMenu 中可构建，未声称验证了真实在线账号皮肤下载。
+- Vault / WalletApi 同账本与重启、模拟旧官网一次性迁入结果见 [Wallet 验证记录](../../Wallet/VALIDATION.md)。没有访问真实官网钱包。
+- 本版截图为 1280×720、GUI scale 2；新增页面未沿用下方旧版 1600×900 的像素量测数值。
+
+![本版手机主页](./screenshots/vault-home.png)
+
+![本版 Vault 资产页](./screenshots/vault-economy.png)
+
+以下是 Beta_1_6_0 既有验证记录，其环境、截图和边界按原版保留。
+
 ## 环境与产物
 
 - 验证日期：2026-10-26（America/New_York）；MainMenu `Beta_1_6_0`。

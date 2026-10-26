@@ -38,3 +38,5 @@
 - [mainmenu-arcmenu-migration.md](./mainmenu-arcmenu-migration.md) — 原生 YAML 主页、动态物品与空提示限制、配置不覆盖和 26.3 截图校准
 - [arcmenu-item-angles.md](./arcmenu-item-angles.md) — UltimateShop-ArcMenu 1.0.0 的物品分类、GUI/FIXED、Y 轴旋转和深度参数，附字节码证据与手机界面验证边界
 - [town-resource-packs.md](./town-resource-packs.md) — 小镇首次合包与托管、GitLab 原生分发、CE 配置阶段回执、地图图片锚点补偿
+
+- [wallet-local-vault.md](./wallet-local-vault.md) — Wallet 本地多币种与 Vault 主币种、官网迁入提交边界、头像校验及钱包反射入口修复

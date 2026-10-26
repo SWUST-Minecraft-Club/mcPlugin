@@ -598,7 +598,7 @@ frontend:
       z: 2
   dock-profile-icon:
     type: item
-    material: <head:%player_name%>
+    material: '{meta:mm-player-material}'
     context: GUI
     offset:
       x: 0.0
