@@ -89,8 +89,7 @@ public final class TownUi {
             final List<TownMenus.Written> written = TownMenus.writeAll(plugin.config(), dir);
             plugin.getLogger().info("已生成 " + written.size() + " 个小镇菜单文件到 " + dir);
             mergeAnimations(dir.getParent());
-            // menus().reload() 只发布菜单、不重建图片索引：必须先 resources，再 reload，image 元素才有图可显示
-            needResourceRebuild = mapRenderer.imagesChangedSinceLastIndex();
+            needResourceRebuild = mapRenderer.hasPendingIndex();
         } catch (final IOException | RuntimeException e) {
             plugin.getLogger().warning("小镇菜单写入失败：" + e.getMessage());
             return;
@@ -98,7 +97,7 @@ public final class TownUi {
         Threads.global(plugin, () -> {
             if (needResourceRebuild) {
                 plugin.getLogger().info("检测到小地图图片变化，先重建 ArcMenu 资源包。");
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "arcmenu resources");
+                mapRenderer.rebuildNow();
             }
             final ArcMenuReloadReport report = api.menus().reload();
             if (report.isApplied()) {
@@ -597,7 +596,7 @@ public final class TownUi {
                 : "放置镇政厅后设定中心");
         final int missing = Math.max(0, cfg.minMembers() - view.memberCount());
         set(player, "can_found", view.state() == TownState.PENDING && missing == 0 ? "1" : "0");
-        set(player, "found_state", missing == 0 ? "&#52C48B已满足成立条件" : "&#D8AE63还差 " + missing + " 人");
+        set(player, "found_state", missing == 0 ? "&#2F9E44已满足成立条件" : "&#8A5CCF还差 " + missing + " 人");
         set(player, "danger_label", mayor ? "解散小镇" : "退出小镇");
         set(player, "danger_action", mayor ? "disband" : "leave");
     }
@@ -641,12 +640,12 @@ public final class TownUi {
             final boolean self = member.equals(player.getUniqueId());
             set(player, "member_" + i + "_present", "1");
             set(player, "member_" + i + "_name", name);
-            set(player, "member_" + i + "_display", self ? "&#76B7C6" + name + " (我)" : name);
+            set(player, "member_" + i + "_display", self ? "&#287FA8" + name + " (我)" : name);
             set(player, "member_" + i + "_role", entry.getValue().name());
             set(player, "member_" + i + "_role_display", switch (entry.getValue()) {
-                case MAYOR -> "&#D8AE63镇长";
-                case OFFICER -> "&#52C48B官员";
-                case MEMBER -> "&#9AADA4成员";
+                case MAYOR -> "&#8A5CCF镇长";
+                case OFFICER -> "&#2F9E44官员";
+                case MEMBER -> "&#666666成员";
             });
             set(player, "member_" + i + "_online", Bukkit.getPlayer(member) == null ? "离线" : "在线");
             set(player, "member_" + i + "_action", "管理");
@@ -681,9 +680,9 @@ public final class TownUi {
         set(player, "selected_display", nameOf(selected));
         set(player, "selected_uuid", selected.toString());
         set(player, "selected_role_display", switch (role) {
-            case MAYOR -> "&#D8AE63镇长";
-            case OFFICER -> "&#52C48B官员";
-            case MEMBER -> "&#9AADA4成员";
+            case MAYOR -> "&#8A5CCF镇长";
+            case OFFICER -> "&#2F9E44官员";
+            case MEMBER -> "&#666666成员";
         });
         set(player, "selected_online", Bukkit.getPlayer(selected) == null ? "当前离线" : "当前在线");
     }
@@ -712,9 +711,9 @@ public final class TownUi {
             final boolean invited = plugin.service().inviteOf(candidate.getUniqueId()) != null;
             final boolean can = canManage && !hasTown && !invited;
             set(player, "candidate_" + i + "_name", candidate.getName());
-            set(player, "candidate_" + i + "_state", !canManage ? "&#9AADA4无邀请权限"
-                    : hasTown ? "&#9AADA4已有小镇" : invited ? "&#D8AE63已有邀请" : "&#52C48B可邀请");
-            set(player, "candidate_" + i + "_action", can ? "&#52C48B邀请" : "&#9AADA4不可邀请");
+            set(player, "candidate_" + i + "_state", !canManage ? "&#666666无邀请权限"
+                    : hasTown ? "&#666666已有小镇" : invited ? "&#8A5CCF已有邀请" : "&#2F9E44可邀请");
+            set(player, "candidate_" + i + "_action", can ? "&#2F9E44邀请" : "&#666666不可邀请");
             set(player, "candidate_" + i + "_can", can ? "1" : "0");
         }
     }
@@ -739,18 +738,25 @@ public final class TownUi {
         final TownSnapshotView own = plugin.service().townOf(player.getUniqueId());
         set(player, "claim_center", center.world() + " · " + center.x() + ", " + center.z());
         final String key = TownMapRenderer.fileKey(center);
-        if (mapRenderer != null && mapRenderer.fileFor(key).toFile().exists()) {
+        if (mapRenderer != null && mapRenderer.isReady(key)) {
             set(player, "map_key", key);
         } else {
             set(player, "map_key", "default");
             if (mapRenderer != null) {
-                mapRenderer.ensureRendered(center, () -> {
-                    if (!TownMenus.CLAIM.equals(current.get(player.getUniqueId()))
-                            || !center.equals(claimCenter.get(player.getUniqueId()))) {
+                mapRenderer.ensureRendered(center).thenAccept(ready -> {
+                    if (!ready) {
                         return;
                     }
-                    set(player, "map_key", key);
-                    api.refresh(player);
+                    // ArcMenu 玩家 META 和 refresh 必须回到该玩家区域线程。
+                    Threads.forPlayer(plugin, player, () -> {
+                        if (!TownMenus.CLAIM.equals(current.get(player.getUniqueId()))
+                                || !center.equals(claimCenter.get(player.getUniqueId()))
+                                || !mapRenderer.isReady(key)) {
+                            return;
+                        }
+                        set(player, "map_key", key);
+                        api.refresh(player);
+                    });
                 });
             }
         }
@@ -768,26 +774,26 @@ public final class TownUi {
         final TownSnapshotView owner = plugin.service().townAt(key);
         if (owner != null) {
             if (own != null && owner.id().equals(own.id()) && key.equals(own.hallChunk())) {
-                return "&#D8AE63★";
+                return "&#A87616★";
             }
             if (own != null && owner.id().equals(own.id())) {
-                return "&#52C48B■";
+                return "&#2F9E44■";
             }
-            return "&#D97676■";
+            return "&#C94B4B■";
         }
         if (own == null) {
-            return "&#62736B·";
+            return "&#666666·";
         }
         final int max = plugin.config().maxChunksPerTown();
         if (max > 0 && own.claimCount() >= max) {
-            return "&#9AADA4■";
+            return "&#666666■";
         }
         for (final ChunkKey claim : own.claims()) {
             if (claim.isAdjacentTo(key, plugin.config().diagonalConnected())) {
-                return "&#76B7C6□";
+                return "&#287FA8□";
             }
         }
-        return "&#62736B·";
+        return "&#666666·";
     }
 
     /** 地图命令只能使用打开时冻结的中心，不能使用点击时的玩家位置。 */
@@ -827,14 +833,14 @@ public final class TownUi {
             set(player, "bf_" + i + "_cost", costText(def.cost()));
             set(player, "bf_" + i + "_duration", def.permanent() ? "永久" : def.durationMillis() / 60000 + " 分钟");
             if (activePermanent) {
-                set(player, "bf_" + i + "_state", "&#D8AE63永久生效");
+                set(player, "bf_" + i + "_state", "&#8A5CCF永久生效");
             } else if (expiry != null && expiry > nowMs) {
-                set(player, "bf_" + i + "_state", "&#52C48B剩余 " + (expiry - nowMs + 59999) / 60000 + " 分钟");
+                set(player, "bf_" + i + "_state", "&#2F9E44剩余 " + (expiry - nowMs + 59999) / 60000 + " 分钟");
             } else {
-                set(player, "bf_" + i + "_state", "&#9AADA4未激活");
+                set(player, "bf_" + i + "_state", "&#666666未激活");
             }
-            set(player, "bf_" + i + "_action", activePermanent ? "&#9AADA4已激活"
-                    : expiry != null && expiry > nowMs ? "&#52C48B续时" : "&#52C48B购买");
+            set(player, "bf_" + i + "_action", activePermanent ? "&#666666已激活"
+                    : expiry != null && expiry > nowMs ? "&#2F9E44续时" : "&#2F9E44购买");
             set(player, "bf_" + i + "_can_buy", activePermanent ? "0" : "1");
         }
     }
