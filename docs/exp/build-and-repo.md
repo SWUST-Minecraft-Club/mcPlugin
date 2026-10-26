@@ -69,3 +69,10 @@
 - **根因**：全局 `url.<代理前缀>.insteadOf` 改写传输 URL，而凭据按主机匹配；代理主机与 GitHub 主机的认证不是同一项。本次添加反向重写后，原始 GitHub URL 仍先匹配原规则，未能绕过代理。
 - **规避/解决**：先区分 `git config --get-all remote.origin.pushurl` 的原始地址与 `git remote get-url --push --all origin` 的实际地址，再核对重写的配置作用域。临时直推时，只在该次进程中让 `GIT_CONFIG_GLOBAL` 指向空配置，并通过进程配置保留原有 `credential.helper`；否则绕过重写时也会失去全局认证配置。凭据可用性通过捕获 `git credential fill` 的结果判断，只记录布尔状态，禁止打印或提交密码。推送后分别核对主仓与镜像的 `main`。
 - **来源**：2026-10-26，MainMenu `Beta_1_6_0` 推送；代理传输失败，临时绕过全局重写后两个 origin push 地址均成功。代理地址、凭据和本机配置位置均不在本条记录中展开。
+
+## 本地附件和历史留档不能代替 CI 的当次构建输出
+
+- **现象**：手机/钱包打包脚本最初要求传入本机 Vault 附件，并只读取 `./release/`；云端没有附件路径，构建遗漏时也可能取到历史 JAR。
+- **根因**：本地交付输入没有公开、可校验的来源；仓库留档和本次构建输出没有区分。
+- **规避/解决**：核对用户附件与 SirBlobman/Vault-Folia `v1.7.3-folia` 上游发布文件，SHA-256 均为 `140b9e75cd5371280f4bbf1cc68dc733ce7b8ffe3ea273f01c4da831022d4dd8`。依赖锁固定 URL、哈希和源码提交，不提交运行 JAR。CI 显式使用 `--artifacts build`，缺少本次输出或内嵌版本不符即失败；离线留档模式必须显式选择。ZIP 固定条目时间与权限，校验全部条目后另写外层 SHA-256。
+- **来源**：2026-10-26，CI 与插件 ZIP 发布；`./scripts/package-mainmenu-wallet.py`、`./scripts/dependencies/vault-folia.json`、`./.github/workflows/build.yml`、`./.github/workflows/release.yml`。来源链接和许可文本随包分发。

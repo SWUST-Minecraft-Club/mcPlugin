@@ -411,7 +411,8 @@ dependencies {
 ## 发布到 GitHub Releases
 
 改好版本号、补完 ChangeLog、确认 `./release/<项目名>/` 里有对应产物之后，打个 `v*` 标签推送即可 ——
-`.github/workflows/release.yml` 会构建全部工程并把 jar 挂到该 Release 上。
+`./.github/workflows/release.yml` 会构建全部工程，将 JAR、MainMenu / Wallet / Vault 更新 ZIP 和 SHA-256 校验文件附加到 Release。
+每次 CI 构建也会上传 `MainMenu-Wallet-Vault-mc26_3` artifact；ZIP 包含相关插件、10 页菜单 YAML、配置合并片段和安装说明。
 完整的前置检查与命令见 [`./docs/dev/版本与产物规范.md`](./docs/dev/版本与产物规范.md) §5。
 
 ## 版本与产物规范

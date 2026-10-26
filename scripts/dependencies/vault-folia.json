@@ -1,0 +1,10 @@
+{
+  "name": "Vault",
+  "version": "1.7.3-b0-folia",
+  "url": "https://github.com/SirBlobman/Vault-Folia/releases/download/v1.7.3-folia/Vault-1.7.3.jar",
+  "sha256": "140b9e75cd5371280f4bbf1cc68dc733ce7b8ffe3ea273f01c4da831022d4dd8",
+  "source": "https://github.com/SirBlobman/Vault-Folia/tree/3597d9e2ae19a33d73f2028d92c95714cc04da6f",
+  "source_archive": "https://github.com/SirBlobman/Vault-Folia/archive/3597d9e2ae19a33d73f2028d92c95714cc04da6f.zip",
+  "license": "LGPL-3.0-or-later",
+  "license_url": "https://github.com/SirBlobman/Vault-Folia/blob/3597d9e2ae19a33d73f2028d92c95714cc04da6f/license.txt"
+}

@@ -39,17 +39,30 @@ jobs:
             fi
           done
 
+      - name: Package MainMenu and Wallet ZIP
+        run: python3 ./scripts/package-mainmenu-wallet.py --artifacts build --output ./build/delivery/MainMenu-Wallet-Vault-mc26_3.zip
+
+      - name: Upload plugin ZIP
+        uses: actions/upload-artifact@v7
+        with:
+          name: MainMenu-Wallet-Vault-mc26_3
+          path: |
+            ./build/delivery/*.zip
+            ./build/delivery/*.zip.sha256
+          if-no-files-found: error
+
       - name: Upload plugin jars
         uses: actions/upload-artifact@v7
         with:
           name: plugin-jars
-          path: ./Minecraft-26_3-plugin/*/build/libs/*.jar
-          # 仓库里还没有插件时不会产生 jar，这里只告警不失败
-          if-no-files-found: warn
+          path: |
+            ./Minecraft-26_3-plugin/*/build/libs/*.jar
+            !./Minecraft-26_3-plugin/TestPlugin*/build/libs/*.jar
+          if-no-files-found: error
 
       - name: Upload mod jar
         uses: actions/upload-artifact@v7
         with:
           name: mod-jar
           path: ./fabric-26_3-mod/*/build/libs/*.jar
-          if-no-files-found: warn
+          if-no-files-found: error

@@ -64,7 +64,7 @@ Town（`Beta_0_7_1`，休闲经营小镇：单人成立、CraftEngine 政厅核�
 yudream-minecraft-server（正式版 `2_0_0` / 测试中 `Beta_2_1_0`，反编译基线纳入本仓的 Bukkit 桥接插件，编译目标 spigot-api 1.13.2 + Java 8，含本地时长统计、断线补发与后端对齐；运行期反射适配 Folia）；
 结构 `./Minecraft-26_3-plugin/<插件名>/`（Folia 插件，沿用 `paper-plugin.yml`，MainMenu 提供功能注册 API）· `./fabric-26_3-mod/MainMenuRepair/`（独立 Gradle 工程）· `./fabric-26_3-mod/MinecraftMcp/`（core + versions 多模块独立工程）·
 `./templates/plugin-template/`（newPlugin 模板）· `./release/<项目名>/`（产物留档）· `./run/`（共用的 Folia 测试服）· `./docs/dev|exp|plan/`（规范 / 经验 / 计划）；
-构建 `./gradlew build`（全部插件）· `./gradlew -p ./fabric-26_3-mod/MainMenuRepair build`（界面修复模组）· `./gradlew -p ./fabric-26_3-mod/MinecraftMcp build`（MCP 测试模组）· `./gradlew :插件名:runServer`（Folia 测试服，端口 25566；内部执行 `runFolia`）；
+构建 `./gradlew build`（全部插件）· `./gradlew -p ./fabric-26_3-mod/MainMenuRepair build`（界面修复模组）· `./gradlew -p ./fabric-26_3-mod/MinecraftMcp build`（MCP 测试模组）· `./gradlew :插件名:runServer`（Folia 测试服，端口 25566；内部执行 `runFolia`）；CI 与 `v*` Release 均附 MainMenu / Wallet / Vault ZIP 和 SHA-256，Vault 下载固定上游文件与哈希，操作见 `./docs/dev/版本与产物规范.md` §5；
 远端 `origin`（主仓 `zhou-BZDDX/mcPlugin`，双 push 地址，一次推送同步社团镜像 `SWUST-Minecraft-Club/mcPlugin`）· `swust`（镜像远端，仅用于核对）· 当前开发/测试基线固定 Minecraft/Folia 26.3；设计兼顾后续以小代价升级（如 26.4），升级需按官方迁移资料评估并验证；外部插件资料不自动成为本仓硬规则。
 
 ## 敏感信息

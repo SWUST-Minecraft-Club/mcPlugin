@@ -4,15 +4,34 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '重新发布的已有 v* 标签'
+        required: true
+        type: string
 
 permissions:
   contents: write
+
+concurrency:
+  group: release-${{ github.repository }}-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+
+      - name: Verify release tag
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          [[ "$RELEASE_TAG" == v* ]] || { echo '发布必须指定已有 v* 标签'; exit 1; }
+          git rev-parse --verify "refs/tags/$RELEASE_TAG^{commit}"
 
       # 仓库里的 wrapper 默认指向国内镜像，CI 上换回官方地址
       - name: Use official Gradle distribution
@@ -36,19 +55,57 @@ jobs:
             fi
           done
 
+      - name: Package MainMenu and Wallet ZIP
+        run: python3 ./scripts/package-mainmenu-wallet.py --artifacts build --output ./build/delivery/MainMenu-Wallet-Vault-mc26_3.zip
+
+      - name: Upload plugin ZIP
+        uses: actions/upload-artifact@v7
+        with:
+          name: MainMenu-Wallet-Vault-mc26_3
+          path: |
+            ./build/delivery/*.zip
+            ./build/delivery/*.zip.sha256
+          if-no-files-found: error
+
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
         run: |
-          # 收集插件与模组产物；没有 jar 时也不报错。
-          # 测试插件（./Minecraft-26_3-plugin/TestPlugin*）只用于本地联调，不随 Release 发布。
+          # 只发布本次构建产物，测试插件不随 Release 发布。
           shopt -s nullglob
-          assets=()
+          assets=(./build/delivery/*.zip ./build/delivery/*.zip.sha256)
           for jar in ./Minecraft-26_3-plugin/*/build/libs/*.jar ./fabric-26_3-mod/*/build/libs/*.jar; do
             case "$jar" in
-              */TestPlugin*) continue ;;
+              */TestPlugin*|*-sources.jar|*-javadoc.jar) continue ;;
             esac
             assets+=("$jar")
           done
-          echo "将上传 ${#assets[@]} 个 jar"
-          gh release create "$GITHUB_REF_NAME" "${assets[@]}" --title "$GITHUB_REF_NAME" --generate-notes
+          echo "将上传 ${#assets[@]} 个发布文件"
+          prerelease=()
+          if python3 - <<'PY'
+          import json, sys, zipfile
+          with zipfile.ZipFile('./build/delivery/MainMenu-Wallet-Vault-mc26_3.zip') as archive:
+              versions = json.loads(archive.read('versions.json'))
+          sys.exit(0 if any(v.startswith('Beta_') for v in versions.values()) else 1)
+          PY
+          then
+            prerelease=(--prerelease)
+          fi
+          cat > ./build/delivery/release-notes.md <<'EOF'
+          ## 手机菜单与 Wallet 更新包
+
+          下载 **MainMenu-Wallet-Vault-mc26_3.zip**；旁附 SHA-256 校验文件。
+          适用 Folia / Minecraft 26.3、Java 25。包内包含 MainMenu、Wallet、Town 及相关插件、Folia Vault、10 页 ArcMenu YAML、配置合并片段和安装说明。
+
+          Wallet 支持本地多币种账本、Vault 主币种与旧 YuDream 官网余额一次性迁入。更新前停服备份，并按 ZIP 内的「安装说明.md」合并配置和替换菜单模板。
+          ArcMenu 3.2 与 CraftEngine 需自行保留；ZIP 不含世界、玩家账户数据或真实密钥。客户端 MainMenuRepair 位于 client/mods，按需安装。
+          EOF
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber
+          else
+            gh release create "$RELEASE_TAG" "${assets[@]}" --verify-tag \
+              --title "$RELEASE_TAG" --notes-file ./build/delivery/release-notes.md \
+              --generate-notes "${prerelease[@]}"
+          fi

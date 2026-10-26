@@ -205,4 +205,4 @@ menu:
 
 构建与配置测试：`./gradlew :MainMenu:build`。游戏内验证、截图与适用边界见 [验证记录](./assets/VALIDATION.md)。
 
-手机与钱包更新包可由 `./scripts/package-mainmenu-wallet.py --vault-jar <Folia-Vault-JAR>` 从留档生成；部署合并片段及迁入步骤见 [安装说明](./deploy/安装说明.md)。
+手机与钱包更新包已接入 CI 和 GitHub Release；下载、发布入口见 [版本与产物规范 §5](../../docs/dev/版本与产物规范.md#5-发布到-github-releases)。本地构建相关插件和 MainMenuRepair 后执行 `python3 ./scripts/package-mainmenu-wallet.py`，默认从本次 `build/libs` 输出打包；离线从留档生成时使用 `--artifacts archive --vault-jar <Folia-Vault-JAR>`。Vault 下载来源与哈希固定在依赖锁；部署合并片段及迁入步骤见 [安装说明](./deploy/安装说明.md)。
