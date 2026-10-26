@@ -54,8 +54,10 @@
   按钮提示文本 key 是 `menu.custom_screen_info.*`，由客户端提供，服务端控制不了。
 - **规避/解决**：在 `ScreenEvents.AFTER_INIT` 中对 `DialogScreen` 遍历 children，用
   `getMessage()` 等于 `Component.translatable("menu.custom_screen_info.button_narration").getString()` 识别
-  （不受客户端语言影响），隐藏后 `setWidth(0)/setHeight(0)`，标题行会重新按居中排版。
-- **来源**：MainMenuRepair `Beta_1_1_0`；`MenuCleaner#removeDialogWarning`。
+  （不受客户端语言影响），隐藏后 `setWidth(0)/setHeight(0)`。
+  布局在 `init()` 返回前就用原尺寸排好了，尺寸归零不会触发重排，标题仍会偏左；
+  需要再找到标题 `StringWidget`，按 `(screen.width - title.getWidth()) / 2` 重设 X。
+- **来源**：MainMenuRepair `Beta_1_1_1`；`MenuCleaner#removeDialogWarning`。
 
 ## 26.3 的屏幕、键盘与容器 API 需要按官方 jar 核对
 

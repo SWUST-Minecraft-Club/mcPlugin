@@ -9,6 +9,7 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.SpriteIconButton;
+import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
@@ -147,26 +148,37 @@ public final class MenuCleaner {
      *
      * <p>{@code DialogScreen.init()} 会无条件创建一个 {@link ImageButton} 并挂进标题行，
      * 按钮本身和它打开的说明页都由客户端提供，服务端控制不了。这里按提示文本识别
-     * （{@code menu.custom_screen_info.*}，不受客户端语言影响），隐藏后把尺寸归零，
-     * 标题行会重新按居中排版。
+     * （{@code menu.custom_screen_info.*}，不受客户端语言影响）并隐藏。
+     *
+     * <p>布局在 {@code init()} 返回前就按原按钮宽度排好了，只把按钮尺寸归零不会触发重排，
+     * 标题仍会偏左；所以隐藏后再把标题控件按屏幕宽度摆正。窗口缩放会重新初始化界面，
+     * 这条清理会再执行一次。
      */
     private static void removeDialogWarning(final Screen screen, final String source) {
         final String warningText =
                 Component.translatable("menu.custom_screen_info.button_narration").getString();
+        final String titleText = screen.getTitle().getString();
+        StringWidget title = null;
         int hidden = 0;
         for (final GuiEventListener child : new ArrayList<>(screen.children())) {
-            if (!(child instanceof ImageButton button)) {
-                continue;
+            if (child instanceof ImageButton button) {
+                if (!button.getMessage().getString().equals(warningText)) {
+                    continue;
+                }
+                button.visible = false;
+                button.active = false;
+                button.setWidth(0);
+                button.setHeight(0);
+                hidden++;
+            } else if (child instanceof StringWidget widget
+                    && widget.getMessage().getString().equals(titleText)) {
+                title = widget;
             }
-            if (!button.getMessage().getString().equals(warningText)) {
-                continue;
-            }
-            button.visible = false;
-            button.active = false;
-            button.setWidth(0);
-            button.setHeight(0);
-            hidden++;
         }
-        StatusLog.append(source + "：dialog 警告按钮 " + hidden + " 个");
+        if (title != null) {
+            title.setX((screen.width - title.getWidth()) / 2);
+        }
+        StatusLog.append(source + "：dialog 警告按钮 " + hidden + " 个"
+                + (title == null ? "" : "，标题已居中"));
     }
 }
