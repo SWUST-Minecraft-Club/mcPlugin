@@ -49,6 +49,7 @@ public final class TownUi {
     private final Map<UUID, ArcMenuTextInputHandle> textInputs = new ConcurrentHashMap<>();
     private final Map<UUID, ChunkKey> chunkPreviews = new ConcurrentHashMap<>();
     private final Set<UUID> balanceLoading = ConcurrentHashMap.newKeySet();
+    private final Map<UUID, Long> balanceRetryAt = new ConcurrentHashMap<>();
     private final AtomicBoolean assetsLoading = new AtomicBoolean();
     private TownMapRenderer mapRenderer;
     private final TownOperations operations;
@@ -563,6 +564,7 @@ public final class TownUi {
             }
         }
         balanceLoading.remove(playerId);
+        balanceRetryAt.remove(playerId);
     }
 
     public void shutdown() {
@@ -582,6 +584,7 @@ public final class TownUi {
         });
         textInputs.clear();
         balanceLoading.clear();
+        balanceRetryAt.clear();
     }
 
     // ------------------------------------------------------------------ META 写入
@@ -597,7 +600,7 @@ public final class TownUi {
     private void writeCommon(final Player player, final TownSnapshotView view) {
         final TownConfig cfg = plugin.config();
         warmAssets(player);
-        set(player, "balance", balanceText(player));
+        writeBalance(player);
         set(player, "name_len", cfg.nameMinLength() + "~" + cfg.nameMaxLength() + " 字符");
         set(player, "min_members", String.valueOf(cfg.minMembers()));
         set(player, "found_cost", costText(cfg.foundingCost()));
@@ -909,7 +912,7 @@ public final class TownUi {
                 body1 = "当前 " + (view == null ? 0 : view.memberCount()) + " 名成员";
                 body2 = "成立后放置镇政厅，划定中心与初始领地";
                 cost = costText(plugin.config().foundingCost());
-                note = "费用将从你的 Wallet 余额中扣除";
+                note = "费用将从当前经济来源的余额中扣除";
             }
             case "disband" -> {
                 title = (view != null && view.active() ? "解散 " : "放弃筹备 ") + (view == null ? "小镇" : view.name()) + "？";
@@ -990,29 +993,51 @@ public final class TownUi {
                 || !assetsLoading.compareAndSet(false, true)) {
             return;
         }
-        wallet.preloadAssets().thenRun(() -> {
+        wallet.preloadAssets().whenComplete((ignored, error) -> {
             assetsLoading.set(false);
-            if (player.isOnline()) {
+            // Vault may complete immediately while its provider is unavailable.
+            // Refresh only after resolving a currency, otherwise wait for the next UI tick.
+            if (error == null && !wallet.resolveCurrency(plugin.config().currencyCode()).isBlank()
+                    && player.isOnline()) {
                 Threads.forPlayer(plugin, player, () -> refresh(player));
             }
         });
     }
 
-    private String balanceText(final Player player) {
+    private void writeBalance(final Player player) {
         final var wallet = plugin.service().wallet();
         if (wallet == null) {
-            return "—";
+            showBalance(player, "—", "未连接", "经济服务不可用", "请检查当前经济来源配置");
+            return;
         }
         final String code = wallet.resolveCurrency(plugin.config().currencyCode());
         if (code.isBlank()) {
-            return "加载中";
+            showBalance(player, "—", "等待连接", "等待经济服务或货币加载", wallet.name());
+            return;
         }
+        final String symbol = BalanceDisplay.plain(wallet.symbolOf(plugin.config().currencyCode(), code));
+        final String currency = symbol.isBlank() ? "货币" : symbol;
+        final String source = BalanceDisplay.plain(wallet.name());
         final Double cached = wallet.cachedBalance(player.getUniqueId(), code);
-        if (cached != null) {
-            return trim(cached) + " " + wallet.symbolOf(plugin.config().currencyCode(), code);
+        if (cached != null && Double.isFinite(cached) && cached >= 0) {
+            final var amount = java.math.BigDecimal.valueOf(cached);
+            showBalance(player, BalanceDisplay.amount(amount), currency,
+                    BalanceDisplay.full(amount) + " " + currency, source);
+            return;
         }
+        if (System.nanoTime() < balanceRetryAt.getOrDefault(player.getUniqueId(), 0L)) {
+            showBalance(player, "暂不可用", currency, "余额查询失败，稍后自动重试", source);
+            return;
+        }
+        showBalance(player, "查询中", currency, "正在查询可用余额", source);
         if (balanceLoading.add(player.getUniqueId())) {
-            wallet.balance(player.getUniqueId(), player.getName(), code).thenAccept(value -> {
+            wallet.balance(player.getUniqueId(), player.getName(), code).whenComplete((value, error) -> {
+                if (error != null || value == null || !Double.isFinite(value) || value < 0) {
+                    balanceRetryAt.put(player.getUniqueId(), System.nanoTime()
+                            + java.util.concurrent.TimeUnit.SECONDS.toNanos(5));
+                } else {
+                    balanceRetryAt.remove(player.getUniqueId());
+                }
                 if (player.isOnline()) {
                     Threads.forPlayer(plugin, player, () -> {
                         balanceLoading.remove(player.getUniqueId());
@@ -1023,7 +1048,15 @@ public final class TownUi {
                 }
             });
         }
-        return "查询中";
+    }
+
+    private void showBalance(final Player player, final String amount, final String currency,
+                             final String full, final String source) {
+        set(player, "balance_amount", amount);
+        set(player, "balance_currency", BalanceDisplay.currency(currency));
+        set(player, "balance_full", full);
+        set(player, "balance_source", source);
+        set(player, "balance", full);
     }
 
     private String costText(final double amount) {

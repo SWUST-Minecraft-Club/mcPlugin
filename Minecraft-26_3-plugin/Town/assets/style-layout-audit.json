@@ -1,0 +1,448 @@
+{
+  "runtime": "Town Beta_0_7_1 / Folia 26.3 build 5 / ArcMenu 3.2.0",
+  "pixelsPerBlock": 42.7,
+  "canvas": [
+    800,
+    450
+  ],
+  "viewport": [
+    1280,
+    720
+  ],
+  "windowScale": 0.7,
+  "pixelsPerCanvasUnit": 1.12,
+  "originPixels": [
+    192,
+    108
+  ],
+  "calibration": {
+    "shapeWidthDivisor": 1.01,
+    "rectangleHeightDivisor": 0.915,
+    "frameStroke": 1
+  },
+  "scope": "精确颜色匹配边框像素中心（含描边），不将描边像素外缘当作后台命中边界。平面视角截图。",
+  "checks": [
+    {
+      "capture": "./screenshots/town-style-home.png",
+      "element": "town-head",
+      "designRect": [
+        20,
+        64,
+        760,
+        64
+      ],
+      "expectedPixelEdges": [
+        214.4,
+        179.68,
+        1065.6000000000001,
+        251.36
+      ],
+      "measuredInclusivePixelEdges": [
+        215,
+        179,
+        1066,
+        251
+      ],
+      "errorInCanvasUnits": [
+        0.536,
+        -0.607,
+        0.357,
+        -0.321
+      ]
+    },
+    {
+      "capture": "./screenshots/town-style-home.png",
+      "element": "members",
+      "designRect": [
+        20,
+        140,
+        244,
+        92
+      ],
+      "expectedPixelEdges": [
+        214.4,
+        264.8,
+        487.68,
+        367.84000000000003
+      ],
+      "measuredInclusivePixelEdges": [
+        214,
+        264,
+        487,
+        367
+      ],
+      "errorInCanvasUnits": [
+        -0.357,
+        -0.714,
+        -0.607,
+        -0.75
+      ]
+    },
+    {
+      "capture": "./screenshots/town-style-home.png",
+      "element": "map",
+      "designRect": [
+        278,
+        140,
+        244,
+        92
+      ],
+      "expectedPixelEdges": [
+        503.36,
+        264.8,
+        776.6400000000001,
+        367.84000000000003
+      ],
+      "measuredInclusivePixelEdges": [
+        503,
+        264,
+        776,
+        367
+      ],
+      "errorInCanvasUnits": [
+        -0.321,
+        -0.714,
+        -0.571,
+        -0.75
+      ]
+    },
+    {
+      "capture": "./screenshots/town-style-home.png",
+      "element": "plots",
+      "designRect": [
+        536,
+        140,
+        244,
+        92
+      ],
+      "expectedPixelEdges": [
+        792.32,
+        264.8,
+        1065.6000000000001,
+        367.84000000000003
+      ],
+      "measuredInclusivePixelEdges": [
+        793,
+        264,
+        1066,
+        367
+      ],
+      "errorInCanvasUnits": [
+        0.607,
+        -0.714,
+        0.357,
+        -0.75
+      ]
+    },
+    {
+      "capture": "./screenshots/town-style-home.png",
+      "element": "civic",
+      "designRect": [
+        20,
+        244,
+        244,
+        92
+      ],
+      "expectedPixelEdges": [
+        214.4,
+        381.28000000000003,
+        487.68,
+        484.32000000000005
+      ],
+      "measuredInclusivePixelEdges": [
+        214,
+        381,
+        487,
+        484
+      ],
+      "errorInCanvasUnits": [
+        -0.357,
+        -0.25,
+        -0.607,
+        -0.286
+      ]
+    },
+    {
+      "capture": "./screenshots/town-style-home.png",
+      "element": "market",
+      "designRect": [
+        278,
+        244,
+        244,
+        92
+      ],
+      "expectedPixelEdges": [
+        503.36,
+        381.28000000000003,
+        776.6400000000001,
+        484.32000000000005
+      ],
+      "measuredInclusivePixelEdges": [
+        503,
+        381,
+        776,
+        484
+      ],
+      "errorInCanvasUnits": [
+        -0.321,
+        -0.25,
+        -0.571,
+        -0.286
+      ]
+    },
+    {
+      "capture": "./screenshots/town-style-home.png",
+      "element": "planning",
+      "designRect": [
+        536,
+        244,
+        244,
+        92
+      ],
+      "expectedPixelEdges": [
+        792.32,
+        381.28000000000003,
+        1065.6000000000001,
+        484.32000000000005
+      ],
+      "measuredInclusivePixelEdges": [
+        793,
+        381,
+        1066,
+        484
+      ],
+      "errorInCanvasUnits": [
+        0.607,
+        -0.25,
+        0.357,
+        -0.286
+      ]
+    },
+    {
+      "capture": "./screenshots/town-style-civic.png",
+      "element": "summary",
+      "designRect": [
+        20,
+        70,
+        760,
+        76
+      ],
+      "expectedPixelEdges": [
+        214.4,
+        186.4,
+        1065.6000000000001,
+        271.52
+      ],
+      "measuredInclusivePixelEdges": [
+        215,
+        186,
+        1066,
+        271
+      ],
+      "errorInCanvasUnits": [
+        0.536,
+        -0.357,
+        0.357,
+        -0.464
+      ]
+    },
+    {
+      "capture": "./screenshots/town-style-civic.png",
+      "element": "ledger",
+      "designRect": [
+        20,
+        206,
+        760,
+        184
+      ],
+      "expectedPixelEdges": [
+        214.4,
+        338.72,
+        1065.6000000000001,
+        544.8000000000001
+      ],
+      "measuredInclusivePixelEdges": [
+        215,
+        338,
+        1066,
+        545
+      ],
+      "errorInCanvasUnits": [
+        0.536,
+        -0.643,
+        0.357,
+        0.179
+      ]
+    },
+    {
+      "capture": "./screenshots/town-style-member.png",
+      "element": "profile",
+      "designRect": [
+        20,
+        64,
+        360,
+        322
+      ],
+      "expectedPixelEdges": [
+        214.4,
+        179.68,
+        617.6,
+        540.32
+      ],
+      "measuredInclusivePixelEdges": [
+        214,
+        179,
+        617,
+        540
+      ],
+      "errorInCanvasUnits": [
+        -0.357,
+        -0.607,
+        -0.536,
+        -0.286
+      ]
+    },
+    {
+      "capture": "./screenshots/town-style-member.png",
+      "element": "promote",
+      "designRect": [
+        396,
+        64,
+        184,
+        148
+      ],
+      "expectedPixelEdges": [
+        635.52,
+        179.68,
+        841.6,
+        345.44000000000005
+      ],
+      "measuredInclusivePixelEdges": [
+        635,
+        179,
+        841,
+        345
+      ],
+      "errorInCanvasUnits": [
+        -0.464,
+        -0.607,
+        -0.536,
+        -0.393
+      ]
+    },
+    {
+      "capture": "./screenshots/town-style-member.png",
+      "element": "demote",
+      "designRect": [
+        596,
+        64,
+        184,
+        148
+      ],
+      "expectedPixelEdges": [
+        859.5200000000001,
+        179.68,
+        1065.6000000000001,
+        345.44000000000005
+      ],
+      "measuredInclusivePixelEdges": [
+        860,
+        179,
+        1066,
+        345
+      ],
+      "errorInCanvasUnits": [
+        0.429,
+        -0.607,
+        0.357,
+        -0.393
+      ]
+    },
+    {
+      "capture": "./screenshots/town-style-member.png",
+      "element": "transfer",
+      "designRect": [
+        396,
+        228,
+        184,
+        158
+      ],
+      "expectedPixelEdges": [
+        635.52,
+        363.36,
+        841.6,
+        540.32
+      ],
+      "measuredInclusivePixelEdges": [
+        635,
+        363,
+        841,
+        540
+      ],
+      "errorInCanvasUnits": [
+        -0.464,
+        -0.321,
+        -0.536,
+        -0.286
+      ]
+    },
+    {
+      "capture": "./screenshots/town-style-member.png",
+      "element": "kick",
+      "designRect": [
+        596,
+        228,
+        184,
+        158
+      ],
+      "expectedPixelEdges": [
+        859.5200000000001,
+        363.36,
+        1065.6000000000001,
+        540.32
+      ],
+      "measuredInclusivePixelEdges": [
+        860,
+        363,
+        1066,
+        540
+      ],
+      "errorInCanvasUnits": [
+        0.429,
+        -0.321,
+        0.357,
+        -0.286
+      ]
+    }
+  ],
+  "maximumEdgeErrorInCanvasUnits": 0.75,
+  "imageCheck": {
+    "capture": "./screenshots/town-style-map.png",
+    "element": "terrain-image",
+    "designRect": [
+      20,
+      68,
+      326,
+      326
+    ],
+    "expectedPixelEdges": [
+      214.4,
+      184.16,
+      579.52,
+      549.28
+    ],
+    "measuredExclusivePixelEdges": [
+      214,
+      184,
+      579,
+      549
+    ],
+    "errorInCanvasUnits": [
+      -0.357,
+      -0.143,
+      -0.464,
+      -0.25
+    ],
+    "method": "真实地形主色 #6E8F43 的像素范围，右下使用 exclusive 边界；图片锚点独立于形状校准。"
+  }
+}

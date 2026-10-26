@@ -1,5 +1,41 @@
 # Town 验证记录
 
+## Beta_0_7_1 图标、余额与风格验证
+
+日期：2026-10-26。Town `Beta_0_7_1` / Folia 26.3 build 5 / Java 25 / ArcMenu 3.2.0 / CraftEngine 26.9.2 / 用户提供的 Folia 版 Vault。MinecraftMcp 控制 Minecraft 26.3 客户端 PackTester，1280×720；复用前轮隔离测试服，实际加载 jar 与本版留档逐字节一致。
+
+### 自动化与布局
+
+- `:Town:build --offline` 成功，78 项 JUnit 测试，0 失败、0 错误、0 跳过。新增 5 项检查覆盖完整精度、零余额、极大/极小金额、长币名和样式清理。
+- 保持 ppb=42.7、800×450 画布与 70% 居中比例。校准矩形宽 /1.01、高 /0.915、底边固定，frame 两轴 /1.01；保留七层透视与独立地图图片锚点。
+- [像素审计](./style-layout-audit.json) 检查首页、镇库和成员详情共 14 处卡片边界，最大误差 0.75 画布单位；地图真实图片范围 `[214,184,579,549)`，最大误差小于 0.465 画布单位。
+- 图标按既有库存模型记录分类：箱子和头颅 GUI + Y=180° + 正 Z=0.1；普通图标 FIXED、三轴等比。实拍检查铃铛、书、门、箱子及成员头颅，184 宽的成员操作卡上下排布。
+
+### 实机结果
+
+| 场景 | 结果与证据 |
+| --- | --- |
+| 正常余额 | [主页](./screenshots/town-style-home.png) 显示 `8,984.75`，币种单独一行；与 Vault 持久账本一致 |
+| 大额与长币名 | [大额余额](./screenshots/town-style-large-balance.png) 显示 `≈123.45万亿`，长币名省略；[悬停](./screenshots/town-style-balance-tooltip.png) 保留完整金额、币名与来源 |
+| 零余额 | [零余额](./screenshots/town-style-zero-balance.png) 显示 `0`，不误判为查询中或服务不可用 |
+| 查询失败 | 提供者故意抛错，[余额显示暂不可用](./screenshots/town-style-balance-failure.png)，5 秒后允许重试；未将失败值显示为负余额 |
+| 服务断开与恢复 | 注销 Economy 后[等待连接](./screenshots/town-style-balance-unavailable.png)，菜单继续显示；重新注册后自动恢复，切回正常模式再次显示 `8,984.75` |
+| 镇库 | [镇库页](./screenshots/town-style-civic.png) 显示 `15.25` 与金币，流水使用可读币名；首页入口与返回主页通过实际视角和右键命中验证 |
+| 成员与地图 | [成员详情](./screenshots/town-style-member.png) 高卡文字位于图标下方；[地图](./screenshots/town-style-map.png) 保持图片、框线与网格对齐 |
+
+大额和长币名截图保留本轮描边加固前的画面，最终版仅将相应卡片描边加固为 1 单位，金额规则及排版一致。全部场景由临时 TestPluginVault 构造，金额展示模式不修改持久账本；未据此扩大第三方经济提供者兼容性声明。修复服务未解析时立即完成的预热回调：只在解析成功后主动刷新，失败或未连接等待正常周期，避免同步重入。
+
+### 交付审计
+
+- 服务端包共 19 个文件，SHA-256 清单覆盖其余 18 个，全部一致。Town jar 与留档一致；Vault 与用户原件一致，其余依赖与上一版包逐字节一致。
+- 默认仍为 wallet / TEST、`eula=false`、`online-mode=true`，Linux 启动脚本保留执行权限。无真实上传令牌、TestPlugin、客户端、世界和玩家数据。
+- 本轮验证聚焦菜单与余额状态，既有资金恢复、经营和迁移流程见下方历史验证；未重新宣称全业务覆盖。测试服仍有既有 Wallet 菜单构造、CE 生命周期缓存及 Java 弃用警告。Windows 启动脚本本轮未在 Windows 实机执行。
+
+```text
+Town-mc26_3-plugin-Beta_0_7_1.jar  804d2535ddcb7eb69dcd3622510b19d7740bf0035a11a45f071a1177791c1f7c
+Town-Server-mc26_3-Beta_0_7_1-GitLab.zip  5b7eee7507791c9d7abc779e125f88d500a8f7685359131ee31941b989c613c4
+```
+
 ## Beta_0_7_0 Vault 经济验证
 
 日期：2026-10-26。Folia 26.3 build 5 / Java 25 / 用户提供的 Vault `1.7.3-b0-folia` / ArcMenu 3.2.0 / CraftEngine 26.9.2。MinecraftMcp 控制 Minecraft 26.3 客户端 PackTester，1280×720。

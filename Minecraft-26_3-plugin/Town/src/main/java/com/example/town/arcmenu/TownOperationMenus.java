@@ -30,8 +30,15 @@ public final class TownOperationMenus {
     }
     private static MenuBuilder civic() {
         MenuBuilder m=page("镇库与城镇发展","镇库支付科技和政策 · 玩家可自由贡献 · 受益范围在购买前显示");
-        card(m,"summary",20,66,760,80);text(m,"town","{meta:town_name}",200,90,18);
-        text(m,"balance","镇库 {meta:op_treasury}",550,91,17);text(m,"slots","{meta:op_slots}",550,123,11);
+        card(m,"summary",20,70,760,76);
+        m.item("treasury-icon","emerald",56,108,28,4);
+        text(m,"town","{meta:town_name}",232,96,18);
+        text(m,"slots","{meta:op_slots}",232,125,10);
+        m.rect("treasury-well",460,80,304,56,JADE,2);
+        m.text("treasury-label",t(MUTE,"公共镇库"),476,92,10,5,LEFT,null);
+        m.text("treasury-currency",t(MUTE,"{meta:op_treasury_currency}"),716,92,10,5,CENTER,dyn());
+        m.text("balance",t(GREEN,"{meta:op_treasury}"),612,118,21,5,CENTER,dyn());
+        m.region("treasury-info",460,80,304,56,MenuBuilder.spec(MenuBuilder.tooltip("&f{meta:op_treasury_full}","&7镇库用于小镇公共发展"),null));
         go(m,"donate",20,158,174,"贡献镇库","input donate",GREEN);go(m,"withdraw",210,158,174,"提取镇库","input withdraw",RAISE);
         go(m,"tech",400,158,182,"永久科技","catalog technology",RAISE);go(m,"policy",598,158,182,"限时政策","catalog policy",RAISE);
         card(m,"ledger",20,206,760,184);text(m,"ledger-title","{meta:op_ledger_title}",400,226,13);

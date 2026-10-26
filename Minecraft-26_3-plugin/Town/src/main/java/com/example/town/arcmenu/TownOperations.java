@@ -71,7 +71,7 @@ final class TownOperations {
                 case "plot-kind"->{var plot=plot(s.plot);PlotKind next=PlotKind.values()[(plot.kind().ordinal()+1)%PlotKind.values().length];plotAction(p,s,"修改用途为 "+next.display(),List.of(plot.name(),"用途修改可能影响经营权限。"),()->plugin.plots().update(p.getUniqueId(),townForPlot(plot.id()).id(),plot.id(),null,next,null));}
                 case "plot-public"->{var plot=plot(s.plot);boolean next=!plot.publicInteractionAt(System.currentTimeMillis());plotAction(p,s,next?"开放访客交互":"关闭访客交互",List.of(plot.name(),"容器和建造仍按业主／租户授权。"),()->plugin.plots().update(p.getUniqueId(),townForPlot(plot.id()).id(),plot.id(),null,null,next));}
                 case "plot-unoffer"->{String id=s.plot;plotAction(p,s,"取消出租挂牌",List.of(plot(id).name()),()->plugin.plots().cancelOffer(p.getUniqueId(),townForPlot(id).id(),id));}
-                case "plot-rent"->{Plot plot=plot(s.plot);plotAction(p,s,"承租 "+plot.name(),List.of("租金 "+Money.format(plot.offeredRentCents())+" "+plot.offeredCurrency(),"租期 "+duration(plot.offeredDurationMillis()),"租约期间容器与建造按租户授权。"),()->plugin.civic().rent(p,plot.id(),feedback(p)));}
+                case "plot-rent"->{Plot plot=plot(s.plot);plotAction(p,s,"承租 "+plot.name(),List.of("租金 "+Money.format(plot.offeredRentCents())+" "+currencyLabel(plot.offeredCurrency()),"租期 "+duration(plot.offeredDurationMillis()),"租约期间容器与建造按租户授权。"),()->plugin.civic().rent(p,plot.id(),feedback(p)));}
                 case "plot-remove"->{Plot plot=plot(s.plot);plotAction(p,s,"撤销地块",List.of(plot.name(),"原范围归回小镇管理，请先下架经营资产。"),()->{plugin.plots().remove(p.getUniqueId(),townForPlot(plot.id()).id(),plot.id(),plot.revision(),System.currentTimeMillis());s.plot="";});}
                 case "plot-move"->{s.hall=false;show(p,"planning");}
                 case "move-hall"->{if(plugin.relocation().draft(p.getUniqueId())!=null) throw new IllegalArgumentException("请先取消当前草案再切换迁移类型。");s.hall=!s.hall;show(p,"planning");}
@@ -83,7 +83,7 @@ final class TownOperations {
                 case "world-view"->ui.closeOperations(p);
                 case "move-cancel"->{plugin.relocation().cancel(p);ui.refresh(p);}
                 case "move-confirm"->{var d=Objects.requireNonNull(plugin.relocation().draft(p.getUniqueId()),"请先建立草案。");long price=plugin.relocation().price(d);
-                    confirm(p,"确认建筑迁移",List.of("原址 "+RelocationService.box(d.move().source()),"目标 "+RelocationService.box(d.move().target()),"费用 "+Money.format(price)+" "+plugin.civic().currency(),"源区和目标将锁定至验收或撤回。"),()->plugin.relocation().confirm(p,d.token(),price));}
+                    confirm(p,"确认建筑迁移",List.of("原址 "+RelocationService.box(d.move().source()),"目标 "+RelocationService.box(d.move().target()),"费用 "+Money.format(price)+" "+currencyLabel(plugin.civic().currency()),"源区和目标将锁定至验收或撤回。"),()->plugin.relocation().confirm(p,d.token(),price));}
                 case "job-pick"->{s.selected=((MoveJob)row(s,a[1])).id();show(p,"job");}
                 case "job-accept","job-undo","job-retry"->{String id=s.selected;String op=a[0];
                     confirm(p,op.equals("job-accept")?"验收并开放建筑":op.equals("job-undo")?"撤回工程并退款":"重试工程",List.of("工程 "+shortId(id),"撤回会用保存的原始快照恢复整个施工选区。"),()->{
@@ -94,12 +94,12 @@ final class TownOperations {
                 case "quantity"->{s.quantity=Math.clamp(s.quantity+Integer.parseInt(a[1]),1,1000000);ui.refresh(p);}
                 case "market-publish"->{int quantity=s.quantity;long unit=s.unit;boolean order=s.order;
                     String sample=InventoryImage.encode(p.getInventory().getItemInMainHand().asOne());
-                    confirm(p,order?"发布预付收购单":"托管商品并开店",List.of(itemName(sample)+" × "+quantity,"单价 "+Money.format(unit)+" "+plugin.civic().currency(),"合计 "+Money.format(Math.multiplyExact(unit,quantity)),order?"先扣除全部预付款，取消可结算未用余额。":"托管物品后开放商铺，剩余库存下架送回收件箱。"),()->{
+                    confirm(p,order?"发布预付收购单":"托管商品并开店",List.of(itemName(sample)+" × "+quantity,"单价 "+Money.format(unit)+" "+currencyLabel(plugin.civic().currency()),"合计 "+Money.format(Math.multiplyExact(unit,quantity)),order?"先扣除全部预付款，取消可结算未用余额。":"托管物品后开放商铺，剩余库存下架送回收件箱。"),()->{
                         if(!sample.equals(InventoryImage.encode(p.getInventory().getItemInMainHand().asOne()))) throw new IllegalArgumentException("主手样品已改变，请重新预览。");
                         if(order) plugin.market().order(p,quantity,unit);else plugin.market().stock(p,quantity,unit);
                     });}
                 case "product-trade"->{var l=product(s);int quantity=s.quantity;long net=plugin.market().netQuote(l,p.getUniqueId(),quantity);
-                    confirm(p,l.kind()==MarketBook.Kind.STOCK?"购买商品":"交付收购订单",List.of(itemName(l.item())+" × "+quantity,"单价 "+Money.format(l.unitCents())+" "+l.currency(),"总额 "+Money.format(Math.multiplyExact(quantity,l.unitCents()))+" · 收款人实际到账 "+Money.format(net),"商品进入收件箱，按预览版本结算。"),()->{
+                    confirm(p,l.kind()==MarketBook.Kind.STOCK?"购买商品":"交付收购订单",List.of(itemName(l.item())+" × "+quantity,"单价 "+Money.format(l.unitCents())+" "+currencyLabel(l.currency()),"总额 "+Money.format(Math.multiplyExact(quantity,l.unitCents()))+" · 收款人实际到账 "+Money.format(net),"商品进入收件箱，按预览版本结算。"),()->{
                         if(l.kind()==MarketBook.Kind.STOCK) plugin.market().buy(p,l.id(),quantity,l.revision(),l.unitCents(),net);else plugin.market().supply(p,l.id(),quantity,l.revision(),l.unitCents(),net);
                     });}
                 case "product-close"->{var l=product(s);confirm(p,"下架 "+itemName(l.item()),List.of("剩余数量 "+l.remaining(),l.kind()==MarketBook.Kind.STOCK?"剩余商品进入收件箱。":"未使用的预付款自动结算回钱包。"),()->plugin.market().close(p,l.id(),l.revision()));}
@@ -118,7 +118,7 @@ final class TownOperations {
         if(tech) {var d=(CivicCatalog.Technology)value;id=d.id();cost=d.cost(town.civic().level(id));}
         else {var d=(CivicCatalog.PolicyDef)value;id=d.id();cost=d.cents();}
         int level=town.civic().level(id);String currency=plugin.civic().currency();String name=tech?((CivicCatalog.Technology)value).name():((CivicCatalog.PolicyDef)value).name();
-        List<String> text=new ArrayList<>(List.of(name,"镇库支出 "+Money.format(cost)+" "+plugin.civic().currency()));
+        List<String> text=new ArrayList<>(List.of(name,"镇库支出 "+Money.format(cost)+" "+currencyLabel(plugin.civic().currency())));
         if(tech) text.add("永久科技 · 当前等级 "+level);else {var policy=(CivicCatalog.PolicyDef)value;text.add("持续 "+duration(policy.durationMillis())+" · 受益 "+scope(policy.scope()));text.add(policyEffects(policy));}
         confirm(p,"购买发展项目",text,()->{
             try(var ignored=plugin.registry().guard()) {
@@ -133,7 +133,7 @@ final class TownOperations {
         ui.requestOperationInput(p,title,value->{
             try {
                 switch(kind) {
-                    case "donate","withdraw"->{long amount=Money.cents(value);confirm(p,kind.equals("donate")?"贡献镇库":"提取镇库",List.of("金额 "+Money.format(amount)+" "+plugin.civic().currency()),()->{if(kind.equals("donate")) plugin.civic().donate(p,amount,feedback(p));else plugin.civic().withdraw(p,amount,feedback(p));});return;}
+                    case "donate","withdraw"->{long amount=Money.cents(value);confirm(p,kind.equals("donate")?"贡献镇库":"提取镇库",List.of("金额 "+Money.format(amount)+" "+currencyLabel(plugin.civic().currency())),()->{if(kind.equals("donate")) plugin.civic().donate(p,amount,feedback(p));else plugin.civic().withdraw(p,amount,feedback(p));});return;}
                     case "quantity"->s.quantity=Math.clamp(Integer.parseInt(value),1,1000000);
                     case "unit"->{s.unit=Money.cents(value);if(s.unit<=0) throw new IllegalArgumentException("单价须大于零。");}
                     case "form-name"->s.name=value;
@@ -148,7 +148,7 @@ final class TownOperations {
                         else plugin.plots().trust(p.getUniqueId(),townForPlot(id).id(),id,target,kind.equals("plot-trust"),System.currentTimeMillis());
                     });return;}
                     case "plot-offer"->{String[] values=value.trim().split("\\s+");if(values.length!=2) throw new IllegalArgumentException("请输入租金和天数。");long amount=Money.cents(values[0]),days=Long.parseLong(values[1]);String id=s.plot,currency=plugin.civic().currency();
-                        plotAction(p,s,"出租挂牌",List.of(plot(id).name(),Money.format(amount)+" "+currency+" ／ "+days+" 天"),()->plugin.plots().offerRent(p.getUniqueId(),townForPlot(id).id(),id,amount,Math.multiplyExact(days,86400_000),System.currentTimeMillis(),currency));return;}
+                        plotAction(p,s,"出租挂牌",List.of(plot(id).name(),Money.format(amount)+" "+currencyLabel(currency)+" ／ "+days+" 天"),()->plugin.plots().offerRent(p.getUniqueId(),townForPlot(id).id(),id,amount,Math.multiplyExact(days,86400_000),System.currentTimeMillis(),currency));return;}
                     default->throw new IllegalArgumentException("未知输入。");
                 }
                 show(p,s.screen);
@@ -181,11 +181,18 @@ final class TownOperations {
             switch(s.screen) {
                 case "civic"->{
                     var town=town(p);var civic=town.civic();String code=plugin.civic().currency();
-                    meta(p,"treasury",Money.format(civic.balance(code))+" "+code);
+                    var balance=Money.decimal(civic.balance(code));
+                    var hook=plugin.service().wallet();
+                    String symbol=hook==null?code:hook.symbolOf(plugin.config().currencyCode(),code);
+                    if(symbol.isBlank()) symbol=code;
+                    symbol=BalanceDisplay.plain(symbol);
+                    meta(p,"treasury",BalanceDisplay.amount(balance));
+                    meta(p,"treasury_currency",BalanceDisplay.currency(symbol));
+                    meta(p,"treasury_full",BalanceDisplay.full(balance)+" "+symbol);
                     meta(p,"slots","政策槽位 "+plugin.civic().catalog().active(civic,System.currentTimeMillis()).size()+" / "+plugin.civic().catalog().slots(civic));
                     meta(p,"ledger_title",s.ledger.equals("contributions")?"玩家贡献排行":"最近镇库流水");
                     if(s.ledger.equals("contributions")) lines(p,civic.contributions().entrySet().stream().sorted(Map.Entry.<String,Long>comparingByValue().reversed()).limit(6).map(e->contributor(e.getKey())+" · "+Money.format(e.getValue())).toList());
-                    else lines(p,civic.ledger().reversed().stream().limit(6).map(e->e.reason()+" · "+Money.format(e.delta())+" "+e.currency()+" · "+name(e.actor())).toList());
+                    else lines(p,civic.ledger().reversed().stream().limit(6).map(e->e.reason()+" · "+Money.format(e.delta())+" "+currencyLabel(e.currency())+" · "+name(e.actor())).toList());
                 }
                 case "catalog"->{
                     TownSnapshot town=town(p);
@@ -200,7 +207,7 @@ final class TownOperations {
                 case "plot"->{
                     Plot plot=plot(s.plot);meta(p,"plot_name",plot.name()+" · "+plot.kind().display());
                     lines(p,List.of(bounds(plot.bounds()),"业主 "+name(plot.owner())+" · 授权 "+plot.trusted().size()+" 人 · 访客交互 "+(plot.publicInteractionAt(System.currentTimeMillis())?"开放":"关闭"),
-                            plot.lease()!=null && plot.lease().active(System.currentTimeMillis())?"租户 "+name(plot.lease().tenant())+" · 剩余 "+duration(plot.lease().expiresAt()-System.currentTimeMillis()):"当前没有生效租约",plot.offeredDurationMillis()>0?"挂牌 "+Money.format(plot.offeredRentCents())+" "+plot.offeredCurrency()+" ／ "+duration(plot.offeredDurationMillis()):"尚未挂牌出租"));
+                            plot.lease()!=null && plot.lease().active(System.currentTimeMillis())?"租户 "+name(plot.lease().tenant())+" · 剩余 "+duration(plot.lease().expiresAt()-System.currentTimeMillis()):"当前没有生效租约",plot.offeredDurationMillis()>0?"挂牌 "+Money.format(plot.offeredRentCents())+" "+currencyLabel(plot.offeredCurrency())+" ／ "+duration(plot.offeredDurationMillis()):"尚未挂牌出租"));
                 }
                 case "plot-form"->{
                     selection(p);meta(p,"form_name",clip(s.name,14));meta(p,"form_kind",s.kind.display());meta(p,"form_owner",s.owner.isBlank()?p.getName():s.owner);meta(p,"plot_submit",s.plot.isBlank()?"确认划分新地块":"确认提交边界修改");
@@ -218,23 +225,23 @@ final class TownOperations {
                     }else {
                         meta(p,"move_source","原址 "+RelocationService.box(d.move().source()));meta(p,"move_target","目标 "+RelocationService.box(d.move().target())+" · "+d.move().quarterTurns()*90+"°");
                         meta(p,"move_problem",d.scanning()?"正在扫描方块、容器与家具…":!d.problem().isBlank()?"暂不可施工："+friendly(d.problem()):"选区可用 · 仍需 "+d.required().stream().filter(id->!d.approved().contains(id)).count()+" 人同意");
-                        meta(p,"move_quote",d.scanning()?"报价计算中…":"迁移费 "+Money.format(plugin.relocation().price(d))+" "+plugin.civic().currency());
+                        meta(p,"move_quote",d.scanning()?"报价计算中…":"迁移费 "+Money.format(plugin.relocation().price(d))+" "+currencyLabel(plugin.civic().currency()));
                     }
                 }
-                case "jobs"->renderRows(p,s,plugin.relocation().jobs(p.getUniqueId()).stream().sorted(Comparator.comparingLong(MoveJob::createdAt).reversed()).toList(),v->{var j=(MoveJob)v;return new String[]{"工程 "+shortId(j.id())+" · "+stage(j.stage()),RelocationService.box(j.transform().target())+" · "+Money.format(j.cents())+" "+j.currency(),"查看工程"};});
+                case "jobs"->renderRows(p,s,plugin.relocation().jobs(p.getUniqueId()).stream().sorted(Comparator.comparingLong(MoveJob::createdAt).reversed()).toList(),v->{var j=(MoveJob)v;return new String[]{"工程 "+shortId(j.id())+" · "+stage(j.stage()),RelocationService.box(j.transform().target())+" · "+Money.format(j.cents())+" "+currencyLabel(j.currency()),"查看工程"};});
                 case "job"->{
                     var j=plugin.relocation().jobs(p.getUniqueId()).stream().filter(job->job.id().equals(s.selected)).findFirst().orElseThrow(()->new IllegalArgumentException("找不到工程。"));
-                    meta(p,"job_stage",stage(j.stage()));lines(p,List.of("工程 "+shortId(j.id()),"原址 "+RelocationService.box(j.transform().source()),"目标 "+RelocationService.box(j.transform().target()),"费用 "+Money.format(j.cents())+" "+j.currency(),j.error().isBlank()?"工程状态已持久保存":clip(friendly(j.error()),54),j.stage()==MoveJob.Stage.REVIEW?"可走入检查；容器和建造在验收前保持锁定。":"可随时关闭菜单，施工与结算会继续。"));
+                    meta(p,"job_stage",stage(j.stage()));lines(p,List.of("工程 "+shortId(j.id()),"原址 "+RelocationService.box(j.transform().source()),"目标 "+RelocationService.box(j.transform().target()),"费用 "+Money.format(j.cents())+" "+currencyLabel(j.currency()),j.error().isBlank()?"工程状态已持久保存":clip(friendly(j.error()),54),j.stage()==MoveJob.Stage.REVIEW?"可走入检查；容器和建造在验收前保持锁定。":"可随时关闭菜单，施工与结算会继续。"));
                 }
-                case "market"->renderRows(p,s,plugin.market().listings(),v->{var l=(MarketBook.Listing)v;return new String[]{(l.kind()==MarketBook.Kind.STOCK?"现货 · ":"收购 · ")+itemName(l.item()),"单价 "+Money.format(l.unitCents())+" "+l.currency()+" · 剩余 "+l.remaining()+" · "+l.ownerName(),"查看商品"};});
+                case "market"->renderRows(p,s,plugin.market().listings(),v->{var l=(MarketBook.Listing)v;return new String[]{(l.kind()==MarketBook.Kind.STOCK?"现货 · ":"收购 · ")+itemName(l.item()),"单价 "+Money.format(l.unitCents())+" "+currencyLabel(l.currency())+" · 剩余 "+l.remaining()+" · "+l.ownerName(),"查看商品"};});
                 case "product"->{
                     var l=product(s);meta(p,"product_name",itemName(l.item()));meta(p,"quantity",String.valueOf(s.quantity));
-                    lines(p,List.of(l.kind()==MarketBook.Kind.STOCK?"现货商铺 · 托管库存":"玩家收购单 · 预付款已托管","经营者 "+l.ownerName()+" · 剩余 "+l.remaining(),"单价 "+Money.format(l.unitCents())+" "+l.currency(),"地址 "+l.world()+" · "+l.x()+" / "+l.y()+" / "+l.z(),"结算手续费已在确认页列出，卖家离线可收款。"));
-                    meta(p,"total","合计 "+Money.format(Math.multiplyExact(s.quantity,l.unitCents()))+" "+l.currency());meta(p,"trade_action",l.kind()==MarketBook.Kind.STOCK?"预览购买":"预览供应订单");
+                    lines(p,List.of(l.kind()==MarketBook.Kind.STOCK?"现货商铺 · 托管库存":"玩家收购单 · 预付款已托管","经营者 "+l.ownerName()+" · 剩余 "+l.remaining(),"单价 "+Money.format(l.unitCents())+" "+currencyLabel(l.currency()),"地址 "+l.world()+" · "+l.x()+" / "+l.y()+" / "+l.z(),"结算手续费已在确认页列出，卖家离线可收款。"));
+                    meta(p,"total","合计 "+Money.format(Math.multiplyExact(s.quantity,l.unitCents()))+" "+currencyLabel(l.currency()));meta(p,"trade_action",l.kind()==MarketBook.Kind.STOCK?"预览购买":"预览供应订单");
                 }
                 case "market-form"->{
                     meta(p,"market_mode",s.order?"发布预付收购单":"开设托管现货商铺");meta(p,"sample",p.getInventory().getItemInMainHand().isEmpty()?"请在主手拿着商品样品":"当前样品："+itemName(InventoryImage.encode(p.getInventory().getItemInMainHand().asOne())));
-                    meta(p,"quantity",String.valueOf(s.quantity));meta(p,"unit",Money.format(s.unit)+" "+plugin.civic().currency());meta(p,"total","总额 "+Money.format(Math.multiplyExact(s.quantity,s.unit))+" "+plugin.civic().currency());
+                    meta(p,"quantity",String.valueOf(s.quantity));meta(p,"unit",Money.format(s.unit)+" "+currencyLabel(plugin.civic().currency()));meta(p,"total","总额 "+Money.format(Math.multiplyExact(s.quantity,s.unit))+" "+currencyLabel(plugin.civic().currency()));
                     meta(p,"escrow_hint",s.order?"发布时扣除全部预付款；取消订单可返还未用余额。":"发布时托管商品；成交后自动结算到钱包。");
                 }
                 case "mail"->renderRows(p,s,plugin.market().mail(p.getUniqueId()),v->{var m=(MarketBook.Mail)v;return new String[]{itemName(m.item())+" × "+m.quantity(),m.source()+" · 每次最多领取一组","领取一组"};});
@@ -274,7 +281,16 @@ final class TownOperations {
     private static String bounds(PlotBounds b) {return b.world()+" · ("+b.minX()+", "+b.minZ()+") → ("+b.maxX()+", "+b.maxZ()+")";}
     private static String name(UUID id) {var p=Bukkit.getOfflinePlayer(id);return p.getName()==null?shortId(id.toString()):p.getName();}
     private static String shortId(String id) {return id.substring(0,Math.min(8,id.length()));}
-    private static String contributor(String key) {int sep=key.indexOf(':');if(sep<0) return key;try {return name(UUID.fromString(key.substring(0,sep)))+" · "+key.substring(sep+1);}catch(IllegalArgumentException e){return key;}}
+    private String contributor(String key) {int sep=key.indexOf(':');if(sep<0) return key;try {return name(UUID.fromString(key.substring(0,sep)))+" · "+currencyLabel(key.substring(sep+1));}catch(IllegalArgumentException e){return key;}}
+    /** 展示名与账本币种分开；历史交易仍保留原始来源标识。 */
+    private String currencyLabel(String code) {
+        var hook=plugin.service().wallet();
+        if(hook!=null && hook.acceptsCurrency(code)) {
+            String symbol=hook.symbolOf(plugin.config().currencyCode(),code);
+            if(symbol!=null && !symbol.isBlank()) return BalanceDisplay.currency(symbol);
+        }
+        return BalanceDisplay.currency(code.startsWith("vault:")?code.substring(code.lastIndexOf(':')+1):code);
+    }
     private static String itemName(String encoded) {
         var item=InventoryImage.decode(encoded);if(item==null || item.isEmpty()) return "空物品";
         var meta=item.getItemMeta();if(meta.hasDisplayName()) return clip(net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(meta.displayName()),24);

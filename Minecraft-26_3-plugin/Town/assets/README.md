@@ -30,4 +30,6 @@ python3 ./Minecraft-26_3-plugin/Town/assets/rebuild_textures.py --check
 
 [截图目录](./screenshots/) 保留 1280×720 的真实 Minecraft 客户端截图，包括主页、经营页、输入、确认、迁移预览与 CraftEngine 核心/工具。截图中的方块平台和样例玩家为联调场景。
 
-[验证记录](./VALIDATION.md) 说明实际验证范围；[layout-audit.json](./layout-audit.json) 保存关键卡片中心、行距及按钮位置的像素测量。
+本轮余额和风格调整截图以 `town-style-` 为前缀，包含主页、镇库、成员详情、地图和余额边界场景。
+
+[验证记录](./VALIDATION.md) 说明实际验证范围；[style-layout-audit.json](./style-layout-audit.json) 保存本轮卡片边界与地图对齐测量，[layout-audit.json](./layout-audit.json) 保留此前关键卡片中心、行距及按钮位置的像素测量。

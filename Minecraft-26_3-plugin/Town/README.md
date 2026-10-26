@@ -2,7 +2,7 @@
 
 面向 **Minecraft/Folia 26.3、Java 25** 的休闲经营小镇系统。以政厅核心和玩家自建建筑为中心，提供自主区块领土、XZ 矩形地块、出租与授权、镇库发展、玩家商业及建筑迁移。
 
-- 版本：`Beta_0_7_0`，见 [ChangeLog](./Town-mc26_3-plugin-ChangeLog-Beta.md)。
+- 版本：`Beta_0_7_1`，见 [ChangeLog](./Town-mc26_3-plugin-ChangeLog-Beta.md)。
 - 主类：`com.example.town.TownPlugin`；公开查询接口：`com.example.town.api.TownApi`。
 - [实机验证记录](./assets/VALIDATION.md) · [美术素材与原始提示词](./assets/README.md)。
 
@@ -168,6 +168,8 @@ Vault API 没有幂等业务号。Town 在调用前写 `vault-transfers.bin`，�
 ## 菜单与指令
 
 26 页菜单采用暖象牙、玉绿与黄铜配色，覆盖成立与成员、真实领土地图、地块、镇库、采购、商业、收件箱、审批、迁移规划和工程验收。无需 PlaceholderAPI，动态内容按每玩家 META 写入。
+
+余额的金额和币种分行展示，镇库页使用同样的金额区块；超出栏宽的金额带 `≈` 缩写，长币名显示省略号，悬停可查看完整金额、币种和当前来源。查询失败显示“暂不可用”并间隔重试，不将失败值显示成余额。普通物品图标使用 FIXED 正面，箱子和头颅使用 GUI + Y 180° + 正深度；成员操作高卡片采用上下排布。实机校准与样例见 [菜单布局经验](../../docs/exp/town-menu-layout.md)。
 
 `pixels-per-block` 保持 **42.7**，视觉和命中区按 70% 居中缩放。玩家可用 `/arcmenu mode` 选择本服和客户端支持的输入模式。文本走 `ArcMenuTextInput`：本次未装 ArcMenu Editor 的客户端使用铁砧输入，填写后点击右侧结果提交；其他客户端方式由 ArcMenu 决定，原生模式上限 50 字符。
 

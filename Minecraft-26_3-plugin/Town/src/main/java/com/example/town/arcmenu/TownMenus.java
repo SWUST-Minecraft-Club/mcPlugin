@@ -17,15 +17,16 @@ import static com.example.town.arcmenu.MenuBuilder.Align.LEFT;
 /** 小镇 ArcMenu 页面：暖象牙卡片、玉绿按钮、黄铜点缀。 */
 public final class TownMenus {
 
-    public static final String BG = "#D8D2C4";
-    public static final String PANEL = "#F4F0E4";
-    public static final String RAISE = "#E5DDCB";
-    public static final String LINE = "#4B4940";
-    public static final String TEXT = "#343D38";
-    public static final String MUTE = "#716F62";
-    public static final String ACC = "#7D6338";
-    public static final String GREEN = "#387C64";
-    public static final String RED = "#AE5D51";
+    public static final String BG = "#E5E7DC";
+    public static final String PANEL = "#F8F5EA";
+    public static final String RAISE = "#E8EBDC";
+    public static final String LINE = "#B9C4B3";
+    public static final String TEXT = "#2D473B";
+    public static final String MUTE = "#697666";
+    public static final String ACC = "#8A6B3E";
+    public static final String GREEN = "#39755C";
+    public static final String RED = "#A65F53";
+    public static final String JADE = "#DCE8D8";
     public static final String CYAN = "#4E7880";
     public static final String GOLD = "#A37D38";
     public static final String WHITE = "#FFFFFF";
@@ -74,19 +75,23 @@ public final class TownMenus {
         m.rect("bg", 0, 0, MenuBuilder.W, MenuBuilder.H, BG, 0);
         m.rect("bar-top", 0, 0, MenuBuilder.W, TOP, PANEL, 1);
         m.rect("bar-bot", 0, MenuBuilder.H - BOT, MenuBuilder.W, BOT, PANEL, 1);
-        m.rect("line-top", 0, TOP, MenuBuilder.W, 2, LINE, 3);
-        m.rect("line-bot", 0, MenuBuilder.H - BOT, MenuBuilder.W, 2, LINE, 3);
-        m.item("brand-icon", "amethyst_shard", 34, 27, 25, 4);
-        m.text("title", t(TEXT, title), 58, 28, 20, 5, LEFT, null);
-        card(m, "balance-card", 584, 8, 158, 36, RAISE);
-        m.text("bal-label", t(MUTE, "余额"), 600, 19, 9, 5, LEFT, null);
-        m.text("bal-value", t(ACC, "{meta:balance}"), 704, 29, 12, 5, CENTER, dyn());
-        card(m, "close-card", 752, 8, 36, 36, RAISE);
-        m.text("close-x", t(TEXT, "×"), 770, 27, 18, 5, CENTER, null);
+        m.rect("line-top", 0, TOP, MenuBuilder.W, 1, LINE, 3);
+        m.rect("line-bot", 0, MenuBuilder.H - BOT, MenuBuilder.W, 1, LINE, 3);
+        m.rect("brand-well", 18, 10, 32, 32, JADE, 2);
+        m.item("brand-icon", "compass", 34, 26, 22, 4);
+        m.text("title", t(TEXT, title), 62, 27, 18, 5, LEFT, null);
+        m.rect("balance-card-bg", 548, 7, 194, 38, JADE, 2);
+        m.text("bal-label", t(MUTE, "可用余额"), 560, 17, 10, 5, LEFT, null);
+        m.text("bal-currency", t(MUTE, "{meta:balance_currency}"), 694, 17, 10, 5, CENTER, dyn());
+        m.text("bal-value", t(GREEN, "{meta:balance_amount}"), 645, 33, 15, 5, CENTER, dyn());
+        m.region("balance-info", 548, 7, 194, 38,
+                MenuBuilder.spec(MenuBuilder.tooltip("&f{meta:balance_full}", "&7{meta:balance_source}"), null));
+        m.rect("close-card-bg", 752, 8, 36, 36, RAISE, 2);
+        m.text("close-x", t(MUTE, "×"), 770, 27, 18, 5, CENTER, null);
         m.region("close", 752, 8, 36, 36,
                 MenuBuilder.spec(MenuBuilder.tooltip("&f关闭界面"), MenuBuilder.click("all", "close:")));
         m.text("hint", t(MUTE, hint), 20, hintAboveContent ? 59 : 430,
-                hintAboveContent ? 9 : 10, 5, LEFT, null);
+                hintAboveContent ? 10 : 11, 5, LEFT, null);
         if (showBack) {
             smallButton(m, "back", 664, 416, 116, 26, RAISE, "返回主页",
                     MenuBuilder.spec(MenuBuilder.tooltip("&f返回小镇主页"),
@@ -98,7 +103,7 @@ public final class TownMenus {
     static void card(final MenuBuilder m, final String id, final double l, final double t,
                              final double w, final double h, final String color) {
         m.rect(id + "-bg", l, t, w, h, color, 1);
-        m.frame(id + "-frame", l, t, w, h, LINE, 3, 2);
+        m.frame(id + "-frame", l, t, w, h, LINE, 3, 1);
     }
 
     static void card(final MenuBuilder m, final String id, final double l, final double t,
@@ -118,7 +123,7 @@ public final class TownMenus {
                                final double w, final double h, final String color, final String label,
                                final JsonObject spec) {
         m.rect(id + "-bg", l, t, w, h, color, 2);
-        m.frame(id + "-frame", l, t, w, h, LINE, 3, 2);
+        m.frame(id + "-frame", l, t, w, h, color.equals(RAISE) ? LINE : color, 3, 1);
         m.text(id + "-t", buttonText(color, label), l + w / 2, t + h / 2, 13, 5, CENTER, null);
         m.region(id, l, t, w, h, spec);
     }
@@ -135,7 +140,7 @@ public final class TownMenus {
                                     final double w, final double h, final String color, final String label,
                                     final JsonObject spec) {
         m.rect(id + "-bg", l, t, w, h, color, 2);
-        m.frame(id + "-frame", l, t, w, h, LINE, 3, 1);
+        m.frame(id + "-frame", l, t, w, h, color.equals(RAISE) ? LINE : color, 3, 1);
         m.text(id + "-t", buttonText(color, label), l + w / 2, t + h / 2, 10, 5, CENTER, null);
         m.region(id, l, t, w, h, spec);
     }
@@ -144,9 +149,18 @@ public final class TownMenus {
                                 final double w, final double h, final String material,
                                 final String title, final String subtitle, final JsonObject spec) {
         card(m, id, l, t, w, h);
-        m.item(id + "-icon", material, l + 30, t + h / 2, 34, 4);
-        m.text(id + "-title", t(TEXT, title), l + 58, t + h / 2 - 13, 15, 5, LEFT, null);
-        m.text(id + "-sub", t(MUTE, subtitle), l + 58, t + h / 2 + 15, 10, 5, LEFT, null);
+        if (h >= 130) {
+            m.rect(id + "-well", l + w / 2 - 24, t + 18, 48, 48, JADE, 2);
+            m.item(id + "-icon", material, l + w / 2, t + 42, 30, 4);
+            m.text(id + "-title", t(TEXT, title), l + w / 2, t + 91, 15, 5, CENTER, null);
+            m.text(id + "-sub", t(MUTE, subtitle), l + w / 2, t + 116, 10, 5, CENTER, null);
+        } else {
+            m.rect(id + "-well", l + 16, t + h / 2 - 24, 48, 48, JADE, 2);
+            m.item(id + "-icon", material, l + 40, t + h / 2, 30, 4);
+            m.text(id + "-title", t(TEXT, title), l + 80, t + h / 2 - 12, 15, 5, LEFT, null);
+            m.text(id + "-sub", t(MUTE, subtitle), l + 80, t + h / 2 + 14, 11, 5, LEFT, null);
+            m.text(id + "-arrow", t(GREEN, "›"), l + w - 17, t + h / 2, 16, 5, CENTER, null);
+        }
         m.region(id, l, t, w, h, spec);
     }
 
@@ -154,8 +168,7 @@ public final class TownMenus {
                                 final double w, final double h, final String material,
                                 final String title, final String subtitle, final String... actions) {
         navCard(m, id, l, t, w, h, material, title, subtitle,
-                MenuBuilder.spec(MenuBuilder.tooltip("&f" + title, "&7" + subtitle),
-                        MenuBuilder.click("all", actions)));
+                MenuBuilder.spec(null, MenuBuilder.click("all", actions)));
     }
 
     static void infoRow(final MenuBuilder m, final String id, final String label,
@@ -271,13 +284,18 @@ public final class TownMenus {
     public static MenuBuilder homeActive() {
         final MenuBuilder m = chrome("小镇政务厅", "管理成员、领地与祝福 · 镇政厅是小镇中心", false);
         card(m, "town-head", 20, 64, 760, 64);
-        m.item("town-icon", "bell", 50, 96, 34, 4);
-        m.text("town-name", t(TEXT, "{meta:town_name}"), 278, 86, 20, 5, CENTER, dyn());
+        m.rect("town-icon-well", 34, 76, 40, 40, JADE, 2);
+        m.item("town-icon", "bell", 54, 96, 28, 4);
+        m.text("town-name", t(TEXT, "{meta:town_name}"), 256, 86, 19, 5, CENTER, dyn());
         m.text("town-mayor", t(MUTE, "镇长 {meta:mayor_name} · 成立于 {meta:created_date}"),
-                278, 110, 10, 5, CENTER, dyn());
-        m.text("stat-members", t(TEXT, "{meta:member_count}") + t(MUTE, " 成员"), 500, 96, 12, 5, CENTER, dyn());
-        m.text("stat-claims", t(TEXT, "{meta:claim_count}") + t(MUTE, " 领地"), 604, 96, 12, 5, CENTER, dyn());
-        m.text("stat-buffs", t(TEXT, "{meta:buff_count}") + t(MUTE, " 祝福"), 708, 96, 12, 5, CENTER, dyn());
+                256, 111, 10, 5, CENTER, dyn());
+        final String[] stats = {"member_count", "claim_count", "buff_count"};
+        final String[] labels = {"小镇成员", "领地区块", "生效祝福"};
+        for (int i = 0; i < stats.length; i++) {
+            final int x = 500 + i * 104;
+            m.text("stat-" + i, t(GREEN, "{meta:" + stats[i] + "}"), x, 86, 19, 5, CENTER, dyn());
+            m.text("stat-label-" + i, t(MUTE, labels[i]), x, 111, 10, 5, CENTER, null);
+        }
         navCard(m,"b-members",20,140,244,92,"writable_book","成员管理","邀请伙伴与职务","command: town members");
         navCard(m,"b-claim",278,140,244,92,"map","领土地图","自主选择相连区块","command: town claimmap center");
         navCard(m,"b-plots",536,140,244,92,"oak_door","地块与租赁","住宅、商铺与授权","command: town manage plots");

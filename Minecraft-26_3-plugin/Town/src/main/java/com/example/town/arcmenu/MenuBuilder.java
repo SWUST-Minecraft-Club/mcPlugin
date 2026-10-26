@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * ArcMenu 精确布局库：按 800×450 左上原点书写设计坐标，输出补偿后的 frontend/backend。
@@ -19,6 +20,11 @@ public final class MenuBuilder {
     public static final double WINDOW_SCALE = 0.70;
     public static final double G = PPB / 160.5 * WINDOW_SCALE;
     public static final double ZK = 0.00305 * 160.5 / PPB;
+    // ArcMenu 3.2 / MC 26.3 实测；矩形底边不变，frame 两轴同样有约 1% 放大。
+    private static final double RECT_HEIGHT = 0.915;
+    private static final double SHAPE_WIDTH = 1.01;
+    // 按库存模型分类，不使用 Material.isBlock：铃铛、门等物品仍应以 FIXED 正面显示。
+    private static final Set<String> BLOCK_ICONS = Set.of("chest", "player_head");
 
     public enum Align { LEFT, CENTER, RIGHT }
 
@@ -125,11 +131,11 @@ public final class MenuBuilder {
             throw new IllegalArgumentException(id + " opacity 必须在 0..255");
         }
         final double scale = s(layer);
-        final double hs = h / 0.9;
+        final double hs = h / RECT_HEIGHT;
         final double bottom = H / 2.0 - (t + h);
         final JsonObject o = new JsonObject();
         o.addProperty("type", "rectangle");
-        o.addProperty("width", r3(G * w / scale));
+        o.addProperty("width", r3(G * w / scale / SHAPE_WIDTH));
         o.addProperty("height", r3(G * hs / scale));
         o.addProperty("color", color);
         o.addProperty("opacity", opacity);
@@ -146,8 +152,8 @@ public final class MenuBuilder {
         final double scale = s(layer);
         final JsonObject o = new JsonObject();
         o.addProperty("type", "frame");
-        o.addProperty("width", r3(G * w / scale));
-        o.addProperty("height", r3(G * h / scale));
+        o.addProperty("width", r3(G * w / scale / SHAPE_WIDTH));
+        o.addProperty("height", r3(G * h / scale / SHAPE_WIDTH));
         o.addProperty("thickness", r3(G * thickness / scale));
         o.addProperty("color", color);
         o.add("offset", offset(l + w / 2 - W / 2.0, H / 2.0 - (t + h / 2), layer));
@@ -192,15 +198,25 @@ public final class MenuBuilder {
             throw new IllegalArgumentException(id + " 物品尺寸必须大于 0");
         }
         final double scale = s(layer);
+        final String key = material.replace("minecraft:", "");
+        final boolean blockModel = BLOCK_ICONS.contains(key);
+        final double itemScale = r3(G * size / scale);
         final JsonObject off = offset(cx - W / 2.0, H / 2.0 - cy, layer);
         final JsonObject sc = new JsonObject();
-        sc.addProperty("x", r3(G * size / scale));
-        sc.addProperty("y", r3(G * size / scale));
-        sc.addProperty("z", 1);
+        sc.addProperty("x", itemScale);
+        sc.addProperty("y", itemScale);
+        sc.addProperty("z", blockModel ? 0.1 : itemScale);
         final JsonObject o = new JsonObject();
         o.addProperty("type", "item");
         o.addProperty("material", material.contains(":") ? material : "minecraft:" + material);
-        o.addProperty("context", "GUI");
+        o.addProperty("context", blockModel ? "GUI" : "FIXED");
+        if (blockModel) {
+            final JsonObject rotation = new JsonObject();
+            rotation.addProperty("x", 0);
+            rotation.addProperty("y", 180);
+            rotation.addProperty("z", 0);
+            o.add("rotation", rotation);
+        }
         o.add("offset", off);
         o.add("scale", sc);
         putFrontend(id, o);
