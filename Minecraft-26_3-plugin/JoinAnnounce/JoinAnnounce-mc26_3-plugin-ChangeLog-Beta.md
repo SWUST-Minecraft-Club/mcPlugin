@@ -30,3 +30,7 @@
 1.调整：进出服广播默认关闭 —— 进服公告只在 dialog 弹窗里显示，插件默认不往聊天栏发任何消息
 2.调整：`/joinannounce preview` 改为严格按 `announce.display` 预览（默认只弹窗，不再强制发聊天栏文本）
 3.调整：`config-simple.yml` 说明同步（缺省值里广播已是关闭）
+
+[Beta_0_2_1 -> Beta_0_2_2] 2026.10.26 12:47:20
+1.调整：`config-simple.yml` 恢复为 SWUST MINECRAFT 社团公告文案（星空社、社团配色、长期生存服说明），
+   保持无徽章的纯 dialog 弹窗形式

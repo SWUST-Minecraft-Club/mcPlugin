@@ -1,34 +1,44 @@
-# JoinAnnounce 最小配置示例：进服后只弹一个简单的公告
+# JoinAnnounce 配置示例：SWUST MINECRAFT 社团公告（无徽章：纯 dialog 弹窗 + 社团配色文案）
 #
 # 用法：把本文件内容复制到 <服务端根>/plugins/JoinAnnounce/config.yml，
 #       然后执行 /joinannounce reload（或重启服务器）。
 #       没有写到的配置项会自动使用插件内置默认值（标题/音效/进出服广播默认关闭）。
-#
-# 想改成聊天栏一行、不弹窗：把 display 改成 chat。
-# 想弹窗和聊天栏都要：把 display 改成 both。
 
 announce:
   enabled: true
   display: dialog
   delay-ticks: 20
   lines:
-    - "<gold>欢迎 <player> 来到本服！</gold>"
+    - "<gradient:#2E4A6B:#7A93B5><bold>西南科技大学 · Minecraft 星空社</bold></gradient>"
+    - "<white>SWUST MINECRAFT · 长期生存服</white>"
+    - "<yellow>欢迎 <player> 加入本服！</yellow>"
+    - "<gray>本服<green>长期运营</green>，会不定期新增<#FF8800>玩法与活动</#FF8800>，<red>敬请期待</red>。</gray>"
+    - "<gray>社团服务器 / 活动 / 小游戏报名请留意社团群公告。</gray>"
   dialog:
-    title: "<gold>服务器公告</gold>"
-    button: "知道了"
+    title: "<#2E4A6B><bold>SWUST · MINECRAFT</bold></#2E4A6B>"
+    # 正文宽度（像素）
+    width: 260
+    # 底部按钮文字
+    button: "开始冒险"
     can-close-with-escape: true
 
 # 首次进服不再追加额外文案
 first-join:
   enabled: false
 
-# 不接管原版进服 / 退服消息
+# 不接管原版进服 / 退服消息（公告只走弹窗，不往聊天栏发任何消息）
 broadcast:
   join:
     enabled: false
   quit:
     enabled: false
 
-# 不在主菜单里加入口
+# 主菜单里的「服务器公告」入口（需要 MainMenu，没装时自动跳过）
 menu:
-  enabled: false
+  enabled: true
+  material: WRITTEN_BOOK
+  name: "<#2E4A6B>服务器公告</#2E4A6B>"
+  lines:
+    - "<gray>点击再看一遍进服公告</gray>"
+    - "<dark_gray>当前在线：<online>/<max></dark_gray>"
+  order: 20

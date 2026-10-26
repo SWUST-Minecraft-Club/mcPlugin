@@ -302,6 +302,7 @@ ESC 菜单按钮：已就绪：pause_screen_additions 包含 mainmenu:main_menu�
 `./Minecraft-26_3-plugin/JoinAnnounce` 负责玩家进服时的公告：延迟弹出 **dialog 弹窗**（默认），
 也可以切回聊天栏或两者同时显示；首次进服追加专属文案，可选标题 / 提示音，并接管进服 / 退服的全服广播。
 文本一律 MiniMessage，支持 `<player>` / `<online>` / `<max>` / `<world>` 占位符。
+`config-simple.yml` 是无徽章的 SWUST 社团公告示例（星空社 + 社团配色文案），复制到 `plugins/JoinAnnounce/config.yml` 即可用。
 
 | 配置段 | 作用 |
 | --- | --- |
@@ -406,7 +407,7 @@ dependencies {
 | Town | — | `Beta_0_5_0`（11 页浅灰像素卡片风 + 真实渲染圈地小地图；修复地图线程与资源包生命周期） |
 | Wallet | —（还在测试版阶段） | `Beta_0_5_0`（新增本地测试模式 test-mode：不连官网、本地账本落盘，默认关闭；须手动开启并会打启动警告） |
 | ConcertoMenu | —（还在测试版阶段） | `Beta_0_2_0`（适配 Folia；首个版本：主菜单唱片机入口） |
-| JoinAnnounce | —（还在测试版阶段） | `Beta_0_2_0`（新增 dialog 弹窗显示与 `announce.display`；`Beta_0_1_0` 为首个版本） |
+| JoinAnnounce | —（还在测试版阶段） | `Beta_0_2_2`（dialog 弹窗公告、默认不发聊天栏消息；`config-simple.yml` 为 SWUST 社团公告示例） |
 | ChatPrivacy | —（还在测试版阶段） | `Beta_0_1_0`（首个版本：公开聊天改写为无签名系统消息，客户端无法举报） |
 
 > 涨号规则（正式版之后再改动先回到测试版 `Beta_<第 1 位>_x_x`，转正时去掉 `Beta`、第 3 位归 0、第 2 位至少 +1，第 1 位不变）见
@@ -529,6 +530,10 @@ dependencies {
 | --- | --- | --- |
 | `Beta_0_1_0` | 未提交 | 首个版本：进服公告（延迟 / 多行 / 占位符）、首次进服文案、可选标题与音效、进出服全服广播、主菜单「服务器公告」入口、`/joinannounce reload\|preview` |
 | `Beta_0_2_0` | 未提交 | 新增：进服公告改为 dialog 弹窗（运行时 `Dialog.create` + `player.showDialog`），`announce.display` 可切 dialog / chat / both；主菜单入口与 preview 同步 |
+| `Beta_0_2_1` | 未提交 | 调整：进出服广播默认关闭，插件默认不往聊天栏发任何消息；`preview` 严格按 `announce.display` |
+| `Beta_0_2_2` | 未提交 | 调整：`config-simple.yml` 恢复为 SWUST 社团公告文案（无徽章） |
+
+> `Beta_0_3_0`～`Beta_0_5_0` 的社团徽章 / 资源包尝试已整体回退，产物已从 `./release/JoinAnnounce/` 移除（历史仍可追溯）。
 
 **ChatPrivacy（插件）**
 

@@ -51,12 +51,12 @@
 - 不要在文档里写 `C:/D:` 盘符路径 —— 仓库改过名，写死路径的脚本已经因此坏过一次。
 - 不要把规范复制到 README 与 docs 两处：规范只写在 `docs/dev/`，README 只留指针。
 
-## 现状快照（2026-10-25，新增 Town / ChatPrivacy 后更新本行）
+## 现状快照（2026-10-26，JoinAnnounce 回退并恢复社团公告文案后更新本行）
 
 插件 MainMenu（正式版 `1_0_1` / 测试中 `Beta_1_5_1`，管理页可添加功能占位符与自定义插件功能）· RealTime（`1_0_0` / `Beta_1_1_0`）· MainMenuRepair Fabric 模组（`1_0_0` / `Beta_1_0_1`）·
 YudreamPlaytime（正式版 `1_0_0` / 测试中 `Beta_1_1_0`，MainMenu 伴侣插件：菜单里显示查看者自己的在线时长）· Wallet（`Beta_0_5_0`，主菜单钱包；含本地测试模式 test-mode，默认关：货币/余额/流水 + 管理员可切换本服货币启停 + `/walletin` / `/walletout` 在线玩家调币指令 + 供后续插件依赖的 WalletApi）·
 ConcertoMenu（`Beta_0_2_0`，主菜单唱片机 → 发 `concerto:menu` 指令打开客户端 Concerto 主界面）·
-JoinAnnounce（`Beta_0_2_0`，进服公告：dialog 弹窗 / 聊天栏可切换 + 首次进服文案 / 进出服广播 + 主菜单「服务器公告」入口）·
+JoinAnnounce（`Beta_0_2_2`，进服公告：dialog 弹窗 / 聊天栏可切换 + 首次进服文案 / 进出服广播 + 主菜单「服务器公告」入口；`config-simple.yml` 为 SWUST 社团公告文案，无徽章）·
 ChatPrivacy（`Beta_0_1_0`，聊天防举报：把玩家公开聊天改写为无签名系统消息，客户端无法把它作为举报证据；纯 API、不依赖 NMS）·
 Town（`Beta_0_5_0`，小镇系统：筹备成立 / 邀请 / 扣费成立 / 镇政厅 / 圈地 / 保护 / 领地 buff；ArcMenu 3.2 原生 YAML 11 页浅灰像素卡片风界面（在线邀请、成员详情、通用确认、祝福分页、真实渲染圈地小地图），输入模式玩家自选（默认 Mouse，保留 Touch/Vision），未装时 /town 指令全量兜底；经济走 WalletApi，公开 TownApi+事件；第三方 ArcMenu API jar 在 `./libs/`（已入库），YAML 知识库在 `./docs/exp/arcmenu-yml知识库.md`，官方 wiki docs.myarc.icu）·
 yudream-minecraft-server（正式版 `2_0_0` / 测试中 `Beta_2_1_0`，反编译基线纳入本仓的 Bukkit 桥接插件，编译目标 spigot-api 1.13.2 + Java 8，含本地时长统计、断线补发与后端对齐；运行期反射适配 Folia）；

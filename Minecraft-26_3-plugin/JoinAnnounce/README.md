@@ -3,6 +3,9 @@
 进服公告插件：玩家进服后按配置延迟弹出一个 **26.3 dialog 弹窗**（默认），也可以切回聊天栏或两者同时显示；
 附带首次进服文案、进出服全服广播，以及主菜单里的「服务器公告」入口。
 
+`config-simple.yml` 是无徽章的 SWUST 社团公告示例（星空社 + 社团配色文案），复制到
+`plugins/JoinAnnounce/config.yml` 后 `/joinannounce reload` 即可使用。
+
 | 能力 | 配置段 | 说明 |
 | --- | --- | --- |
 | 进服公告 | `announce` | 延迟 N tick（默认 20 = 1 秒）发送；`display` 决定 channel |
@@ -64,7 +67,7 @@ dialog 用的是 26.3 的运行时 API（`Dialog.create(...)` + `player.showDial
 
 ```bash
 ./gradlew :JoinAnnounce:build
-# 产物：./Minecraft-26_3-plugin/JoinAnnounce/build/libs/JoinAnnounce-mc26_3-plugin-Beta_0_2_0.jar
+# 产物：./Minecraft-26_3-plugin/JoinAnnounce/build/libs/JoinAnnounce-mc26_3-plugin-Beta_0_2_2.jar
 ```
 
 测试服：`./gradlew :JoinAnnounce:runServer`（共用仓库根目录的 `./run/`）。
