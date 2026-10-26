@@ -52,7 +52,7 @@
 - 不要在文档里写 `C:/D:` 盘符路径 —— 仓库改过名，写死路径的脚本已经因此坏过一次。
 - 不要把规范复制到 README 与 docs 两处：规范只写在 `docs/dev/`，README 只留指针。
 
-## 现状快照（2026-10-26，JoinAnnounce 回退并恢复社团公告文案后更新本行）
+## 现状快照（2026-10-26，JoinAnnounce 回退并恢复社团公告文案；补充 26.3 测试基线及升级兼容要求）
 
 插件 MainMenu（正式版 `1_0_1` / 测试中 `Beta_1_5_1`，管理页可添加功能占位符与自定义插件功能）· RealTime（`1_0_0` / `Beta_1_1_0`）· MainMenuRepair Fabric 模组（`1_0_0` / `Beta_1_0_1`）·
 YudreamPlaytime（正式版 `1_0_0` / 测试中 `Beta_1_1_0`，MainMenu 伴侣插件：菜单里显示查看者自己的在线时长）· Wallet（`Beta_0_5_0`，主菜单钱包；含本地测试模式 test-mode，默认关：货币/余额/流水 + 管理员可切换本服货币启停 + `/walletin` / `/walletout` 在线玩家调币指令 + 供后续插件依赖的 WalletApi）·
@@ -64,7 +64,7 @@ yudream-minecraft-server（正式版 `2_0_0` / 测试中 `Beta_2_1_0`，反编�
 结构 `./Minecraft-26_3-plugin/<插件名>/`（Folia 插件，沿用 `paper-plugin.yml`，MainMenu 提供功能注册 API）· `./fabric-26_3-mod/MainMenuRepair/`（独立 Gradle 工程）·
 `./templates/plugin-template/`（newPlugin 模板）· `./release/<项目名>/`（产物留档）· `./run/`（共用的 Folia 测试服）· `./docs/dev|exp|plan/`（规范 / 经验 / 计划）；
 构建 `./gradlew build`（全部插件）· `./gradlew -p ./fabric-26_3-mod/MainMenuRepair build`（模组）· `./gradlew :插件名:runServer`（Folia 测试服，端口 25566；内部执行 `runFolia`）；
-远端 `origin`（主仓 `zhou-BZDDX/mcPlugin`，双 push 地址，一次推送同步社团镜像 `SWUST-Minecraft-Club/mcPlugin`）· `swust`（镜像远端，仅用于核对）· 规范来源边界：外部插件资料只核实技术事实，不自动成为本仓硬规则。
+远端 `origin`（主仓 `zhou-BZDDX/mcPlugin`，双 push 地址，一次推送同步社团镜像 `SWUST-Minecraft-Club/mcPlugin`）· `swust`（镜像远端，仅用于核对）· 当前开发/测试基线固定 Minecraft/Folia 26.3；设计兼顾后续以小代价升级（如 26.4），升级需按官方迁移资料评估并验证；外部插件资料不自动成为本仓硬规则。
 
 ## 敏感信息
 
