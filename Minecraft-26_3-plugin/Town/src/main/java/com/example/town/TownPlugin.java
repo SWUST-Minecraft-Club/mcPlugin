@@ -7,7 +7,8 @@ import com.example.town.command.TownCommand;
 import com.example.town.event.TownEvents;
 import com.example.town.hook.CraftEngineHook;
 import com.example.town.hook.MainMenuHook;
-import com.example.town.hook.WalletHook;
+import com.example.town.hook.EconomyHook;
+import com.example.town.hook.EconomyHooks;
 import com.example.town.model.Town;
 import com.example.town.protection.ProtectionListener;
 import com.example.town.service.TownService;
@@ -26,7 +27,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 /**
  * Town 小镇系统主类：成立 / 邀请 / 圈地 / 领地保护 / 领地 buff。
  * 界面 = 由插件生成 YAML 交给 ArcMenu 渲染（arcmenu-designing 技能规范）；
- * 未装 ArcMenu 时全部功能由 /town 指令等价提供。经济走 Wallet；镇政厅道具支持 CraftEngine。
+ * 未装 ArcMenu 时全部功能由 /town 指令等价提供。经济可选 Wallet / Vault；镇政厅道具支持 CraftEngine。
  */
 public final class TownPlugin extends JavaPlugin {
 
@@ -35,7 +36,8 @@ public final class TownPlugin extends JavaPlugin {
     private TownStore store;
     private Messages messages;
     private TownEvents events;
-    private WalletHook wallet;
+    private EconomyHook wallet;
+    private String economySelection;
     private CraftEngineHook craftEngine;
     private com.example.town.hook.TownResourcePacks resourcePacks;
     private TownHalls townHalls;
@@ -82,7 +84,8 @@ public final class TownPlugin extends JavaPlugin {
         }
 
         events = new TownEvents();
-        wallet = WalletHook.create(this);
+        economySelection = EconomyHooks.configured(this);
+        wallet = EconomyHooks.create(this);
         craftEngine = CraftEngineHook.create(this);
         resourcePacks = new com.example.town.hook.TownResourcePacks(this);
         townHalls = new TownHalls(this, craftEngine);
@@ -149,7 +152,7 @@ public final class TownPlugin extends JavaPlugin {
 
         getComponentLogger().info("Town 已启用：小镇 " + registry.all().size()
                 + " 个；界面=" + (ui != null ? "ArcMenu" : "指令")
-                + "，经济=" + (wallet != null ? "Wallet" : "未接入")
+                + "，经济=" + (wallet != null ? wallet.name() : "未接入")
                 + "，镇政厅=" + (craftEngine != null ? "CraftEngine" : "原版"));
     }
 
@@ -173,6 +176,9 @@ public final class TownPlugin extends JavaPlugin {
     /** 重载配置（/town admin reload）：配置快照整体替换，菜单重新生成并让 ArcMenu 重载。 */
     public void reloadEverything() {
         reloadConfig();
+        if (!EconomyHooks.configured(this).equals(economySelection)) {
+            getLogger().warning("economy.provider 已修改；经济来源保持本次启动时的选择，请重启服务端后切换。");
+        }
         config = TownConfig.load(getConfig(), getLogger());
         plots.limits(plotLimits());
         civic.reload();

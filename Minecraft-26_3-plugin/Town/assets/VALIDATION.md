@@ -1,5 +1,47 @@
 # Town 验证记录
 
+## Beta_0_7_0 Vault 经济验证
+
+日期：2026-10-26。Folia 26.3 build 5 / Java 25 / 用户提供的 Vault `1.7.3-b0-folia` / ArcMenu 3.2.0 / CraftEngine 26.9.2。MinecraftMcp 控制 Minecraft 26.3 客户端 PackTester，1280×720。
+
+### 自动化与联调方式
+
+- `:Town:build` 成功，73 项 JUnit 测试，0 失败、0 错误、0 跳过。新增 12 项检查覆盖调用回执、未知结果、人工核对、重启、退款、来源绑定、精度与损坏台账保护。
+- 新服务端包干净解压，测试时仅调整 EULA、离线验证、端口、测试世界与 Town 的 `economy.provider: vault`，复用依赖缓存。真实 Vault 正常启用，Town 使用它实际类加载器里的标准 Economy API。
+- 临时 `TestPluginVault` 通过 Bukkit ServicesManager 注册可控经济提供者 `FixtureCoin`，初始 10000 金币、精度 2，资金和调用次数落盘。转移时断言在线账户属于当前玩家区域、离线账户处于 Folia 全局线程；夹具只存在于被忽略的联调目录，不随包发布。
+
+### 实机结果
+
+| 流程 | 结果与证据 |
+| --- | --- |
+| 未注册服务 | Vault 已启用、Wallet 测试模式同时存在；Town 显示等待 Economy，收费成立被拒绝，没有改用 Wallet |
+| 晚注册 | `/testvault register` 后无需重载 Town，`/town admin economy` 显示 `Vault / FixtureCoin` 与 `vault:TestPluginVault:FixtureCoin` |
+| 成立与镇库 | 成立扣 1000，余额 9000；贡献 12.50、提取 2.25 后玩家 8989.75、镇库 10.25，三个资金调用均在玩家区域执行 |
+| 离线入账 | 固定离线 UUID 入账 7.25，夹具确认 Folia 全局线程并记录 `OFFLINE_CREDIT_OK`；玩家账户不受影响 |
+| 余额不足 | 贡献 999999 被明确拒绝，业务为 DECLINED，资金调用计数和镇库均不变 |
+| 已扣款但回复丢失 | 贡献 5 时提供者保存扣款后抛异常；玩家变为 8984.75，外部累计调用 5 次，Town 保留 REQUESTED / PENDING，镇库仍为 10.25 |
+| 未知结果跨重启 | 正常停服并重启，晚注册提供者后继续多轮恢复；外部调用仍为 5、余额仍为 8984.75，待核对记录保留，没有再次扣费 |
+| 人工核对 | 对交易 `1bbb96b7-70d9-42ee-b326-b6997e4af333` 的 debit 标记 success，Town 补记贡献并完成业务，镇库变为 15.25；外部调用仍为 5，玩家余额不变 |
+| 退款 | 夹具提交 3.25 的收费业务并令本地应用拒绝，真实 Vault 扣款、退款各一次，结果 REFUNDED；外部累计调用 7，最终玩家余额回到 8984.75 |
+| 菜单余额 | 首页实际显示 `8984.75 金币`，与提供者持久账本一致，见 [Vault 余额截图](./screenshots/town-vault-balance.png) |
+| GitLab 分发 | 新包继续自动合包上传；本轮最终资源 ZIP 为 859609 字节、SHA-1 `6fbe867d2fa6e4dd43142d5082b25f98b8159474`，匿名 GET 200，下载内容与 CE 最终 ZIP、缓存一致 |
+
+Vault 标准 API 不提供业务号幂等保证，未知结果需要管理员核对；这是本版明确的恢复边界。实机使用的是可控提供者，没有据此声称任意第三方经济插件都支持 Folia 或已完成兼容验证。现货、租赁与建筑迁移的完整流程见下方历史 Wallet 联调，本轮实机覆盖新的 Vault 调用链及失败恢复。
+
+### 交付审计
+
+- GitLab 服务端包共 19 个文件，SHA-256 清单覆盖其余 18 个；Town jar 与留档、Vault jar 与用户原件分别逐字节一致。
+- 默认 `eula=false`、`online-mode=true`、Town 来源 wallet / TEST；已包含 Vault，切换为 vault 并重启后还需经济提供者注册服务。
+- 无真实上传令牌、TestPlugin、客户端、世界或玩家数据；Linux 启动脚本保留执行权限。Windows 启动逻辑未在 Windows 实机执行。
+- 使用包含 Vault 的包再次打包逐字节一致；`--economy vault` 能生成 Vault 配置并继承同一 Vault jar。
+- 启动仍有既有 Wallet 菜单构造警告及 CE 生命周期缓存降级提示；本轮未修改这些依赖。预期的未知结果恢复警告在人工核对后结束。
+
+```text
+Town-mc26_3-plugin-Beta_0_7_0.jar  a7bbe81a887cb8268839480067de7f1cb7c066d6227eb4c30315a483e7f48f4e
+Town-Server-mc26_3-Beta_0_7_0-GitLab.zip  a7b2a3e2de1c6ea5e0cb8e863eae76a1286be3724f1e31b8a7d02f1fbd2c0001
+Vault-1.7.3-folia.jar  140b9e75cd5371280f4bbf1cc68dc733ce7b8ffe3ea273f01c4da831022d4dd8
+```
+
 ## Beta_0_6_1 GitLab 分发验证
 
 日期：2026-10-26。使用 CE 26.9.2 原生 GitLab host，分发项目为 `yudream/mc-texture`（项目 ID `51`，公开项目）。本轮调整部署配置与打包脚本，Town jar 与已留档的 `Beta_0_6_1` 字节一致；此前的 61 项测试结果见下方资源修复记录。

@@ -23,6 +23,13 @@ public record Payment(String id, String kind, UUID payer, String payerName, Stri
     }
     public Payment at(Stage next) { return new Payment(id, kind, payer, payerName, currency, cents,
             beneficiary, beneficiaryName, creditCents, payload, createdAt, next); }
+    public Payment withEconomy(String provider) {
+        Map<String, String> bound = new java.util.HashMap<>(payload);
+        String previous = bound.putIfAbsent("_economy", provider);
+        if (previous != null && !previous.equals(provider)) throw new IllegalArgumentException("交易经济来源已改变");
+        return new Payment(id, kind, payer, payerName, currency, cents, beneficiary,
+                beneficiaryName, creditCents, bound, createdAt, stage);
+    }
     public boolean terminal() { return stage == Stage.DONE || stage == Stage.REFUNDED || stage == Stage.DECLINED; }
     public String debitKey() { return "town:" + id + ":debit"; }
     public String creditKey() { return "town:" + id + ":credit"; }

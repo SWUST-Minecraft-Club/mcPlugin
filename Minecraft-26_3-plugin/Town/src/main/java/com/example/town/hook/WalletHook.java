@@ -15,7 +15,7 @@ import org.bukkit.plugin.Plugin;
  * Wallet 软依赖隔离层：所有 com.example.wallet 类型只能出现在本类里（见 exp/paper-plugin.md 软依赖类加载）。
  * 只有 {@link #create(Plugin)} 返回非 null 后，本类才会被加载。
  */
-public final class WalletHook {
+public final class WalletHook implements EconomyHook {
 
     /** 扣费结果。 */
     public record Pay(boolean ok, String symbol) {
@@ -33,6 +33,9 @@ public final class WalletHook {
     private WalletHook(WalletService service) {
         this.service = service;
     }
+
+    public String id() { return "wallet"; }
+    public String name() { return "Wallet"; }
 
     /** 外部入口：Wallet 未装 / 未就绪时返回 null（不抛错）。 */
     public static WalletHook create(Plugin plugin) {

@@ -28,10 +28,14 @@ public final class CivicService {
         payments=new DurablePayments(new PaymentJournal(plugin.getDataFolder().toPath().resolve("payments.bin")),
                 new DurablePayments.Wallet() {
                     public java.util.concurrent.CompletableFuture<Void> debit(Payment p) {
-                        return hook==null?java.util.concurrent.CompletableFuture.failedFuture(new IOException("Wallet 暂不可用")):hook.debitCents(p);
+                        if(hook==null) return java.util.concurrent.CompletableFuture.failedFuture(new IOException("经济服务暂不可用"));
+                        hook.checkBinding(p);
+                        return hook.debitCents(p);
                     }
                     public java.util.concurrent.CompletableFuture<Void> credit(Payment p,boolean refund) {
-                        return hook==null?java.util.concurrent.CompletableFuture.failedFuture(new IOException("Wallet 暂不可用")):hook.creditCents(p,refund);
+                        if(hook==null) return java.util.concurrent.CompletableFuture.failedFuture(new IOException("经济服务暂不可用"));
+                        hook.checkBinding(p);
+                        return hook.creditCents(p,refund);
                     }
                     public boolean rejected(Throwable error) {return hook!=null && hook.definiteRejection(error);}
                 },task->Threads.async(plugin,task),error->plugin.getLogger().warning("小镇交易等待恢复："+error.getClass().getSimpleName()));
@@ -126,13 +130,18 @@ public final class CivicService {
     }
     public void submit(Player player,Payment payment,Consumer<TownService.Result> feedback,String success) {
         if((payment.cents()>0 || payment.creditCents()>0) && currency().isBlank()) {feedback.accept(TownService.Result.fail("wallet-missing"));return;}
+        var hook=plugin.service().wallet();
+        if(hook!=null && (payment.cents()>0 || payment.creditCents()>0) && !hook.acceptsCurrency(payment.currency())) {
+            feedback.accept(TownService.Result.fail("action-state-changed"));return;
+        }
+        Payment bound=hook==null?payment:payment.withEconomy(hook.id());
         UUID actor=player.getUniqueId();
         if(!submitting.add(actor)) {feedback.accept(TownService.Result.fail("action-busy"));return;}
         if(payments.busy(actor)) {submitting.remove(actor);feedback.accept(TownService.Result.fail("action-busy"));return;}
         plugin.messages().send(player,"payment-processing",Placeholder.unparsed("id",payment.id()));
         Threads.async(plugin,()->{
             try {
-                payments.submit(payment,done->{
+                payments.submit(bound,done->{
                     submitting.remove(actor);
                     Threads.forPlayer(plugin,player,()->{
                         if(done.stage()!=Payment.Stage.DONE) {

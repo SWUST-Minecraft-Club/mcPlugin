@@ -34,9 +34,13 @@ town:
   # 邀请有效期（分钟）。
   invite-expire-minutes: 30
 
-# ---------------------------- 经济（Wallet）----------------------------
+# ---------------------------- 经济（Wallet / Vault）----------------------------
 economy:
-  # 本服使用的 Wallet 货币 asset code；留空 = 自动取官网第一个启用货币。
+  # wallet：现有 Wallet 多币种；vault：从 Vault 注册的 Economy 服务读取。
+  # 修改来源后重启服务端；不会自动切换、迁移余额或将旧交易发送到其他来源。
+  provider: "wallet"
+  # 仅 Wallet 使用的 asset code；留空 = 自动取第一个启用货币。
+  # Vault 使用经济插件的单一货币，以提供者独立币种保存，忽略此项。
   currency: ""
 
 # ---------------------------- 成立与圈地 ----------------------------
@@ -297,7 +301,7 @@ messages:
   hall-broken: "<yellow>镇政厅已收回为道具（领地保留）。"
   hall-not-set: "<yellow>小镇还没有放置镇政厅。"
   spawn-teleported: "<green>已传送回小镇。"
-  wallet-missing: "<red>钱包服务不可用，暂时无法扣费。"
+  wallet-missing: "<red>经济服务不可用，暂时无法扣费；请检查 Wallet 或 Vault 的经济提供者。"
   wallet-failed: "<red>扣费失败（余额不足或服务异常）。"
   arcmenu-missing: "<yellow>未安装 ArcMenu，图形界面不可用；请使用 /town help 查看指令。"
   chat-input-prompt: "<gold>请在聊天栏输入小镇名称</gold> <gray>（30 秒内，输入「取消」放弃）"

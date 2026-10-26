@@ -5,7 +5,7 @@ import com.example.town.TownPlugin;
 import com.example.town.TownConfig;
 import com.example.town.TownRegistry;
 import com.example.town.event.TownEvents;
-import com.example.town.hook.WalletHook;
+import com.example.town.hook.EconomyHook;
 import com.example.town.model.ChunkKey;
 import com.example.town.model.ClaimTopology;
 import com.example.town.model.Role;
@@ -38,7 +38,7 @@ import org.bukkit.entity.Player;
  * 小镇全部业务操作的唯一入口。
  * 约定：
  * - 所有状态变更持 {@link TownRegistry#guard()} 全局锁；
- * - 扣费走 Wallet 异步，回调回来后重验状态再落账，失败尽力退款；
+ * - 扣费走配置的经济来源，回调后重验状态，通过持久台账结算或退款；
  * - 每个操作都接收 {@code Consumer<Result>}，回调保证在玩家所属区域线程执行。
  */
 public final class TownService {
@@ -59,12 +59,12 @@ public final class TownService {
     private final TownStore store;
     private final Messages messages;
     private final TownEvents events;
-    private final WalletHook wallet;
+    private final EconomyHook wallet;
 
     private final AtomicBoolean saveQueued = new AtomicBoolean(false);
 
     public TownService(TownPlugin plugin, TownRegistry registry, TownStore store,
-                       Messages messages, TownEvents events, WalletHook wallet) {
+                       Messages messages, TownEvents events, EconomyHook wallet) {
         this.plugin = plugin;
         this.registry = registry;
         this.store = store;
@@ -81,7 +81,7 @@ public final class TownService {
         return messages;
     }
 
-    public WalletHook wallet() {
+    public EconomyHook wallet() {
         return wallet;
     }
 

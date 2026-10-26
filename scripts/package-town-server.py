@@ -100,6 +100,8 @@ def main():
     parser.add_argument("--host", choices=("gitlab", "self"), default="gitlab")
     parser.add_argument("--gitlab-url", default="https://gitlab.yudream.online")
     parser.add_argument("--gitlab-project-id", default="51")
+    parser.add_argument("--vault", type=Path, help="额外包含用户提供的 Folia 版 Vault jar")
+    parser.add_argument("--economy", choices=("wallet", "vault"), default="wallet", help="Town 使用的经济来源")
     args = parser.parse_args()
     version = re.search(r"version = '([^']+)'", (root / "Minecraft-26_3-plugin/Town/build.gradle").read_text()).group(1)
     name = f"Town-Server-mc26_3-{version}" + ("-GitLab" if args.host == "gitlab" else "")
@@ -111,6 +113,11 @@ def main():
              if not path.startswith("plugins/Town-mc26_3-plugin-") and path not in (
                  "README.md", "SHA256SUMS.json", "plugins/CraftEngine/config.yml", "plugins/ArcMenu/config.yml",
                  "craftengine-gitlab.yml", "gitlab-token.txt.example")}
+    vault = files.pop("plugins/Vault-1.7.3-folia.jar", None)
+    if args.vault:
+        vault = args.vault.read_bytes()
+    if args.economy == "vault" and vault is None:
+        raise ValueError("Vault 经济配置需要 --vault 指定插件，或从已有 Vault 包继承插件")
     # 只接受已知的最小包，不把来源 ZIP 内的其它数据夹带发布。
     expected = {"folia-26.3-5.jar", "start.sh", "start.bat", "eula.txt", "server.properties",
                 "plugins/Town/config.yml", "plugins/Wallet/config.yml", "plugins/CraftEngine-26.9.2.jar",
@@ -118,10 +125,19 @@ def main():
                 "plugins/Wallet-mc26_3-plugin-Beta_0_5_1.jar"}
     if set(files) != expected:
         raise ValueError(f"来源包文件集合不符：{set(files) ^ expected}")
+    if vault is not None:
+        with zipfile.ZipFile(BytesIO(vault)) as archive:
+            descriptor = archive.read("plugin.yml").decode()
+            if not re.search(r"(?m)^name: Vault\s*$", descriptor) or not re.search(
+                    r"(?m)^folia-supported: true\s*$", descriptor) or "net/milkbowl/vault/economy/Economy.class" not in archive.namelist():
+                raise ValueError("指定的 jar 不是带 Economy API 的 Folia 版 Vault")
+        files["plugins/Vault-1.7.3-folia.jar"] = vault
     jar = f"Town-mc26_3-plugin-{version}.jar"
     files[f"plugins/{jar}"] = (root / "release/Town" / jar).read_bytes()
     files["plugins/Town/config.yml"] = (root / "Minecraft-26_3-plugin/Town/src/main/resources/config.yml").read_bytes().replace(
-        b'currency: ""', b'currency: "TEST"')
+        b'provider: "wallet"', f'provider: "{args.economy}"'.encode())
+    if args.economy == "wallet":
+        files["plugins/Town/config.yml"] = files["plugins/Town/config.yml"].replace(b'currency: ""', b'currency: "TEST"')
     files["server.properties"] = ("motd=Town Server 26.3\nmax-players=20\nonline-mode=true\n"
             "server-port=25565\nview-distance=8\nsimulation-distance=6\nspawn-protection=0\nwhite-list=false\n").encode()
     with zipfile.ZipFile(BytesIO(files["plugins/CraftEngine-26.9.2.jar"])) as archive:
@@ -135,6 +151,9 @@ def main():
     arc = arc.replace("assume-resource-pack-loaded: true", "assume-resource-pack-loaded: false")
     files["plugins/ArcMenu/config.yml"] = arc.encode()
     hosting = distribution(files, root, args.host, args.gitlab_url, args.gitlab_project_id)
+    economy_note = ("Wallet 是本地测试模式，初始 100000 TEST，方便测试成立和购买。" if args.economy == "wallet" else
+                    "Town 已选择 Vault。另需安装兼容本版 Folia 的 Economy 提供者；Vault 本身不保存余额。")
+    vault_note = ("已包含用户提供的 Folia 版 Vault。" if vault is not None else "未包含 Vault；使用前另行安装兼容本版 Folia 的 Vault。")
     files["README.md"] = f"""# Town 服务端 {version}
 
 仅服务端：Folia 26.3 build 5 / Java 25+，含 Town、MainMenu、Wallet、CraftEngine 26.9.2、ArcMenu 3.2.0。
@@ -146,7 +165,7 @@ def main():
 2. GitLab 包先按下方说明配置上传令牌。Windows 运行 start.bat，Linux 运行 ./start.sh。默认正版验证，端口 25565，白名单关闭。
 3. 首次联网会下载 Folia/CE 所需依赖。等待 Done 和 CE 资源包上传成功；Town 会自动生成、合并并发送资源包。
 4. 客户端添加服务器时将“服务器资源包”设为“启用”。本机连接 127.0.0.1:25565。
-5. /town 开始小镇。Wallet 是本地测试模式，初始 100000 TEST，方便测试成立和购买。
+5. /town 开始小镇。{economy_note}
 
 资源包未加载时，地图显示可操作的区块网格；正确加载后自动显示地形。移动地图到未缓存位置会生成新图片，资源包更新有 30 秒节流。
 
@@ -154,6 +173,15 @@ def main():
 
 {hosting}
 无需把生成的资源包手动放到客户端。
+
+## Vault 经济
+
+{vault_note}
+Town 的 economy.provider 可选 wallet / vault，默认 wallet；修改后重启服务端。
+选择 vault 还需要已注册 Economy 服务的经济插件，且该经济插件也必须支持本版 Folia。
+Vault 使用单一货币，忽略 economy.currency；/town admin economy 查看实际来源。
+来源、镇库币种与交易业务号分别绑定；切换配置不会自动迁移旧余额、商铺、租约或待结算交易。
+结果不明时不自动重复扣款，使用 /town admin economy pending 查看，核对外部账本后再按模块 README 处理。
 
 ## 已有服升级
 

@@ -397,6 +397,7 @@ public final class TownCommand {
                         }))
                 .then(Commands.literal("admin")
                         .requires(src -> src.getSender().hasPermission("town.admin"))
+                        .then(EconomyCommands.create(plugin))
                         .then(Commands.literal("reload").executes(ctx -> {
                             plugin.reloadEverything();
                             ctx.getSource().getSender().sendMessage(plugin.messages().render("reloaded"));

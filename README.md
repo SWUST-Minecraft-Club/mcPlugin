@@ -15,7 +15,7 @@ Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-2
 **[JoinAnnounce](./Minecraft-26_3-plugin/JoinAnnounce)**（进服公告：dialog 弹窗 / 聊天栏可切换 + 首次进服文案 / 进出服广播 + 主菜单公告入口）、
 **[ChatPrivacy](./Minecraft-26_3-plugin/ChatPrivacy)**（聊天防举报：把公开聊天改写为无签名系统消息，客户端无法把它作为举报证据）、
 **[Town](./Minecraft-26_3-plugin/Town)**（小镇经营：政厅核心 / 自主连通领土 / 矩形地块与租赁 / 镇库科技政策 / 玩家商业 / 建筑迁移，
-26 页 ArcMenu 界面、WalletApi 经济、CraftEngine 素材及 GitLab 资源分发；部署见模块 README）、
+26 页 ArcMenu 界面、Wallet / Vault 经济、CraftEngine 素材及 GitLab 资源分发；部署见模块 README）、
 **[yudream-minecraft-server](./Minecraft-26_3-plugin/yudream-minecraft-server)**（把玩家动态上报给 YuDream Admin 的 Bukkit 桥接插件，
 自带本地时长统计与断线补发，运行期反射兼容 Folia）。新增插件用 `./gradlew newPlugin -PpluginName=你的插件名`。
 
@@ -418,7 +418,7 @@ dependencies {
 | MinecraftMcp（fabric） | — | `Beta_0_1_0`（MCP 客户端测试工具；核心与游戏版本适配器分离） |
 | YudreamPlaytime | `1_0_0`（2026.10.19） | `Beta_1_1_0`（适配 Folia；台账缓存加锁） |
 | yudream-minecraft-server | `2_0_0`（2026.10.19） | `Beta_2_1_0`（反射适配 Folia，保持 Java 8 / 1.13.2 兼容） |
-| Town | — | `Beta_0_6_1`（经营与可恢复建筑迁移；26 页 ArcMenu、CE 自动合包投递、资源加载确认及地图锚点修复） |
+| Town | — | `Beta_0_7_0`（经营与可恢复建筑迁移；26 页 ArcMenu、GitLab 资源分发、Wallet / Vault Economy 可选及交易核对） |
 | Wallet | —（还在测试版阶段） | `Beta_0_5_0`（新增本地测试模式 test-mode：不连官网、本地账本落盘，默认关闭；须手动开启并会打启动警告） |
 | ConcertoMenu | —（还在测试版阶段） | `Beta_0_2_0`（适配 Folia；首个版本：主菜单唱片机入口） |
 | JoinAnnounce | —（还在测试版阶段） | `Beta_0_4_1`（dialog 弹窗公告、默认不发聊天栏消息；默认每位玩家每天首次进服才弹；底部固定「开始冒险」+「查看完整更新日志」双按钮；`config-simple.yml` 为 SWUST 社团公告示例） |
@@ -443,6 +443,7 @@ dependencies {
 | `Beta_0_5_0` | 未提交 | 11 页浅灰像素卡片风；修复地图线程、资源包索引、并发与尾随重建 |
 | `Beta_0_6_0` | `1593cfb` | 自主连通领土、矩形地块与外镇租赁、镇库发展、离线商业与收件箱、三维建筑迁移和恢复；59 项测试与双客户端联调 |
 | `Beta_0_6_1` | 本次提交 | 修复首次 CE 资源合包与托管、地图缺字白框和图片偏移；客户端加载回执确认、无资源包网格与仅服务端打包脚本 |
+| `Beta_0_7_0` | 本次提交 | 新增 Wallet / Vault Economy 来源、离线收款、调用回执与管理员核对、经济来源隔离及 Folia 版 Vault 打包支持 |
 
 **MainMenu（插件）**
 

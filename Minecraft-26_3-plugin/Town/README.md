@@ -2,7 +2,7 @@
 
 面向 **Minecraft/Folia 26.3、Java 25** 的休闲经营小镇系统。以政厅核心和玩家自建建筑为中心，提供自主区块领土、XZ 矩形地块、出租与授权、镇库发展、玩家商业及建筑迁移。
 
-- 版本：`Beta_0_6_1`，见 [ChangeLog](./Town-mc26_3-plugin-ChangeLog-Beta.md)。
+- 版本：`Beta_0_7_0`，见 [ChangeLog](./Town-mc26_3-plugin-ChangeLog-Beta.md)。
 - 主类：`com.example.town.TownPlugin`；公开查询接口：`com.example.town.api.TownApi`。
 - [实机验证记录](./assets/VALIDATION.md) · [美术素材与原始提示词](./assets/README.md)。
 
@@ -13,11 +13,11 @@
 | 依赖 | 装有时 | 缺少时 |
 | --- | --- | --- |
 | ArcMenu 3.2 | 26 页世界内菜单、原生文本输入与每玩家动态内容 | 使用 `/town` 指令、聊天列表和文本地图 |
-| Wallet | 成立、扩张、租金、镇库、商品及迁移结算 | 收费与钱包相关操作提示不可用 |
+| Wallet / Vault Economy（二选一） | 成立、扩张、租金、镇库、商品及迁移结算 | 收费与钱包相关操作提示不可用 |
 | CraftEngine | `town:town_hall` 核心、`town:surveyor` 测绘工具；保存自定义方块和家具 | 核心回落为磁石，工具回落为木棍；仍支持原版建筑迁移 |
 | MainMenu | 主菜单注册 `town:main`，按查看者显示信息 | 使用 `/town` 打开 |
 
-依赖均为软依赖。实际联合验证使用 Folia 26.3 build 5、Java 25、ArcMenu 3.2.0、CraftEngine 26.9.2 和 Wallet 本地测试模式。
+依赖均为软依赖。联合验证使用 Folia 26.3 build 5、Java 25、ArcMenu 3.2.0、CraftEngine 26.9.2；经济可选 Wallet 或向 Vault 注册的 Economy 服务。
 
 1. 将 Town jar 与所需依赖放入服务端插件目录，启动服务端。
 2. Town 首次释放 `plugins/Town/config.yml`，新增键有默认值，已有运营配置保留。
@@ -38,7 +38,7 @@ CraftEngine 已安装且配置了核心 ID 时，必须成功放置真实自定�
 
 ### GitLab 分发
 
-分发项目为 [yudream/mc-texture](https://gitlab.yudream.online/yudream/mc-texture)，项目 ID `51`；使用 CE 26.9.2 原生 `gitlab` host。完整流程为 ArcMenu 资源索引 → CE 生成/校验/合包 → GitLab 上传 → 向玩家发送 HTTPS 下载链接。Town 仍为 `Beta_0_6_1`，本次只调整部署配置和打包。
+分发项目为 [yudream/mc-texture](https://gitlab.yudream.online/yudream/mc-texture)，项目 ID `51`；使用 CE 26.9.2 原生 `gitlab` host。完整流程为 ArcMenu 资源索引 → CE 生成/校验/合包 → GitLab 上传 → 向玩家发送 HTTPS 下载链接。
 
 - [CE 配置片段](./deploy/craftengine-gitlab.yml) 合并到 `plugins/CraftEngine/config.yml`，保留现有工作流；`upload`、`send_pack` 的 `pack` 与此处均为 `default`。
 - Java 进程需获得环境变量 `CE_GITLAB_ACCESS_TOKEN`，使用该项目的 Developer 角色和 `api` scope 项目访问令牌。启用 `use_environment_variables: true` 后，不在 YAML 中写入令牌。详见 [CE GitLab 文档](https://xiao-momi.github.io/craft-engine-wiki/getting_start/set_up_host/gitlab/)。
@@ -47,12 +47,48 @@ CraftEngine 已安装且配置了核心 ID 时，必须成功放置真实自定�
 - CE 使用项目 Uploads API 保存 ZIP，下载地址由上传响应返回；仓库网页、分支 raw 地址、Git 推送密码或仅有 `write_repository` 的令牌均不能直接代替这条上传链路。公开项目的实际 ZIP 链接需可匿名下载。
 - 新地图继续触发自动上传和发送，保留 30 秒节流；地图就绪判断仍使用最终 PNG、字体映射及玩家加载回执。
 
-打包默认生成带 `-GitLab` 后缀的新 ZIP；可用 `--host self` 生成内置托管包。支持以已交付的 `Beta_0_6_0` / `Beta_0_6_1` 最小包为依赖来源，拒绝夹带真实令牌文件等额外内容。分发验证见 [验证记录](./assets/VALIDATION.md)。
+打包默认生成带 `-GitLab` 后缀的新 ZIP；可用 `--host self` 生成内置托管包。支持以已交付的最小包为依赖来源，拒绝夹带真实令牌文件等额外内容。用 `--vault <Folia版Vault.jar>` 加入 Vault；`--economy vault` 可将 Town 默认来源设为 Vault，此时仍需另行安装经济提供者。分发验证见 [验证记录](./assets/VALIDATION.md)。
+
+## 经济来源
+
+默认 `economy.provider: wallet`，沿用 Wallet 多币种与原有业务号。使用 Vault 时，安装用户提供的 `Vault 1.7.3-b0-folia` 与兼容当前 Folia 的经济插件，修改配置并重启：
+
+```yaml
+economy:
+  provider: "vault"
+  currency: ""
+```
+
+Vault 提供统一接口，余额由注册到它的 Economy 提供者保存。只安装 Vault 时，Town 保留免费功能并提示经济未就绪；服务晚于 Town 注册也可识别。`/town admin economy` 可查看实际来源。配置修改需重启，本次启动不会自动改用另一提供者。
+
+- 成立、圈地、祝福、贡献、镇库提现、租金、现货、预付订单、离线结算及迁移退款共用所选来源。使用 UUID 对应的 `OfflinePlayer` 账户，在线操作在玩家实体线程执行，离线账户操作在 Folia 全局线程执行。
+- Vault 使用提供者的单一全局货币，忽略 `economy.currency`；内部币种按 `vault:<注册插件>:<提供者>` 独立保存，余额旁显示提供者货币名称。不是 Vault 银行账户或多世界子账户接口。
+- Town 金额保持两位小数。提供者只支持整数或一位小数时，不符合精度的交易会拒绝；不会静默取整。超出 double 可精确表达范围的金额也会拒绝。
+- 每笔交易记录经济来源；旧版无标记的交易属于 Wallet。切换来源不会转换镇库、商铺、订单、租约或未完成交易，旧款项须在原来源结清；不同来源的币种不能互相支付。
+
+### Vault 中断与核对
+
+Vault API 没有幂等业务号。Town 在调用前写 `vault-transfers.bin`，收到明确成功后写回执，重启可复用成功结果。调用抛错、返回部分金额或成功回执写盘失败时，交易保留待核对，自动恢复不会重复调用经济插件。
+
+管理员（`town.admin`）先核对外部经济账本，再执行：
+
+```text
+/town admin economy pending
+/town admin economy resolve <交易UUID> <debit|credit|refund> <success|failed|retry>
+```
+
+- `success`：确认该步已完成，仅记录成功并继续本地业务，不再移动资金。
+- `failed`：确认该步未完成且不再处理；扣款步骤将拒绝本次业务，收款/退款步骤仍保留待结算。
+- `retry`：确认该步没有发生资金移动、允许重新发送。正在调用和已成功记录不能重发。明确拒绝的收款步骤可在解决账户问题后用此操作继续。
+
+已有玩家被挂起的交易结清后会解除忙碌状态。备份须同时保存 Town 数据、Vault 适配台账、提供者经济账本与世界；不能通过删除台账处理异常。
+
+接入与恢复边界的原因见 [Vault 经济经验](../../docs/exp/town-vault-economy.md)。
 
 ## 成立、政厅与领土
 
 1. `/town create 名称` 进入筹备，可邀请成员，也可单人起步。
-2. 人数达到 `town.min-members` 后确认成立；新安装默认 **1 人、1000 货币**，人数包含镇长。币种由 `economy.currency` 指定，空值取 Wallet 启用货币。
+2. 人数达到 `town.min-members` 后确认成立；新安装默认 **1 人、1000 货币**，人数包含镇长。Wallet 币种由 `economy.currency` 指定，空值取启用货币；Vault 使用提供者的单一货币。
 3. 镇长放置政厅核心，登记中心与回镇传送点；政厅建筑由玩家自行搭建。
 4. **首次仅领取核心所在区块**。默认赠地总额为 9 块，余下 8 块由玩家在地图中自主选择；领取记录持久化，迁址不会重复赠送。
 5. 新区块必须与现有领土相连，默认四向连接，可配置斜角。放弃区块不能切断政厅与其他领土的连接，不能遗留个人地块。
@@ -169,16 +205,17 @@ CraftEngine 已安装且配置了核心 ID 时，必须成功放置真实自定�
 | `plugins/Town/config.yml` | 运营配置，已有值保留 |
 | `plugins/Town/towns.yml` | 成员、领土、赠地、地块、租约、镇库、科技政策及流水 |
 | `plugins/Town/payments.bin` | 持久交易状态、原业务号和退款状态 |
+| `plugins/Town/vault-transfers.bin` | Vault 调用意图、成功回执与人工核对状态 |
 | `plugins/Town/market.json` | 托管商品、预付款、交易、收件箱和背包交付意图 |
 | `plugins/Town/relocations/` | 每工程日志和压缩的源区/目标区快照 |
 
-快照和原子替换防止旧数据覆盖新数据；交易先持久登记再推进，重启使用原 Wallet 业务号继续扣款、结算或退款。备份时停服并同时保存 Town、钱包账本与世界。钱包远端须保持业务号幂等语义；本版实机使用 Wallet 本地测试账本，未连接正式网站经济服务。
+快照和原子替换防止旧数据覆盖新数据；交易先持久登记再推进。Wallet 使用原业务号恢复，远端须保持幂等语义；Vault 使用本地调用回执，结果不明时进入上述核对流程。备份时停服并同时保存 Town、所选经济提供者账本与世界。实机验证范围见验证记录，未连接正式网站经济服务。
 
 ```bash
 ./gradlew :Town:test :Town:build
 python3 ./Minecraft-26_3-plugin/Town/assets/rebuild_textures.py --check
 ```
 
-59 项单元测试及双客户端 Folia 联调范围见 [验证记录](./assets/VALIDATION.md)。公开 API 保留 TownApi 与 Founded / Disbanded / Claim / Unclaim / BuffActivate 事件。ArcMenu 经验见 [知识库](../../docs/exp/arcmenu-yml知识库.md)。
+73 项单元测试及 Folia 联调范围见 [验证记录](./assets/VALIDATION.md)。公开 API 保留 TownApi 与 Founded / Disbanded / Claim / Unclaim / BuffActivate 事件。ArcMenu 经验见 [知识库](../../docs/exp/arcmenu-yml知识库.md)。
 
 红名、监狱、守卫、节庆、战争、税收、SQL 与跨服同步属于后续范围。
