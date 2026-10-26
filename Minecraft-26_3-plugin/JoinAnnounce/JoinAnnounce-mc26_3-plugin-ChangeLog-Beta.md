@@ -46,3 +46,10 @@
    （原先缺键回落到 `false`，表现为退出重进仍然弹公告）
 2.新增：启动日志打印当前公告模式（每位玩家每天首次进服 / 每次进服都弹）与时区
 3.新增：`DailyNoticeGate` 单元测试（首次当天可弹、同一天不重复、跨天再弹、玩家互不影响）
+
+[Beta_0_3_1 -> Beta_0_4_0] 2026.10.26 22:39:17
+1.新增：dialog 第二个按钮「查看完整更新日志」（`announce.dialog.link.text` / `url` / `width`）——
+   点击用浏览器打开外部链接（静态 `ClickEvent.openUrl`，不注册点击回调）；`url` 留空则不显示
+2.新增：`announce.dialog.button-width` / `link-width` ——两个按钮用 multiAction（2 列）并排，
+   主按钮（开始冒险）按宽度占比更大
+3.调整：`config-simple.yml` 打开更新日志按钮（默认指向仓库 Releases 页）

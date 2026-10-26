@@ -10,7 +10,8 @@
 | --- | --- | --- |
 | 进服公告 | `announce` | 延迟 N tick（默认 20 = 1 秒）发送；`display` 决定 channel |
 | 每日一次 | `announce.once-per-day` | 每位玩家每天只在当天第一次进服时弹；跨天在线不打断，服务器重启后重置；时区用 `announce.day-zone-offset-hours` |
-| 公告弹窗 | `announce.dialog` | dialog 的标题、正文宽度、按钮文字、ESC 关闭开关；正文就是 `announce.lines` |
+| 公告弹窗 | `announce.dialog` | dialog 的标题、正文宽度、按钮文字与宽度、ESC 关闭开关；正文就是 `announce.lines` |
+| 更新日志按钮 | `announce.dialog.link` | 主按钮旁的第二个按钮（默认「查看完整更新日志」），点击用浏览器打开外部链接；`url` 留空则不显示 |
 | 标题 / 音效 | `announce.title` / `announce.sound` | 可选，默认关闭；音效键写错只告警并跳过 |
 | 首次进服文案 | `first-join` | 接在正文后面，只对第一次进服的玩家生效 |
 | 进服 / 退服广播 | `broadcast.join` / `broadcast.quit` | 默认关闭；打开后才替换原版 join / quit 消息 |
@@ -50,6 +51,8 @@ dialog 用的是 26.3 的运行时 API（`Dialog.create(...)` + `player.showDial
 - `announce.enabled: false`：关闭进服公告（弹窗、聊天栏、标题、音效一并关闭），但进出服广播与主菜单入口不受影响。
 - `announce.lines`：弹窗正文与聊天栏文本共用；`first-join.lines` 排队追加在后面。
 - `announce.dialog.width` 单位为像素（60~600，默认 260），过长的行建议自己拆成多行。
+- `announce.dialog.button-width` / `link.width` 是底部两个按钮的宽度（像素）：主按钮（开始冒险）更宽，
+  两个按钮并排显示；`link.url` 留空则只保留主按钮（notice 单按钮布局）。
 - `broadcast.*` 默认关闭：进服公告不碰聊天栏；打开后才接管原版进服 / 退服消息，`message` 留空则关闭该条（原版消息也不再显示）。
 - `menu.enabled: false`：不注册主菜单入口；`menu.order` 是功能区排序值（越小越靠前）。
 - `menu.material` 无效时回退 `WRITTEN_BOOK` 并在控制台告警。
@@ -71,7 +74,7 @@ dialog 用的是 26.3 的运行时 API（`Dialog.create(...)` + `player.showDial
 
 ```bash
 ./gradlew :JoinAnnounce:build
-# 产物：./Minecraft-26_3-plugin/JoinAnnounce/build/libs/JoinAnnounce-mc26_3-plugin-Beta_0_3_1.jar
+# 产物：./Minecraft-26_3-plugin/JoinAnnounce/build/libs/JoinAnnounce-mc26_3-plugin-Beta_0_4_0.jar
 ```
 
 测试服：`./gradlew :JoinAnnounce:runServer`（共用仓库根目录的 `./run/`）。

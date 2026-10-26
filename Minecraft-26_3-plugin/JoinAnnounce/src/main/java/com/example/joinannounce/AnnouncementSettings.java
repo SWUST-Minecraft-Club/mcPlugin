@@ -1,5 +1,9 @@
 package com.example.joinannounce;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -99,11 +103,7 @@ public final class AnnouncementSettings {
             }
         }
 
-        final DialogSettings dialog = new DialogSettings(
-                text(config, "announce.dialog.title", "<gold>服务器公告</gold>"),
-                (int) ranged(config, "announce.dialog.width", 260.0D, 60.0D, 600.0D),
-                text(config, "announce.dialog.button", "知道了"),
-                config.getBoolean("announce.dialog.can-close-with-escape", true));
+        final DialogSettings dialog = dialog(config, logger);
 
         final BroadcastSettings joinBroadcast = broadcast(config, logger, "broadcast.join", true);
         final BroadcastSettings quitBroadcast = broadcast(config, logger, "broadcast.quit", true);
@@ -117,7 +117,7 @@ public final class AnnouncementSettings {
 
         return new AnnouncementSettings(announceEnabled, displayMode(config, logger),
                 Math.max(0, config.getInt("announce.delay-ticks", 20)),
-                config.getBoolean("announce.once-per-day", false),
+                config.getBoolean("announce.once-per-day", true),
                 Math.max(-18, Math.min(18, config.getInt("announce.day-zone-offset-hours", 8))),
                 lines, firstJoinEnabled, firstJoinLines, title, sound, dialog, joinBroadcast, quitBroadcast, menu);
     }
@@ -196,6 +196,33 @@ public final class AnnouncementSettings {
         }
     }
 
+    private static DialogSettings dialog(final FileConfiguration config, final ComponentLogger logger) {
+        URL linkUrl = null;
+        final String rawLink = text(config, "announce.dialog.link.url", "").trim();
+        if (!rawLink.isEmpty()) {
+            try {
+                final URI uri = new URI(rawLink);
+                final String scheme = uri.getScheme();
+                if (scheme == null || !(scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https"))) {
+                    logger.warn(Component.text("announce.dialog.link.url 需要是 http/https 地址：" + rawLink));
+                } else {
+                    linkUrl = uri.toURL();
+                }
+            } catch (final URISyntaxException | MalformedURLException ex) {
+                logger.warn(Component.text("announce.dialog.link.url 无效：" + rawLink + "（" + ex.getMessage() + "）"));
+            }
+        }
+        return new DialogSettings(
+                text(config, "announce.dialog.title", "<gold>服务器公告</gold>"),
+                (int) ranged(config, "announce.dialog.width", 260.0D, 60.0D, 600.0D),
+                text(config, "announce.dialog.button", "知道了"),
+                config.getBoolean("announce.dialog.can-close-with-escape", true),
+                (int) ranged(config, "announce.dialog.button-width", 220.0D, 40.0D, 400.0D),
+                text(config, "announce.dialog.link.text", "查看完整更新日志"),
+                linkUrl,
+                (int) ranged(config, "announce.dialog.link.width", 130.0D, 40.0D, 400.0D));
+    }
+
     private static BroadcastSettings broadcast(
             final FileConfiguration config, final ComponentLogger logger, final String path, final boolean fallback) {
         final boolean enabled = config.getBoolean(path + ".enabled", fallback);
@@ -256,7 +283,10 @@ public final class AnnouncementSettings {
     }
 
     /** dialog 弹窗 */
-    public record DialogSettings(String title, int width, String button, boolean canCloseWithEscape) {
+    /** dialog 弹窗；{@code linkUrl} 为 null 表示不显示第二个按钮 */
+    public record DialogSettings(
+            String title, int width, String button, boolean canCloseWithEscape,
+            int buttonWidth, String linkText, URL linkUrl, int linkWidth) {
     }
 
     /** 标题与淡入 / 停留 / 淡出时长（tick） */
