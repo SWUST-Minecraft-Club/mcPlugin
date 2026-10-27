@@ -59,7 +59,15 @@ public interface MenuFeature {
     /** 点击是否有效 */
     boolean clickable();
 
-    /** 点击有效时的处理逻辑；{@link #clickable()} 为 false 时不会被调用 */
+    /**
+     * 指定点击类型是否有效，默认沿用 {@link #clickable()}。
+     * 返回 false 时保留当前菜单，不触发回调；可用于禁用特定按键。
+     */
+    default boolean clickable(final ClickType clickType) {
+        return clickable();
+    }
+
+    /** 点击有效时的处理逻辑；整体或指定点击类型不可点击时不会被调用 */
     void onClick(Player player, ClickType clickType);
 
     /**

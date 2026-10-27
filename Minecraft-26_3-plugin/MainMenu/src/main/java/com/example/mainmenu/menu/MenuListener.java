@@ -63,7 +63,7 @@ public final class MenuListener implements Listener {
             return;
         }
         final MenuFeature target = feature.get();
-        if (!target.clickable()) {
+        if (!target.clickable() || !target.clickable(event.getClick())) {
             return; // 固定/展示型功能：点击无效
         }
         try {

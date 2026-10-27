@@ -1,6 +1,6 @@
 # MainMenu · 方块手机
 
-`Beta_1_8_0`：Folia 26.3，Java 25。安装 ArcMenu 3.2 后，`/cd`、ESC 主菜单按钮、时钟入口统一打开原生 YAML 主页。
+`Beta_1_9_0`：Folia 26.3，Java 25。安装 ArcMenu 3.2 后，`/cd`、ESC 主菜单按钮、时钟入口统一打开原生 YAML 主页。
 竖屏机身、暖象牙桌面、玉绿小组件、原版物品应用图标和底部快捷栏。
 首页六个常用入口，配套应用抽屉、“我的”和管理设置；手机外观全部由原生 YAML 构成，无需新增图片资源包。
 
@@ -8,6 +8,8 @@
 
 手机两侧支持多张可选卡片：默认隐藏，YAML 和插件 API 注册，按内容高度自动分栏、居中和独立分页。
 启用方式、技能/积分接入与 API 示例见 [侧卡指南](./SIDECARDS.md)。从 Beta_1_7_0 更新侧卡无需替换现有手机 YAML。
+
+自定义功能从本版起支持分别设置左键、右键、Shift＋左右键和中键指令，原有 `command` 配置继续有效。
 
 ## 安装与配置
 
@@ -36,6 +38,41 @@
 
 默认模板源码在 [arcmenu](./src/main/resources/arcmenu/)，开发期生成器在 [generate_menus.py](./assets/generate_menus.py)。
 生成器只重建源码资源，**不参与服务端运行，也不读取或改写服务端的 YAML**。
+
+## 自定义功能的点击方式
+
+编辑 `plugins/MainMenu/custom-features.yml`，在对应功能下增加 `commands`，例如把传送石设为仅右键打开：
+
+```yaml
+features:
+  custom:44789d75b99342e3ac03090a21a1dca4:
+    name: 传送石
+    icon: LODESTONE
+    command: ''
+    commands:
+      left: ''
+      right: warpmenu
+      shift-left: ''
+      shift-right: ''
+      middle: ''
+    description:
+      - '<gray>右键查看你创造/发现的传送石</gray>'
+      - '消耗 星空币 来进行传送'
+      - '任意 石砖+磁石 上下摆放来构建你的传送石'
+    order: 40
+```
+
+- 支持的键为 `left`、`right`、`shift-left`、`shift-right`、`middle`，各执行一条玩家指令。
+- 某个键未写时使用 `command`；`command` 为空且该键未写时，点击无效。Shift 点击独立匹配，不继承普通左右键。
+- 某个键写成 `''` 时禁用该键，即使 `command` 不为空也不会执行；被禁用的点击保留当前菜单。
+- 只写旧 `command` 时继续沿用所有点击执行同一指令的行为；也可以让 `command` 留空、只设置需要的键。
+- 指令推荐不带 `/`，填写时带有一个前导 `/` 也会自动去掉。沿用玩家权限与指令预处理事件流程。
+- 修改后执行 `/cd reload`。首次替换插件 JAR 后需重启服务端；本次升级无需替换 ArcMenu 页面 YAML。
+- 管理页创建新功能时会保留其它功能的按键配置；新功能的 `commands: {}` 可直接展开编辑。
+
+ArcMenu 原生页面和背包回退共用这些配置；实际触发的点击类型由客户端/菜单页面提供。
+如果手改过 ArcMenu 动作，应传入真实点击类型，例如右键使用 `open: mainmenu:feature <功能ID> right`。
+悬停仅展示 `description`。
 
 ## 用 YAML 控制主页
 

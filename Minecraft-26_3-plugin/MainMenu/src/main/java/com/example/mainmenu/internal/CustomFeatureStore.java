@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Logger;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -29,22 +30,33 @@ public final class CustomFeatureStore {
             # 每个条目：
             #   name:        功能显示名（纯文本）
             #   icon:        Bukkit 材质名，默认 PAPER
-            #   command:     点击执行的指令（不带 /；留空则点击无效）
+            #   command:     默认点击指令（不带 /；未单独配置的按键使用此指令）
+            #   commands:    按键指令覆盖；支持 left / right / shift-left / shift-right / middle
+            #                例如 commands: {left: 'plt gui', right: ''}；空字符串禁用该键
+            #                按键未配置时使用 command；command 也为空则该键无效
             #   description: 悬停文本（MiniMessage 列表）
             #   order:       默认排序值（管理页可覆盖）
             # 修改后执行 /cd reload 生效。
             """;
 
     private final MainMenuPlugin plugin;
+    private final File folder;
+    private final Logger logger;
     private final Map<String, Definition> definitions = new LinkedHashMap<>();
 
     public CustomFeatureStore(final MainMenuPlugin plugin) {
+        this(plugin, plugin.getDataFolder(), plugin.getLogger());
+    }
+
+    CustomFeatureStore(final MainMenuPlugin plugin, final File folder, final Logger logger) {
         this.plugin = plugin;
+        this.folder = folder;
+        this.logger = logger;
     }
 
     public synchronized void load() {
         final Map<String, Definition> loaded = new LinkedHashMap<>();
-        final File file = new File(plugin.getDataFolder(), FILE_NAME);
+        final File file = new File(folder, FILE_NAME);
         if (file.isFile()) {
             try {
                 final YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
@@ -62,21 +74,22 @@ public final class CustomFeatureStore {
                                 id,
                                 section.getString("name", id),
                                 section.getString("icon", "PAPER"),
-                                section.getString("command", ""),
+                                CustomFeatureCommands.read(section,
+                                        message -> logger.warning("自定义功能 " + id + "：" + message)),
                                 section.getStringList("description"),
                                 section.getInt("order", 0)
                         ));
                     }
                 }
             } catch (RuntimeException ex) {
-                plugin.getLogger().warning("读取自定义功能配置失败：" + ex.getMessage());
+                logger.warning("读取自定义功能配置失败：" + ex.getMessage());
                 return;
             }
         }
         definitions.clear();
         definitions.putAll(loaded);
         if (!loaded.isEmpty()) {
-            plugin.getLogger().info("已载入 " + loaded.size() + " 个自定义功能（" + FILE_NAME + "）");
+            logger.info("已载入 " + loaded.size() + " 个自定义功能（" + FILE_NAME + "）");
         }
     }
 
@@ -88,7 +101,7 @@ public final class CustomFeatureStore {
                     definition.id(),
                     definition.name(),
                     definition.icon(),
-                    definition.command(),
+                    definition.commands(),
                     definition.description(),
                     definition.order()
             ));
@@ -119,7 +132,8 @@ public final class CustomFeatureStore {
                 "<gray>自定义功能</gray>",
                 "<dark_gray>在 custom-features.yml 中配置图标、描述与点击指令</dark_gray>"
         );
-        definitions.put(id, new Definition(id, name, "PAPER", "", description, nextOrder()));
+        definitions.put(id, new Definition(id, name, "PAPER",
+                new CustomFeatureCommands("", Map.of()), description, nextOrder()));
         save();
         return id;
     }
@@ -138,25 +152,25 @@ public final class CustomFeatureStore {
             final String path = ROOT + "." + definition.id();
             yaml.set(path + ".name", definition.name());
             yaml.set(path + ".icon", definition.icon());
-            yaml.set(path + ".command", definition.command());
+            yaml.set(path + ".command", definition.commands().fallback());
+            yaml.set(path + ".commands", definition.commands().overridesForConfig());
             yaml.set(path + ".description", definition.description());
             yaml.set(path + ".order", definition.order());
         }
 
-        final File folder = plugin.getDataFolder();
         if (!folder.isDirectory() && !folder.mkdirs()) {
-            plugin.getLogger().warning("无法创建插件数据目录：" + folder);
+            logger.warning("无法创建插件数据目录：" + folder);
             return;
         }
         try {
             Files.writeString(new File(folder, FILE_NAME).toPath(),
                     HEADER + yaml.saveToString(), StandardCharsets.UTF_8);
         } catch (IOException ex) {
-            plugin.getLogger().warning("保存自定义功能配置失败：" + ex.getMessage());
+            logger.warning("保存自定义功能配置失败：" + ex.getMessage());
         }
     }
 
-    private record Definition(String id, String name, String icon, String command,
+    private record Definition(String id, String name, String icon, CustomFeatureCommands commands,
                               List<String> description, int order) {
     }
 }

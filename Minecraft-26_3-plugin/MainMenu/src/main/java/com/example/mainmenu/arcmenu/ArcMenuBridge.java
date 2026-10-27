@@ -363,7 +363,8 @@ public final class ArcMenuBridge implements DisplayMenus, Listener {
         final MenuFeature feature = plugin.features().featureById(id).orElse(null);
         // Recheck authority and visibility at activation, including direct extension routes.
         if (feature == null || feature instanceof PlaceholderFeature || plugin.features().isHidden(id)
-                || plugin.features().placement(id).isEmpty() || !feature.clickable()) {
+                || plugin.features().placement(id).isEmpty() || !feature.clickable()
+                || !feature.clickable(click)) {
             return;
         }
         api.close(player);

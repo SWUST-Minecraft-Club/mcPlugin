@@ -41,3 +41,10 @@
 - **根因**：父面板和子按钮底色都使用相同 z；圆角矩形带本身不重叠，也无法避免不同组件之间的深度冲突。
 - **规避/解决**：属性面板使用 z=0、按钮底色 z=1、文字 z=2；分别量测背景边界，再执行实际按钮点击。只通过 YAML 校验或动作回归无法发现这种视觉问题。
 - **来源**：2026-10-26，手机属性页最终截图审查与修复；`./Minecraft-26_3-plugin/MainMenu/assets/generate_menus.py`、`./Minecraft-26_3-plugin/MainMenu/assets/screenshots/attribute-function.png`。
+
+## 禁用某个点击类型时，需要在关闭 ArcMenu 前检查
+
+- **现象**：自定义功能将右键配置成空字符串后，如果只在 `onClick` 中直接返回，ArcMenu 仍会关闭。
+- **根因**：桥接原先在调用功能回调前统一关闭会话；同时原来的单一 `command` 无法表达“按键缺省”和“按键明确禁用”的区别。
+- **规避/解决**：新增兼容旧实现的 `clickable(ClickType)`，桥接和背包监听先检查具体点击，再执行关闭/回调。`commands` 中缺失的键使用默认 `command`，空字符串覆盖必须保留；管理页创建功能时序列化这些覆盖，避免保存后丢失禁用状态。
+- **来源**：2026-10-27，MainMenu `Beta_1_9_0`；`./Minecraft-26_3-plugin/MainMenu/src/main/java/com/example/mainmenu/arcmenu/ArcMenuBridge.java`、`./Minecraft-26_3-plugin/MainMenu/src/test/java/com/example/mainmenu/internal/CustomFeatureCommandsTest.java` 与 `CustomFeatureStoreTest.java`。验证覆盖配置解析、禁用回调的提前返回及创建后保存/重载；本次未进行客户端实机测试。

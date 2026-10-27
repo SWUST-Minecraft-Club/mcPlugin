@@ -154,7 +154,7 @@ Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-2
 
 ### ArcMenu 页面与 YAML 编辑
 
-`Beta_1_8_0` 优先使用 ArcMenu 3.2：竖屏机身、状态栏、现实时间小组件、原版物品应用图标与底部快捷栏。
+`Beta_1_9_0` 优先使用 ArcMenu 3.2：竖屏机身、状态栏、现实时间小组件、原版物品应用图标与底部快捷栏。
 首页常用入口、每页 12 项的应用抽屉、“我的”、管理列表、三种属性页、位置选择与自定义功能创建，新增 Vault 资产页，共 10 页。
 小镇、Vault 资产、音乐和公告从桌面直接打开；在线时长在“我的”中查看，所有注册功能自动进入应用抽屉。
 
@@ -237,13 +237,18 @@ features:
   custom:<id>:
     name: "自定义功能"           # 显示名（纯文本）
     icon: PAPER                  # Bukkit 材质名，默认 PAPER
-    command: "shop"              # 点击执行的指令（不带 /；留空则点击无效）
+    command: "shop"              # 未单独配置按键时使用的默认指令
+    commands:                    # 可选；也支持 shift-left / shift-right / middle
+      left: "shop"               # 左键指令
+      right: ""                  # 禁用右键；未写的键继续使用 command
     description:
       - "<gray>点击执行 /shop</gray>"
     order: 20                    # 默认排序值，管理页可覆盖
 ```
 
-- 点击功能时以**玩家身份**执行 `command`；`command` 留空时功能只展示、点击无效。
+- 点击功能时以**玩家身份**执行对应按键的 `commands` 指令，未配置该键时使用 `command`。
+  显式空字符串禁用该键，禁用点击不会关闭菜单；`command` 和所有按键指令都为空时只展示。
+  配置说明及完整示例见 [自定义功能的点击方式](./Minecraft-26_3-plugin/MainMenu/README.md#自定义功能的点击方式)。
 - 点击后先关闭主菜单，下一 tick 按“玩家输入指令”的流程触发 `PlayerCommandPreprocessEvent`，
   事件未被取消时再派发。因此 PlayerTitle 这类在 `PlayerCommandPreprocessEvent` 里处理 `/plt gui`
   子命令的插件也能正常打开界面；指令不存在或玩家没有权限时会收到提示。
@@ -440,7 +445,7 @@ dependencies {
 
 | 项目 | 正式版 | 测试版（进行中） |
 | --- | --- | --- |
-| MainMenu | `1_0_1`（2026.10.18） | `Beta_1_8_0`（10 页 YAML 手机；默认隐藏的多侧卡、按高度自动布局、独立分页与 YAML / API 接入） |
+| MainMenu | `1_0_1`（2026.10.18） | `Beta_1_9_0`（自定义功能按左右键、Shift 与中键配置指令；保留 10 页 YAML 手机与多侧卡） |
 | RealTime | `1_0_0`（2026.10.18） | `Beta_1_1_0`（适配 Folia；去掉固定位提示） |
 | MainMenuRepair（fabric） | `1_0_0`（2026.10.18） | `Beta_1_2_0`（新增手册正文居中、焦点白框修复与重复页脚隐藏） |
 | MinecraftMcp（fabric） | — | `Beta_0_1_0`（MCP 客户端测试工具；核心与游戏版本适配器分离） |
@@ -512,6 +517,7 @@ dependencies {
 | `Beta_1_6_0` | 本次提交 | 新增：原生 YAML 方块手机、物品应用图标、应用抽屉及管理页面；配置不覆盖、动态 META、原功能点击桥接 |
 | `Beta_1_7_0` | 本次提交 | 新增 Vault 资产页与首页下一页，校验头像纹理并回退默认头；10 页模板与实际 Folia/Vault 联调 |
 | `Beta_1_8_0` | 本次提交 | 新增默认隐藏的多侧卡，YAML / API 按查看者提供内容和动作，自动分栏居中、按高度分页，数值刷新复用实体 |
+| `Beta_1_9_0` | 本次提交 | 新增自定义功能按左右键、Shift 与中键分派指令；默认指令兼容、空值禁用且保留菜单，创建新功能保留按键配置 |
 
 **RealTime（插件）**
 
