@@ -28,6 +28,10 @@ permissions:
 # 全部软依赖：缺谁都能加载，只是对应能力降级（见 README 降级说明）
 dependencies:
   server:
+    RptStardew:
+      load: BEFORE
+      required: false
+      join-classpath: true
     MainMenu:
       load: BEFORE
       required: false

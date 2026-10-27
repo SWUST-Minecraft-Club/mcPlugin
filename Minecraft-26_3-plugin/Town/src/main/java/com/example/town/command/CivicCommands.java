@@ -50,8 +50,10 @@ public final class CivicCommands {
                     TownSnapshot town=town(plugin,player);var catalog=plugin.civic().catalog();
                     town.civic().balances().forEach((code,cents)->player.sendPlainMessage("镇库 · "+Money.format(cents)+" "+code));
                     player.sendPlainMessage("政策槽位 "+catalog.active(town.civic(),System.currentTimeMillis()).size()+" / "+catalog.slots(town.civic()));
+                    player.sendPlainMessage(catalog.researchStatus(town.civic(),System.currentTimeMillis()));
                     catalog.technologies().values().forEach(t->player.sendPlainMessage(t.id()+" · "+t.name()+" Lv."+town.civic().level(t.id())+" / "+t.maxLevel()+" · "+Money.format(t.cost(town.civic().level(t.id())))));
-                    catalog.policies().values().forEach(p->player.sendPlainMessage(p.id()+" · "+p.name()+" · "+Money.format(p.cents())+" · "+p.durationMillis()/3600000+" 小时"));
+                    catalog.policies().values().forEach(p->player.sendPlainMessage(p.id()+" · "+p.name()+" · "+Money.format(p.cents())+" · "+p.durationMillis()/3600000+" 小时 · "+p.summary()
+                            +(p.needsStardew()&&!plugin.stardewAvailable()?" · 星露谷未接入":"")));
                     player.sendPlainMessage("/town civic donate|withdraw <金额>；technology|policy <ID>；ledger；contributions；payments");
                 }
             }

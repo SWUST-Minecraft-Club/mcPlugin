@@ -1,0 +1,9 @@
+name: TestPluginTownResearch
+version: '1'
+main: com.example.town.integration.ResearchIntegration
+api-version: '26.3'
+folia-supported: true
+dependencies:
+  server:
+    Town: {load: BEFORE, required: true, join-classpath: true}
+    RptStardew: {load: BEFORE, required: false, join-classpath: true}

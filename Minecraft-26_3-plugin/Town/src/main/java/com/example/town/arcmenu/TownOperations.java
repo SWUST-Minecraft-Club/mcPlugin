@@ -119,7 +119,17 @@ final class TownOperations {
         else {var d=(CivicCatalog.PolicyDef)value;id=d.id();cost=d.cents();}
         int level=town.civic().level(id);String currency=plugin.civic().currency();String name=tech?((CivicCatalog.Technology)value).name():((CivicCatalog.PolicyDef)value).name();
         List<String> text=new ArrayList<>(List.of(name,"镇库支出 "+Money.format(cost)+" "+currencyLabel(plugin.civic().currency())));
-        if(tech) text.add("永久科技 · 当前等级 "+level);else {var policy=(CivicCatalog.PolicyDef)value;text.add("持续 "+duration(policy.durationMillis())+" · 受益 "+scope(policy.scope()));text.add(policyEffects(policy));}
+        if(tech) {
+            if(town.civic().research()!=null) throw new IllegalArgumentException("civic-research-busy");
+            var d=(CivicCatalog.Technology)value;
+            if(level>=d.maxLevel()) throw new IllegalArgumentException("civic-max-level");
+            var catalog=plugin.civic().catalog();long now=System.currentTimeMillis();
+            var preview=new Research(id,level+1,catalog.researchMillis(d,level),0,now,catalog.researchSpeedCap(),catalog.researchBoosts(town.civic(),now));
+            text.add("永久科技 · "+level+" → "+(level+1)+" 级");
+            text.add("预计耗时 "+CivicCatalog.researchTime(preview.remainingMillis(now))+" · 科研速度 +"+Math.round(preview.speedBonus(now)*100)+"%");
+            text.add("完成后升级 · 每镇同时研究一项 · 离线继续");
+        }else {var policy=(CivicCatalog.PolicyDef)value;text.add("持续 "+duration(policy.durationMillis())+" · 受益 "+scope(policy.scope()));text.add(policy.summary());
+            if(policy.needsStardew()) text.add(plugin.stardewAvailable()?"星露谷已接入 · 按实际操作位置与受益范围结算":"星露谷未接入，暂不能购买");}
         confirm(p,"购买发展项目",text,()->{
             try(var ignored=plugin.registry().guard()) {
                 var current=town(p);Object definition=tech?plugin.civic().catalog().technologies().get(id):plugin.civic().catalog().policies().get(id);
@@ -190,14 +200,15 @@ final class TownOperations {
                     meta(p,"treasury_currency",BalanceDisplay.currency(symbol));
                     meta(p,"treasury_full",BalanceDisplay.full(balance)+" "+symbol);
                     meta(p,"slots","政策槽位 "+plugin.civic().catalog().active(civic,System.currentTimeMillis()).size()+" / "+plugin.civic().catalog().slots(civic));
+                    meta(p,"research",plugin.civic().catalog().researchStatus(civic,System.currentTimeMillis()));
                     meta(p,"ledger_title",s.ledger.equals("contributions")?"玩家贡献排行":"最近镇库流水");
                     if(s.ledger.equals("contributions")) lines(p,civic.contributions().entrySet().stream().sorted(Map.Entry.<String,Long>comparingByValue().reversed()).limit(6).map(e->contributor(e.getKey())+" · "+Money.format(e.getValue())).toList());
                     else lines(p,civic.ledger().reversed().stream().limit(6).map(e->e.reason()+" · "+Money.format(e.delta())+" "+currencyLabel(e.currency())+" · "+name(e.actor())).toList());
                 }
                 case "catalog"->{
                     TownSnapshot town=town(p);
-                    if(s.catalog.equals("policy")) renderRows(p,s,plugin.civic().catalog().policies().values().stream().sorted(Comparator.comparing(CivicCatalog.PolicyDef::id)).toList(),v->{var d=(CivicCatalog.PolicyDef)v;long expires=town.civic().policies().getOrDefault(d.id(),new CivicState.Policy(d.id(),0)).expiresAt();return new String[]{d.name(),Money.format(d.cents())+" · "+duration(d.durationMillis())+" · "+scope(d.scope())+(expires>System.currentTimeMillis()?" · 剩余 "+duration(expires-System.currentTimeMillis()):""),expires>System.currentTimeMillis()?"续购":"查看并购买"};});
-                    else renderRows(p,s,plugin.civic().catalog().technologies().values().stream().sorted(Comparator.comparing(CivicCatalog.Technology::id)).toList(),v->{var d=(CivicCatalog.Technology)v;int level=town.civic().level(d.id());return new String[]{d.name()+" · "+level+" / "+d.maxLevel(),techEffect(d)+" · 升级 "+Money.format(d.cost(level)),level>=d.maxLevel()?"已满级":"查看并升级"};});
+                    if(s.catalog.equals("policy")) renderRows(p,s,plugin.civic().catalog().policies().values().stream().sorted(Comparator.comparing(CivicCatalog.PolicyDef::id)).toList(),v->{var d=(CivicCatalog.PolicyDef)v;long expires=town.civic().policies().getOrDefault(d.id(),new CivicState.Policy(d.id(),0)).expiresAt();return new String[]{clip(d.name()+" · "+d.summary(),44),Money.format(d.cents())+" · "+duration(d.durationMillis())+" · "+scope(d.scope())+(expires>System.currentTimeMillis()?" · 剩余 "+duration(expires-System.currentTimeMillis()):""),d.needsStardew()&&!plugin.stardewAvailable()?"未接入星露谷":expires>System.currentTimeMillis()?"续购":"查看并购买"};});
+                    else renderRows(p,s,plugin.civic().catalog().technologies().values().stream().sorted(Comparator.comparing(CivicCatalog.Technology::id)).toList(),v->{var d=(CivicCatalog.Technology)v;int level=town.civic().level(d.id());var r=town.civic().research();boolean active=r!=null&&r.technology().equals(d.id());long now=System.currentTimeMillis();return new String[]{d.name()+" · "+level+" / "+d.maxLevel(),active?plugin.civic().catalog().researchStatus(town.civic(),now):techEffect(d)+" · "+Money.format(d.cost(level))+" · 基础 "+CivicCatalog.researchTime(plugin.civic().catalog().researchMillis(d,level)),active?"研究中":level>=d.maxLevel()?"已满级":r!=null?"研究占用中":"查看并研究"};});
                 }
                 case "plots"->{
                     var local=plugin.service().townAt(ChunkKey.of(p.getLocation()));var member=plugin.service().townOf(p.getUniqueId());
@@ -299,7 +310,6 @@ final class TownOperations {
     private static String duration(long millis) {long mins=Math.max(1,millis/60000);return mins>=1440?mins/1440+" 天":mins>=60?mins/60+" 小时":mins+" 分钟";}
     private static String scope(CivicCatalog.Scope scope) {return switch(scope) {case ALL->"镇域内所有玩家";case MEMBERS->"本镇成员";case RESIDENTS->"成员、业主与有效租户";};}
     private static String techEffect(CivicCatalog.Technology t) {return switch(t.effect()) {case LAND_CAPACITY->"每级增加 "+(int)t.value()+" 个区块上限";case POLICY_SLOTS->"每级增加 "+(int)t.value()+" 个政策槽位";case MOVE_DISCOUNT->"每级迁移费减免 "+(int)t.value()+"%";};}
-    private static String policyEffects(CivicCatalog.PolicyDef d) {List<String> effects=new ArrayList<>();if(!d.potion().isBlank()) effects.add("药水 "+d.potion()+" "+(d.amplifier()+1));if(d.harvest()>0) effects.add("收获 +"+(int)(d.harvest()*100)+"%");if(d.tradeDiscount()>0) effects.add("交易手续费 −"+(int)(d.tradeDiscount()*100)+"%");if(d.moveDiscount()>0) effects.add("迁移费 −"+(int)(d.moveDiscount()*100)+"%");return String.join(" · ",effects);}
     private String friendly(String message) {String key=message.split(":",2)[0];String raw=plugin.config().messages().get(key);return raw==null?message:net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(raw))+(message.contains(":")?" · "+message.substring(message.indexOf(':')+1):"");}
     private static String stage(MoveJob.Stage stage) {return switch(stage) {case PREPARED->"等待付款";case APPLYING->"施工中";case REVIEW->"等待验收";case ACCEPTING->"验收提交中";case ACCEPTED->"已验收";case ROLLING_BACK->"正在恢复原址";case ROLLED_BACK->"已撤回";case CANCELLED->"已取消";};}
     private static String clip(String value,int max) {return value.length()>max?value.substring(0,max-1)+"…":value;}

@@ -2,9 +2,10 @@
 // 公共配置（Java 工具链、Folia API 依赖、仓库、processResources、Folia 测试服版本）
 // 统一在仓库根目录的 build.gradle 里，改一次对所有插件生效。
 
-version = 'Beta_0_9_3'
+version = 'Beta_0_10_0'
 
 dependencies {
+    compileOnly files(providers.gradleProperty('stardewApiJar').orElse(rootProject.file('libs/rptstardew-progression-api-1.6.0.jar').path))
     // 主菜单入口（软依赖，隔离在 hook 包）
     compileOnly project(':MainMenu')
     // 全局玩家指南（软依赖，API 引用隔离在手册适配器中）
@@ -23,4 +24,18 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+sourceSets {
+    integration { compileClasspath += sourceSets.main.output + configurations.compileClasspath }
+}
+dependencies {
+    integrationCompileOnly files(providers.gradleProperty('stardewJar')
+            .orElse(rootProject.file('../rptstardew/build/libs/RptStardew-1.6.0-folia26.3-beta.1.jar').path))
+}
+tasks.register('researchIntegrationJar', Jar) {
+    dependsOn tasks.named('integrationClasses')
+    archiveBaseName = 'TestPluginTownResearch'
+    archiveVersion = ''
+    from sourceSets.integration.output
 }

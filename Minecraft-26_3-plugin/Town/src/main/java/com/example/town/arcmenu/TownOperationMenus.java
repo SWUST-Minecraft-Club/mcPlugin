@@ -38,7 +38,7 @@ public final class TownOperationMenus {
         m.text("treasury-label",t(MUTE,"公共镇库"),476,92,10,5,LEFT,null);
         m.text("treasury-currency",t(MUTE,"{meta:op_treasury_currency}"),716,92,10,5,CENTER,dyn());
         m.text("balance",t(GREEN,"{meta:op_treasury}"),612,118,21,5,CENTER,dyn());
-        m.region("treasury-info",460,80,304,56,MenuBuilder.spec(MenuBuilder.tooltip("&f{meta:op_treasury_full}","&7镇库用于小镇公共发展"),null));
+        m.region("treasury-info",460,80,304,56,MenuBuilder.spec(MenuBuilder.tooltip("&f{meta:op_treasury_full}","&7{meta:op_research}"),null));
         go(m,"donate",20,158,174,"贡献镇库","input donate",GREEN);go(m,"withdraw",210,158,174,"提取镇库","input withdraw",RAISE);
         go(m,"tech",400,158,182,"永久科技","catalog technology",RAISE);go(m,"policy",598,158,182,"限时政策","catalog policy",RAISE);
         card(m,"ledger",20,206,760,184);text(m,"ledger-title","{meta:op_ledger_title}",400,226,13);

@@ -132,6 +132,10 @@ territory-notice:
 # ---------------------------- 消息 ----------------------------
 # ---------------------------- 镇库与经营 ----------------------------
 civic:
+  # 实际研究时间 = 基础耗时 × 目标等级 ÷ 当时科研速度；离线、停服时间继续计算。
+  research-base-seconds: 1800
+  research-speed-cap-percent: 100
+  skill-xp-cap-percent: 100
   policy-slots: 2
   max-policy-slots: 6
   discount-cap-percent: 70
@@ -142,11 +146,18 @@ civic:
     - { id: archives, name: 政务档案, cost: 800, max-level: 4, effect: POLICY_SLOTS, value: 1 }
     - { id: logistics, name: 搬迁物流, cost: 600, max-level: 5, effect: MOVE_DISCOUNT, value: 5 }
   policies:
+    - { id: research, name: 科研协作, cost: 300, duration-seconds: 86400, scope: MEMBERS, research-speed-percent: 25 }
+    - { id: farming, name: 农艺研习, cost: 250, duration-seconds: 86400, scope: MEMBERS, farming-xp-percent: 25 }
+    - { id: fishing, name: 渔业研习, cost: 250, duration-seconds: 86400, scope: MEMBERS, fishing-xp-percent: 25 }
+    - { id: mining, name: 矿业研习, cost: 250, duration-seconds: 86400, scope: MEMBERS, mining-xp-percent: 25 }
     - { id: harvest, name: 丰收协约, cost: 200, duration-seconds: 86400, scope: RESIDENTS, harvest-percent: 15 }
     - { id: builders, name: 工匠互助, cost: 250, duration-seconds: 86400, scope: RESIDENTS, potion: HASTE, amplifier: 0, move-discount-percent: 10 }
     - { id: commerce, name: 商业繁荣, cost: 300, duration-seconds: 86400, scope: ALL, trade-discount-percent: 20 }
 
 messages:
+  civic-research-started: "<green>已由镇库付款并开始研究，可在科技目录查看进度。"
+  civic-research-busy: "<yellow>本镇已有一项研究进行中，请等待完成。"
+  civic-stardew-missing: "<yellow>星露谷经验接口未接入，暂不能购买此政策；需要 RptStardew 1.6+。"
   move-busy: "<yellow>迁移操作仍在处理中，请稍候。"
   move-too-large: "<yellow>建筑三维选区超过迁移体积上限。"
   move-outside-town: "<yellow>原址与目标必须完整位于同一个小镇的领土内。"

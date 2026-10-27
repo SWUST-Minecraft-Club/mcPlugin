@@ -52,6 +52,8 @@ public final class TownPlugin extends JavaPlugin {
     private TownUi ui;
     private MainMenuHook menuHook;
     private HandbookHook handbookHook;
+    private com.example.town.hook.StardewHook stardewHook;
+    public boolean stardewAvailable() {return stardewHook!=null && stardewHook.available();}
 
     @Override
     public void onLoad() {
@@ -64,6 +66,7 @@ public final class TownPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        com.example.town.economy.CivicCatalog.migrateResearchPolicies(getConfig());
         // copyDefaults 之前迁移旧半径，防止新默认值覆盖运营者原先选择的赠地额度。
         if (!getConfig().isSet("founding.free-claim-count") && getConfig().isSet("founding.free-claim-radius")) {
             int radius=Math.clamp(getConfig().getInt("founding.free-claim-radius"),0,8);
@@ -127,6 +130,7 @@ public final class TownPlugin extends JavaPlugin {
                 event.registrar().register(TownCommand.create(this),
                         "小镇系统", List.of()));
 
+        stardewHook = com.example.town.hook.StardewHook.create(this);
         ui = TownUi.create(this);
         if (ui != null) {
             ui.installMenus();
@@ -146,6 +150,8 @@ public final class TownPlugin extends JavaPlugin {
         buffApplier.start();
         relocation.start();
         market.start();
+        Bukkit.getAsyncScheduler().runAtFixedRate(this,task->civic.completeResearch(System.currentTimeMillis()),
+                1,1,java.util.concurrent.TimeUnit.SECONDS);
         Bukkit.getGlobalRegionScheduler().runAtFixedRate(this,task->civic.payments().recover(),100,100);
         // 维护任务：邀请过期 / 筹备超时 / 过期 buff 惰性清理（30 秒一次）
         Bukkit.getGlobalRegionScheduler().runAtFixedRate(this,
@@ -165,6 +171,7 @@ public final class TownPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if(stardewHook!=null) stardewHook.close();
         if (handbookHook != null) {
             handbookHook.unregister();
         }

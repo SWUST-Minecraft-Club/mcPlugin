@@ -44,6 +44,28 @@ public final class CivicService {
     }
     public void reload() { catalog=CivicCatalog.load(plugin.getConfig()); }
     public CivicCatalog catalog() {return catalog;}
+    /** IO runs asynchronously; the registry guard serializes with purchases and saves. */
+    public void completeResearch(long now) {
+        try(var ignored=registry.guard()) {
+            for(Town town:registry.all()) {
+                try {settleResearch(town,now);}
+                catch(IOException|RuntimeException error) {plugin.getLogger().warning("研究完成保存失败，将重试："+town.id());}
+            }
+        }
+    }
+    private void settleResearch(Town town,long now) throws IOException {
+        CivicState before=town.civic();
+        if(before.research()==null || !before.research().advance(now).complete()) return;
+        town.civic(before.advanceResearch(now));
+        try {store.saveChecked(registry);}
+        catch(IOException|RuntimeException error) {town.civic(before);throw error;}
+        String id=before.research().technology();int level=before.research().targetLevel();
+        String name=catalog.technologies().containsKey(id)?catalog.technologies().get(id).name():id;
+        for(UUID member:town.members().keySet()) {
+            var player=org.bukkit.Bukkit.getPlayer(member);
+            if(player!=null) Threads.forPlayer(plugin,player,()->player.sendPlainMessage("[小镇] "+name+"研究完成，已升至 "+level+" 级。"));
+        }
+    }
     public DurablePayments payments() {return payments;}
     public boolean pending(String townId) {return payments.all().stream().anyMatch(p->!p.terminal() && townId.equals(p.payload().get("town")));}
     public String currency() {
@@ -105,6 +127,7 @@ public final class CivicService {
             Town town=member(player.getUniqueId());manager(town,player.getUniqueId());
             long price;int level=town.civic().level(id);
             if(technology) {
+                if(town.civic().research()!=null) fail("civic-research-busy");
                 var def=catalog.technologies().get(id);
                 if(def==null) fail("civic-not-found");
                 if(level>=def.maxLevel()) fail("civic-max-level");
@@ -112,11 +135,14 @@ public final class CivicService {
             }else {
                 var def=catalog.policies().get(id);
                 if(def==null) fail("civic-not-found");
+                if(def.needsStardew() && !plugin.stardewAvailable()) fail("civic-stardew-missing");
                 validatePolicy(town,id,System.currentTimeMillis());price=def.cents();
             }
             if(town.civic().balance(currency())<price) fail("civic-insufficient");
             submit(player,Payment.create(technology?"technology":"policy",player.getUniqueId(),player.getName(),currency(),0,null,"",0,
-                    Map.of("town",town.id(),"id",id,"price",String.valueOf(price),"level",String.valueOf(level))),feedback,"civic-purchased");
+                    Map.of("town",town.id(),"id",id,"price",String.valueOf(price),"level",String.valueOf(level),
+                            "research-millis",technology?String.valueOf(catalog.researchMillis(catalog.technologies().get(id),level)):"0")),
+                    feedback,technology?"civic-research-started":"civic-purchased");
         }catch(IllegalArgumentException error){failure(feedback,error);}
     }
     public void rent(Player player,String plotId,Consumer<TownService.Result> feedback) {
@@ -165,6 +191,7 @@ public final class CivicService {
             Town town=registry.byId(p.payload().get("town"));
             if(town==null) return DurablePayments.Applied.REJECT;
             if(town.civic().applied().contains(p.id())) return DurablePayments.Applied.YES;
+            settleResearch(town,System.currentTimeMillis());
             CivicState previous=town.civic();TownState state=town.state();
             Map<String,Plot> plots=new HashMap<>(town.plots());Map<String,Long> buffs=new HashMap<>(town.buffs());
             ChunkKey added=null;int free=town.freeClaimsRemaining();
@@ -200,12 +227,17 @@ public final class CivicService {
                         if(p.kind().equals("technology")) {
                             var def=catalog.technologies().get(id);int level=previous.level(id);
                             if(def==null || level!=Integer.parseInt(p.payload().get("level")) || level>=def.maxLevel() || price!=def.cost(level)) fail("action-state-changed");
-                            town.civic(previous.transact(p.id(),p.payer(),p.currency(),-price,"科技："+id,now,false).technology(id,level+1));
+                            if(previous.research()!=null) fail("civic-research-busy");
+                            long required=catalog.researchMillis(def,level);
+                            if(required!=Long.parseLong(p.payload().getOrDefault("research-millis",String.valueOf(required)))) fail("action-state-changed");
+                            town.civic(previous.transact(p.id(),p.payer(),p.currency(),-price,"开始研究："+id,now,false).startResearch(id,required,now,catalog));
                         }else {
                             var def=catalog.policies().get(id);if(def==null || price!=def.cents()) fail("action-state-changed");
+                            if(def.needsStardew() && !plugin.stardewAvailable()) fail("civic-stardew-missing");
                             validatePolicy(town,id,now);
                             long base=Math.max(now,previous.policies().getOrDefault(id,new CivicState.Policy(id,0)).expiresAt());
-                            town.civic(previous.transact(p.id(),p.payer(),p.currency(),-price,"政策："+id,now,false).policy(id,Math.addExact(base,def.durationMillis())));
+                            town.civic(previous.advanceResearch(now).transact(p.id(),p.payer(),p.currency(),-price,"政策："+id,now,false)
+                                    .policy(id,Math.addExact(base,def.durationMillis())).researchBonuses(catalog,now));
                         }
                     }
                     case "rent" -> {

@@ -10,6 +10,12 @@ public final class CivicCodec {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("balances", s.balances()); result.put("contributions", s.contributions());
         result.put("technologies", s.technologies());
+        if (s.research() != null) {
+            var r = s.research();
+            result.put("research", Map.of("technology",r.technology(),"target-level",r.targetLevel(),"required-millis",r.requiredMillis(),
+                    "completed-millis",r.completedMillis(),"updated-at",r.updatedAt(),"speed-cap",r.speedCap(),
+                    "boosts",r.boosts().stream().map(b -> Map.of("bonus",b.bonus(),"expires",b.expiresAt())).toList()));
+        }
         result.put("policies", s.policies().values().stream().map(p -> Map.of("id", p.id(), "expires", p.expiresAt())).toList());
         result.put("applied", s.applied().stream().sorted().toList());
         result.put("ledger", s.ledger().stream().map(e -> Map.of("id", e.operation(), "actor", e.actor().toString(),
@@ -31,7 +37,15 @@ public final class CivicCodec {
         for (Map<?, ?> raw : s.getMapList("ledger")) ledger.add(new CivicState.Entry(raw.get("id").toString(),
                 UUID.fromString(raw.get("actor").toString()), raw.get("currency").toString(), number(raw.get("delta")),
                 raw.get("reason").toString(), number(raw.get("at"))));
-        return new CivicState(balances, contributions, tech, policies, Set.copyOf(s.getStringList("applied")), ledger);
+        com.example.town.economy.Research research = null;
+        var r = s.getConfigurationSection("research");
+        if (r != null) {
+            List<com.example.town.economy.Research.Boost> boosts = r.getMapList("boosts").stream().map(b ->
+                    new com.example.town.economy.Research.Boost(Double.parseDouble(b.get("bonus").toString()),number(b.get("expires")))).toList();
+            research = new com.example.town.economy.Research(r.getString("technology"),r.getInt("target-level"),r.getLong("required-millis"),
+                    r.getDouble("completed-millis"),r.getLong("updated-at"),r.getDouble("speed-cap"),boosts);
+        }
+        return new CivicState(balances, contributions, tech, policies, Set.copyOf(s.getStringList("applied")), ledger, research);
     }
     private static Map<String, Long> numbers(ConfigurationSection section) {
         Map<String, Long> result = new HashMap<>();

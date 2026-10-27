@@ -312,3 +312,14 @@ Town-Server-mc26_3-Beta_0_6_1.zip  b912c44e9c750d9e835225058ffd20202f9568a9335e0
 - 客户端未装 ArcMenu Editor；本次点击使用服务器命中区、实际视角与右键，文本输入为原生铁砧路径。Mouse/Touch/Vision 的客户端 Mod 专用交互未全覆盖。
 - CraftEngine 验证范围为本版核心、原版容器/告示牌和默认木椅；部分长凳预检拒绝。未声称支持任意第三方自定义状态或插件数据库。
 - 联调早期 ArcMenu 同步重建资源包曾触发一次启动 watchdog 警告，之后启动正常；刻意拒绝无审批施工时的异常出自临时夹具。不能把全程日志描述为完全无警告。
+
+
+## Beta_0_10_0 科研与星露经验接口（2026-10-27）
+
+- Java 25、Folia 26.3 build 5；Town `Beta_0_10_0`、RptStardew `1.6.0-folia26.3-beta.1`、CraftEngine 26.9.2-folia26.3.1、ArcMenu 3.2.0。
+- `:Town:build :Town:researchIntegrationJar` 成功，100项 JUnit 全通过。新增11项覆盖研究时间/加速/到期/续购/存档/旧档/默认目录迁移/非法配置和技能范围。
+- 有星露谷的隔离服首次31项、重启6项；实际共享 API 类、三技能加成、镇外/访客排除、实际耕种经验入账、到期失效、镇库扣费、并发科研拒绝、交易去重和重启完成。
+- 无星露谷的隔离服首次12项、重启6项；小镇成功启用，技能政策拒绝采购且镇库不扣费，科研照常完成。全部测试服正常保存关闭，未安装夹具到共用/业务服务器。
+- Town JAR SHA256：`c378506283cb0675a84cb22b047848a4c26efdd8859b228c14260a0d6fcf3712`。星露谷 JAR SHA256：`eb0595e9fc148023f572734e9030d4a7c89b27b50038737a8192b697cf4d436c`。报告为 `./Minecraft-26_3-plugin/Town/build/reports/research-stardew.json` 与 `research-no-stardew.json`；复现脚本见 `./scripts/test-town-research.py`。
+- RptStardew 另有42项单元测试，以及独立金币1556项、Wallet等完整依赖1890项首次/重启检查；其安装包附对应日志、SQLite完整性结果和来源包SHA256。
+- 本轮未做新的真实客户端画面或自然操作验收；界面仅更新现有文字/tooltip数据，未改变布局坐标。钓鱼、采矿、蟹笼基础结算由核心原有实服测试覆盖，联动提供器另验证三项奖励倍率。

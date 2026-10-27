@@ -4,6 +4,7 @@ import com.example.town.model.TownSnapshot;
 import java.util.UUID;
 
 public final class CivicEffects {
+    public enum Skill { FARMING, FISHING, MINING }
     private CivicEffects() { }
     public static boolean benefits(CivicCatalog.Scope scope,TownSnapshot town,UUID actor,long now) {
         if(scope==CivicCatalog.Scope.ALL) return true;
@@ -19,5 +20,13 @@ public final class CivicEffects {
     public static double harvest(CivicCatalog catalog,TownSnapshot town,UUID actor,long now) {
         return Math.min(catalog.harvestCap(),catalog.active(town.civic(),now).stream()
                 .filter(p->benefits(p.scope(),town,actor,now)).mapToDouble(CivicCatalog.PolicyDef::harvest).sum());
+    }
+    /** Caller must first resolve the town containing the validated gameplay action. */
+    public static double experience(CivicCatalog catalog,TownSnapshot town,UUID actor,long now,Skill skill) {
+        if (town.state()!=com.example.town.model.TownState.ACTIVE) return 0;
+        return Math.min(catalog.skillBonusCap(),catalog.active(town.civic(),now).stream()
+                .filter(p->benefits(p.scope(),town,actor,now)).mapToDouble(p->switch(skill) {
+                    case FARMING->p.farmingXp();case FISHING->p.fishingXp();case MINING->p.miningXp();
+                }).sum());
     }
 }
