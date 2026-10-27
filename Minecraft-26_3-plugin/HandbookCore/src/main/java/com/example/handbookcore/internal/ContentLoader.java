@@ -13,27 +13,33 @@ import org.bukkit.configuration.file.YamlConfiguration;
 public final class ContentLoader {
     public HandbookContribution load(Path directory) throws IOException, InvalidConfigurationException {
         List<HandbookCategory> categories = new ArrayList<>(); List<HandbookEntry> entries = new ArrayList<>();
-        try (var paths = Files.walk(directory)) {
-            for (Path path : paths.filter(p -> Files.isRegularFile(p, LinkOption.NOFOLLOW_LINKS))
-                    .filter(p -> p.toString().endsWith(".yml") || p.toString().endsWith(".yaml")).sorted().toList()) {
-                if (Files.size(path) > 2 * 1024 * 1024) throw new IOException("手册文件超过 2 MiB：" + path.getFileName());
-                YamlConfiguration yaml = new YamlConfiguration(); yaml.load(path.toFile());
-                try {
-                    for (Object raw : yamlList(yaml, "categories")) {
-                        Map<String, Object> c = map(raw);
-                        categories.add(new HandbookCategory(key(c, "id"), required(c, "title"), string(c, "description", ""),
-                                new HandbookIcon(material(c, "icon", Material.BOOK), string(c, "image", ""), string(c, "bookmark-image", string(c, "image", ""))),
-                                integer(c, "order", 0), string(c, "permission", "")));
-                    }
-                    for (Object raw : yamlList(yaml, "entries")) entries.add(entry(map(raw)));
-                } catch (IllegalArgumentException error) {
-                    throw new InvalidConfigurationException(path.getFileName() + "：" + error.getMessage(), error);
+        for (Path path : files(directory)) {
+            YamlConfiguration yaml = read(path);
+            try {
+                for (Object raw : yamlList(yaml, "categories")) {
+                    Map<String, Object> c = map(raw);
+                    categories.add(new HandbookCategory(key(c, "id"), required(c, "title"), string(c, "description", ""),
+                            new HandbookIcon(material(c, "icon", Material.BOOK), string(c, "image", ""), string(c, "bookmark-image", string(c, "image", ""))),
+                            integer(c, "order", 0), string(c, "permission", "")));
                 }
+                for (Object raw : yamlList(yaml, "entries")) entries.add(entry(map(raw)));
+            } catch (IllegalArgumentException error) {
+                throw new InvalidConfigurationException(path.getFileName() + "：" + error.getMessage(), error);
             }
         }
         return new HandbookContribution(categories, entries);
     }
-    private static List<?> yamlList(YamlConfiguration yaml, String field) {
+    static List<Path> files(Path directory) throws IOException {
+        try (var paths = Files.walk(directory)) {
+            return paths.filter(p -> Files.isRegularFile(p, LinkOption.NOFOLLOW_LINKS))
+                    .filter(p -> p.toString().endsWith(".yml") || p.toString().endsWith(".yaml")).sorted().toList();
+        }
+    }
+    static YamlConfiguration read(Path path) throws IOException, InvalidConfigurationException {
+        if (Files.size(path) > 2 * 1024 * 1024) throw new IOException("手册文件超过 2 MiB：" + path.getFileName());
+        YamlConfiguration yaml = new YamlConfiguration(); yaml.load(path.toFile()); return yaml;
+    }
+    static List<?> yamlList(YamlConfiguration yaml, String field) {
         Object value = yaml.get(field, List.of());
         if (!(value instanceof List<?> values)) throw new IllegalArgumentException(field + " 应为列表");
         return values;

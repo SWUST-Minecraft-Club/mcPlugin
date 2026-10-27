@@ -55,6 +55,16 @@
 - **来源**：2026.10.26，MainMenuRepair `Beta_1_2_0`，`HandbookFocusMixin` / `HandbookDialogLayout`，
   26.3 `DialogScreen` / `FocusableTextWidget` 官方字节码；居中后正文 x56/y52，点击后无外框的实机截图。
 
+## 删除默认正文要同时处理旧文件与重新释放逻辑
+
+- **现象**：替换 jar 中的示例不会清理服务端已经生成的旧玩法；按文件是否存在调用 `saveResource`，还会在管理员删除正文后重新生成。
+- **根因**：默认资源与运行期内容是两份文件，文件缺失无法区分首次安装和运营者主动删除。
+- **规避/解决**：用数据目录内的初始化标记记录首次释放。核心只附一条更新日志；旧 `content/server.yml` 的三个示例 id 仅迁移一次，
+  修改前完整备份到 `content/` 之外，避免备份又被递归读取。保留其他自定义文章，并扫描全部正文的分类引用，保留仍被使用的旧分类。
+  迁移直接处理 YAML；完整的物品与 API 定义校验仍由正文加载阶段完成。Folia 26.3 的 `Material#isItem` 需要运行期注册表，
+  因此纯文件迁移测试不应构建 ItemStack，也不应为了脱离服务器测试而削弱材质校验；最终载入在专用 Folia 服验证。
+- **来源**：2026.10.26，HandbookCore `Beta_0_1_1`，`ContentBootstrap` / `ContentLoader` / `ContentBootstrapTest` 与专用验证服。
+
 ## 注解桩保留级别应与真实注解一致
 
 - **现象**：`@Redirect` 编译成功但静默不生效，白框仍存在。

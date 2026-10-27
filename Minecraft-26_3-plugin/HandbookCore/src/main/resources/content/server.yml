@@ -1,101 +1,23 @@
-# 核心入门示例；具体玩法可由运营者编辑，或由其他插件通过 API 注册。
+# 核心只保留一条更新日志；玩法章节与文章由各插件通过 API 贡献。
+# 此文件只在首次初始化时生成，删除后重启不会恢复。
 categories:
-  - id: handbook:stardew
-    title: 星露谷玩法
-    description: 农场、季节与作物的入门指引
-    icon: WHEAT_SEEDS
-    order: 10
-  - id: handbook:town
-    title: 小镇玩法
-    description: 小镇建设、领地与玩家协作
-    icon: OAK_DOOR
-    order: 20
-  - id: handbook:farming
-    title: 农场物语
-    description: 食材、烹饪与农场生活
-    icon: WHEAT
-    order: 30
   - id: handbook:updates
     title: 服务器更新
     description: 按日期查阅服务器更新记录
     icon: WRITABLE_BOOK
     order: 40
 entries:
-  - id: handbook:stardew-intro
-    category: handbook:stardew
-    title: 农场入门
-    summary: 从准备工具到收获作物
-    keywords: [星露谷, 种植, 浇水, 季节]
-    pages:
-      - title: 开始种植
-        blocks:
-          - '准备锄头与种子，阅读服务器提供的作物说明。'
-          - type: space
-          - '开垦土地后播种，按作物要求浇水，等待成熟后收获。'
-          - type: item
-            material: WHEAT_SEEDS
-            ce-item: stardew:parsnip_seeds
-            caption: 种子物品示例
-      - title: 季节与作物
-        blocks:
-          - '不同作物的季节、成熟时间与收获方式由玩法插件决定。'
-          - type: space
-          - '本页为入门示例，运营者可以替换成服务器的实际规则。'
-          - type: link
-            label: 查看农场生活指引
-            entry: handbook:farming-intro
-  - id: handbook:town-intro
-    category: handbook:town
-    title: 小镇建设指引
-    summary: 了解政厅、领地与地块
-    keywords: [小镇, 政厅, 领地, 地块]
-    pages:
-      - title: 开始建设
-        blocks:
-          - '通过服务器的小镇入口查看成立条件，再准备政厅与建设材料。'
-          - type: space
-          - '使用政厅规划镇域，邀请朋友一同建设。'
-      - title: 领地与地块
-        blocks:
-          - '圈地前检查镇域连接关系与费用。'
-          - type: space
-          - '住宅、商铺和生产区域可以采用不同的授权规则。'
-          - type: space
-          - '具体条件请以当前小镇插件的提示为准。'
-  - id: handbook:farming-intro
-    category: handbook:farming
-    title: 农场生活指引
-    summary: 从收集食材到制作料理
-    keywords: [农场物语, 农夫乐事, 烹饪, 食材]
-    pages:
-      - title: 收集食材
-        blocks:
-          - '种植作物、收集食材，再使用服务器提供的厨具制作料理。'
-          - type: item
-            material: WHEAT
-            caption: 小麦
-      - title: 制作料理
-        blocks:
-          - '查阅配方与厨具说明，准备对应的食材和热源。'
-          - type: space
-          - '玩法插件可以在这里注册食材、厨具和图文配方。'
   - id: handbook:update-2026-10-26
     category: handbook:updates
     title: 2026.10.26 手册上线
-    summary: 全局玩法手册首次版本
+    summary: 在统一手册中查阅玩法与服务器更新
     order: -20261026
     keywords: [更新, 日志, 手册]
     pages:
-      - title: 新增内容
+      - title: 手册上线
         blocks:
-          - '<#79521e>全局手册</#79521e>'
-          - '统一收录玩法攻略与服务器更新。'
+          - '服务器手册现已开放。'
           - type: space
-          - '提供分类、搜索、文章链接与自动分页。'
-      - title: 图文与接入
-        blocks:
-          - '支持 CE 图片、字体与自定义物品预览。'
+          - '可在目录中查阅已上线玩法的指引与服务器更新记录。'
           - type: space
-          - '其他插件可通过 API 注册自己的章节和条目。'
-          - type: space
-          - '本日志为示例，正式更新由管理员维护。'
+          - '支持图文阅读、关键词检索与翻页。'

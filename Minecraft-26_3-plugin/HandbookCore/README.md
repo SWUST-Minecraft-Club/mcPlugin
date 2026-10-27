@@ -1,9 +1,11 @@
 # HandbookCore
 
-Minecraft / Folia **26.3** 的全局手册核心，当前版本 **Beta_0_1_0**，Java 25。
+Minecraft / Folia **26.3** 的全局手册核心，当前版本 **Beta_0_1_1**，Java 25。
 基于 Paper Dialog 展示双页书，支持任意贡献插件注册玩法分类、图文条目和服务器更新日志。
 
 ![首页实机](./assets/verification/home.png)
+
+上图为 Beta_0_1_0 的历史布局验证，含旧示例与测试插件内容；当前默认仅保留一条更新日志。
 
 ## 安装与构建
 
@@ -15,11 +17,11 @@ Minecraft / Folia **26.3** 的全局手册核心，当前版本 **Beta_0_1_0**�
 
 | 文件 | 用途 |
 | --- | --- |
-| `HandbookCore-mc26_3-plugin-Beta_0_1_0.jar` | 服务端插件，已包含首次安装需要释放的 CE 资源 |
-| `HandbookCore-mc26_3-plugin-Beta_0_1_0-api.jar` | 其他插件的编译依赖，不能放进 `plugins/` |
-| `HandbookCore-CraftEngine-Beta_0_1_0.zip` | CE 资源目录，解压到 `plugins/CraftEngine/resources/` |
-| `HandbookCore-mc26_3-plugin-Beta_0_1_0-install.zip` | 插件 + CE 资源 + 安装说明 + 逐文件校验表 |
-| `HandbookCore-Beta_0_1_0-SHA256SUMS.txt` | 上述四个产物的 SHA-256 |
+| `HandbookCore-mc26_3-plugin-Beta_0_1_1.jar` | 服务端插件，已包含首次安装需要释放的 CE 资源 |
+| `HandbookCore-mc26_3-plugin-Beta_0_1_1-api.jar` | 其他插件的编译依赖，不能放进 `plugins/` |
+| `HandbookCore-CraftEngine-Beta_0_1_1.zip` | CE 资源目录，解压到 `plugins/CraftEngine/resources/` |
+| `HandbookCore-mc26_3-plugin-Beta_0_1_1-install.zip` | 插件 + CE 资源 + 安装说明 + 逐文件校验表 |
+| `HandbookCore-Beta_0_1_1-SHA256SUMS.txt` | 上述四个产物的 SHA-256 |
 
 安装步骤见 [INSTALL.md](./INSTALL.md)。先让 CraftEngine 首次启动完成并释放内置 `internal` 包，
 再安装手册资源，执行 `/ce reload all`，通过当前 CE 托管方式让玩家加载新资源包。
@@ -71,9 +73,18 @@ CE 若在登录配置阶段发包，Paper 可能没有游戏阶段的成功回�
 
 ## YAML 内容
 
-首次启动生成 `plugins/HandbookCore/config.yml` 与 `content/server.yml`。
-核心递归读取 `content/` 下的 `.yml` / `.yaml`；默认收录星露谷、小镇、农场生活和更新日志的**可编辑入门示例**，
-具体玩法规则应由运营者或相应玩法插件提供。单个 YAML 最大 2 MiB。
+核心只提供手册基础与一条可删除的更新日志，玩法分类和文章由各插件通过 API 贡献。
+首次启动生成 `plugins/HandbookCore/config.yml` 与 `content/server.yml`；已有 `content/` 目录时不会追加默认正文。
+删除更新日志后执行 `/handbook reload` 即可得到完全由插件贡献的手册；重启不会重新生成日志。
+初始化状态保存在 `plugins/HandbookCore/.content-initialized`，即使之后删除整个 `content/` 也只会重建空目录。
+
+从 Beta_0_1_0 升级时，会一次性清理原 `content/server.yml` 中三个玩法示例及不再使用的分类，
+原文件先备份到 `plugins/HandbookCore/backups/server-before-Beta_0_1_1-*.yml`，备份不会作为正文加载。
+清理对象是 `handbook:stardew-intro`、`handbook:town-intro`、`handbook:farming-intro` 三个旧示例 id；
+更新日志和其他自定义文章保留。若自定义文章仍使用旧分类，会保留对应分类；插件 API 贡献不受迁移影响。
+
+运营者仍可在 `content/` 下递归提供 `.yml` / `.yaml`，单个 YAML 最大 2 MiB。
+下面仅为文档示例，插件不会自动生成这些玩法页面：
 
 ```yaml
 categories:

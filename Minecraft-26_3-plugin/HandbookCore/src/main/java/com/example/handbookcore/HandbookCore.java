@@ -27,8 +27,9 @@ public final class HandbookCore extends JavaPlugin implements Listener {
     private CraftEngineBridge ce;
     @Override public void onEnable() {
         saveDefaultConfig();
-        if (!new java.io.File(getDataFolder(), "content/server.yml").exists()) saveResource("content/server.yml", false);
         try {
+            var backup = ContentBootstrap.prepare(getDataFolder().toPath());
+            if (backup != null) getLogger().info("已清理核心自带的玩法示例；原文件备份到 " + getDataFolder().toPath().relativize(backup));
             catalog.replace(getName(), new ContentLoader().load(getDataFolder().toPath().resolve("content")));
             int installed = ResourceInstaller.install(this);
             if (installed > 0) getLogger().info("已释放 " + installed + " 个手册 CE 文件；首次安装请执行 /ce reload all 并让玩家加载新资源包。");
