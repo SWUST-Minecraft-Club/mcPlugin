@@ -1,7 +1,7 @@
 // Wallet：主菜单里的钱包功能（货币种类 / 余额 / 流水），并给后续插件提供钱包 API。
 //   - 默认本地持久多币种账本，与 Vault 主币种共用余额
 //   - 保留旧官网后端、一次性余额迁入与独立测试模式
-version = 'Beta_0_6_1'
+version = 'Beta_0_6_2'
 
 dependencies {
     // 运行期由服务端提供 MainMenu 的类；只用 compileOnly，避免打进自己的 jar 造成类冲突

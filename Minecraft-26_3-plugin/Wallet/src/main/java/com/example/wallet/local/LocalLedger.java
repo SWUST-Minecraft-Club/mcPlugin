@@ -137,7 +137,7 @@ public final class LocalLedger implements AutoCloseable {
                     balance(row.player(), row.code()).add(row.amount()), "旧官网余额迁入；用户 " + row.siteUser(), now);
             entries.add(new Entry(row.player(), row.name(), tx));
         }
-        if (entries.isEmpty()) throw new WalletException(0, "没有可迁入的已绑定账户，未消耗一次性迁入机会");
+        if (entries.isEmpty()) throw new WalletException(0, "没有可迁入且身份校验通过的账户，未消耗一次性迁入机会");
         commit(new Event(1, "IMPORT", source, now, List.copyOf(entries)));
         return migration;
     }

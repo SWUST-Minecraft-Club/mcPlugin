@@ -52,7 +52,7 @@ public final class WalletLocalCommand implements BasicCommand {
         if (local.ledger().migration().complete()) { reply(sender, "旧官网余额已迁入，禁止重复执行。"); return; }
         if (!config.websiteConfigured()) { reply(sender, "迁入前请保留旧官网 base-url 与 api-key 配置，并重启服务端。"); return; }
         if (!importing.compareAndSet(false, true)) { reply(sender, "迁入正在进行中。"); return; }
-        reply(sender, "正在读取已知玩家的官网余额；全部校验通过后一次性入账。");
+        reply(sender, "正在读取已知玩家的官网余额；未绑定或 UUID 不一致的玩家将跳过并记录，其余账户校验通过后统一入账。");
         Bukkit.getGlobalRegionScheduler().execute(plugin, () -> {
             final var candidates = new LinkedHashMap<UUID, SiteMigration.Candidate>();
             for (final var player : Bukkit.getOfflinePlayers()) {
@@ -64,10 +64,16 @@ public final class WalletLocalCommand implements BasicCommand {
                         candidates.putIfAbsent(entry.playerId(), new SiteMigration.Candidate(entry.playerId(), entry.name()));
                     }
                     final var result = SiteMigration.execute(local.ledger(), local.cachedAssets(), website.service,
-                            List.copyOf(candidates.values()), config.baseUrl());
-                    plugin.getLogger().info("旧官网迁入已持久提交：" + result.players() + " 名玩家、" + result.migration().rows() + " 条余额。");
+                            List.copyOf(candidates.values()), config.baseUrl(), plugin.getLogger()::warning);
+                    final String skips = "跳过 " + result.skipped() + " 名（未绑定 "
+                            + (result.skipped() - result.mismatched()) + "，UUID 不一致 " + result.mismatched() + "）";
+                    plugin.getLogger().info("旧官网迁入已持久提交：" + result.players() + " 名玩家、"
+                            + result.migration().rows() + " 条余额；" + skips + "。");
                     reply(sender, "迁入完成：" + result.players() + " 名玩家、" + result.migration().rows()
-                            + " 条余额；跳过 " + result.skipped() + " 名未绑定官网的玩家。完成标记已持久保存，不能再次迁入。");
+                            + " 条余额；" + skips + "。完成标记已持久保存，不能再次迁入。");
+                    if (result.skipped() > 0) {
+                        reply(sender, "跳过账户未入账，详情见服务端日志；这些账户需另行核对补款，不会自动补迁。");
+                    }
                 } catch (RuntimeException error) {
                     Throwable cause = error;
                     while (cause.getCause() != null) cause = cause.getCause();
