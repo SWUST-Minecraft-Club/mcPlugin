@@ -447,7 +447,7 @@ dependencies {
 | YudreamPlaytime | `1_0_0`（2026.10.19） | `Beta_1_1_0`（适配 Folia；台账缓存加锁） |
 | yudream-minecraft-server | `2_0_0`（2026.10.19） | `Beta_2_1_0`（反射适配 Folia，保持 Java 8 / 1.13.2 兼容） |
 | Town | — | `Beta_0_8_0`（新增 HandbookCore 小镇玩家指南、14 篇章节与操作入口；保留经营、迁移、26 页 ArcMenu、GitLab 分发及 Wallet / Vault 结算） |
-| Wallet | —（还在测试版阶段） | `Beta_0_6_0`（本地持久多币种、Vault 可配主币种、旧官网一次性迁入；保留 API 和原钱包界面） |
+| Wallet | —（还在测试版阶段） | `Beta_0_6_1`（修复旧配置默认币种加载；本地持久多币种、Vault 可配主币种、旧官网一次性迁入；保留 API 和原钱包界面） |
 | ConcertoMenu | —（还在测试版阶段） | `Beta_0_2_0`（适配 Folia；首个版本：主菜单唱片机入口） |
 | JoinAnnounce | —（还在测试版阶段） | `Beta_0_4_1`（dialog 弹窗公告、默认不发聊天栏消息；默认每位玩家每天首次进服才弹；底部固定「开始冒险」+「查看完整更新日志」双按钮；`config-simple.yml` 为 SWUST 社团公告示例） |
 | ChatPrivacy | —（还在测试版阶段） | `Beta_0_1_0`（首个版本：公开聊天改写为无签名系统消息，客户端无法举报） |
@@ -581,6 +581,7 @@ dependencies {
 | `Beta_0_4_0` | 未提交 | 新增：适配 Folia 26.3（界面回调走玩家实体调度器，异步回复回到执行者区域线程） |
 | `Beta_0_5_0` | `b645a8e` | 新增：本地测试模式 `test-mode`，余额与流水写入本机账本，默认关闭 |
 | `Beta_0_6_0` | 本次提交 | 新增本地持久多币种及 Vault 主币种经济服务、旧 YuDream 官网一次性迁入；修复钱包菜单桥接 |
+| `Beta_0_6_1` | 本次提交 | 修复旧配置缺少 currencies 时默认 coin 未加载、钱包启动失败；新增配置回归测试与官网后端升级说明 |
 
 **ConcertoMenu（插件）**
 

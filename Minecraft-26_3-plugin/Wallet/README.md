@@ -1,8 +1,14 @@
 # Wallet
 
-`Beta_0_6_0`，Folia 26.3 / Java 25。本地持久多币种钱包，向 Vault 提供一个可配置的主币种；保留 WalletApi、原钱包界面和旧 YuDream 官网后端。
+`Beta_0_6_1`，Folia 26.3 / Java 25。本地持久多币种钱包，向 Vault 提供一个可配置的主币种；保留 WalletApi、原钱包界面和旧 YuDream 官网后端。
 
 ## 配置与升级
+
+旧版官网配置没有 `backend` 时，新版本默认选择 `local`。**继续使用官网余额时，显式添加 `backend: website`**，保留原 `base-url`、`api-key` 和 `assets.yml`，无需添加本地 `currencies` / `vault` 配置。官网后端不注册 Vault 经济服务。
+
+切换本地钱包时按下方示例定义币种，并按「旧 YuDream 官网一次性迁入」处理旧余额。`assets.yml` 的 `enabled` 列表只控制本服币种开关，不定义本地币种；原来使用 `gold` 等 code 的币种应保留原 code 和精度，不能直接改名为默认 `coin`。
+
+`Beta_0_6_1` 修复旧配置缺少 `currencies` 时受 Bukkit 默认节影响、加载出空币种列表并报「币种不存在或未启用：coin」的问题。显式定义的自定义币种、空币种节和禁用状态保持原样，不会自动改币种或迁入余额。
 
 停服并备份原 Wallet 配置和数据；替换旧 JAR，同一插件只保留一个版本。在 `plugins/Wallet/config.yml` 合并以下内容，保留原 `base-url` / `api-key`：
 

@@ -54,7 +54,9 @@ public record WalletConfig(
             throw new IllegalArgumentException("backend 必须是 local 或 website");
         }
         final List<WalletAsset> currencies = new ArrayList<>();
-        final var section = config.getConfigurationSection("currencies");
+        // getConfigurationSection 会为仅存在于 defaults 的节创建空节，getKeys(false) 却不含默认键。
+        // 先检查文件中实际存在的节，让旧配置继续使用默认币种，保留显式空节与自定义币种。
+        final var section = config.contains("currencies", true) ? config.getConfigurationSection("currencies") : null;
         if (section == null) {
             currencies.add(new WalletAsset("coin", "金币", "金币", 2, true, true, true));
         } else {

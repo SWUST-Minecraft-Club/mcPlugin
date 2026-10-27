@@ -1,5 +1,14 @@
 # Wallet Beta_0_6_0 验证
 
+## Beta_0_6_1 配置回归（2026-10-26）
+
+- 使用发布的 `Beta_0_6_0` JAR、Folia API `26.3.build.5-alpha` 和不含真实凭证的旧版官网配置复现 JavaPlugin 加载过程：先读取文件，再通过 `setDefaults` 绑定 JAR 默认配置。旧版得到 `currencies=[]`，同一配置不绑定 defaults 时反而得到 `coin`。
+- 修复前新增的 7 项配置测试有 1 项失败，失败点为旧配置继承默认节后没有默认 `coin`；修复后 Wallet 全部 20 项 JUnit 测试通过，包括原有账本与迁入测试。
+- 7 项配置回归覆盖：旧配置绑定默认值、旧配置未绑定默认值、全新安装、自定义 `gold` 币种与 Vault 选择、显式禁用 `coin`、显式空币种节、官网模式保留地址/示例密钥/币种选择。测试不连接真实官网，不使用生产凭证。
+- Java 25 / Gradle 9.8.1，运行 `:Wallet:build` 构建并归档 `Beta_0_6_1`；本机使用同版本缓存的 Gradle 和离线依赖。生产账本、迁入逻辑、Vault 桥接及官网实现未改动；本轮未新增真实服务器或客户端联调。
+
+下方保留 `Beta_0_6_0` 的原始真实 Folia / Vault 验证范围。
+
 ## 环境
 
 2026-10-26，独立 Folia 26.3 build 5 / Java 25 / Gradle 9.8.1，使用用户提供的 Vault 1.7.3-b0-folia、MainMenu Beta_1_7_0、Town Beta_0_7_1。所有账户、余额和官网 HTTP 均为本机夹具；未访问真实 YuDream 官网钱包，未替用户执行真实迁入。

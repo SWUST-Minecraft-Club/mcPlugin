@@ -1,5 +1,12 @@
 # Wallet 本地多币种、Vault 与官网一次性迁入
 
+## 继承默认配置节不代表 getKeys 能枚举默认币种
+
+- **现象**：保留旧官网 `config.yml` 升级 Wallet 后，本地启动提示「币种不存在或未启用：coin」；新安装使用相同 JAR 正常。
+- **根因**：JavaPlugin 将 JAR 配置绑定为 `FileConfiguration` 的 defaults。旧文件没有 `currencies` 时，`getConfigurationSection` 会基于默认节创建一个空节，而默认未开启复制默认值，`getKeys(false)` 不包含继承的 `coin`；原先仅判断节是否为 null 的兜底失效。
+- **规避/解决**：调用前用 `contains("currencies", true)` 检查文件中真实存在的节，缺少时使用默认币种；显式空节、自定义币种和禁用状态保持原样。回归测试要模拟 `setDefaults`，不能只测试独立的 `YamlConfiguration`。继续使用旧官网余额需显式配置 `backend: website`，`assets.yml` 启用列表不会定义本地币种。
+- **来源**：2026-10-26，Wallet `Beta_0_6_1`；发布 JAR + Folia API `26.3.build.5-alpha` 复现；`./Minecraft-26_3-plugin/Wallet/src/test/java/com/example/wallet/WalletConfigTest.java`。
+
 ## 把未校验的玩家纹理直接拼入 skull 会让整页打开失败
 
 - **现象**：用户截图出现 `skull must be a texture hash or valid skin Base64`，主页、应用入口无法正常使用。
