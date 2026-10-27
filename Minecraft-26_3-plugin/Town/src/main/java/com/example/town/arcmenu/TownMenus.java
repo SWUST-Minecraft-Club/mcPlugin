@@ -244,13 +244,13 @@ public final class TownMenus {
         m.text("form-kicker", t(ACC, "NEW TOWN"), 368, 100, 10, 5, LEFT, null);
         m.text("form-title", t(TEXT, "小镇叫什么？"), 368, 138, 22, 5, LEFT, null);
         m.frame("in-frame", 368, 174, 380, 48, ACC, 3, 2);
-        m.text("in-preview", t(MUTE, "点击这里输入小镇名称"), 558, 198, 12, 5, CENTER, null);
+        m.text("in-preview", t(TEXT, "{meta:create_name}"), 558, 198, 12, 5, CENTER, null);
         m.region("in-name", 368, 174, 380, 48,
-                MenuBuilder.spec(MenuBuilder.tooltip("&f填写后点击提交；铁砧界面请点击右侧结果"),
+                MenuBuilder.spec(MenuBuilder.tooltip("&f填写并保存镇名；再次点击可修改"),
                         MenuBuilder.click("all", "command: town ui-input name")));
-        button(m, "go", 368, 248, 380, 46, GREEN, "输入名称并开始筹备",
-                "command: town ui-input name");
-        m.text("form-note", t(MUTE, "铁砧请点右侧结果提交；登记免费，成立时才扣费"), 558, 326, 10, 5, CENTER, null);
+        button(m, "go", 368, 248, 380, 46, GREEN, "开始筹备",
+                "command: town ui-create");
+        m.text("form-note", t(MUTE, "{meta:create_status}"), 558, 326, 10, 5, CENTER, null);
         return m;
     }
 

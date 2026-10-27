@@ -11,13 +11,18 @@ import com.example.town.util.Threads;
 import com.fentai.arcmenu.api.ArcMenuApi;
 import com.fentai.arcmenu.api.ArcMenuReloadReport;
 import com.fentai.arcmenu.api.ArcMenuStateScope;
-import com.fentai.arcmenu.api.ArcMenuTextInputEndReason;
-import com.fentai.arcmenu.api.ArcMenuTextInputHandle;
-import com.fentai.arcmenu.api.ArcMenuTextInputOptions;
-import com.fentai.arcmenu.api.ArcMenuTextInputResult;
+import io.papermc.paper.dialog.Dialog;
+import io.papermc.paper.registry.data.dialog.ActionButton;
+import io.papermc.paper.registry.data.dialog.DialogBase;
+import io.papermc.paper.registry.data.dialog.action.DialogAction;
+import io.papermc.paper.registry.data.dialog.body.DialogBody;
+import io.papermc.paper.registry.data.dialog.input.DialogInput;
+import io.papermc.paper.registry.data.dialog.type.DialogType;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -26,6 +31,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickCallback;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -48,6 +56,8 @@ public final class TownUi {
     private final Map<UUID, UUID> selectedMember = new ConcurrentHashMap<>();
     private final Map<UUID, ConfirmSession> confirmations = new ConcurrentHashMap<>();
     private final Map<UUID, InputSession> textInputs = new ConcurrentHashMap<>();
+    private final Map<UUID, String> createNames = new ConcurrentHashMap<>();
+    private final Map<UUID, TownService.Result> createFeedback = new ConcurrentHashMap<>();
     private final Map<UUID, ChunkKey> chunkPreviews = new ConcurrentHashMap<>();
     private final Map<UUID,ChunkKey> mapRequests=new ConcurrentHashMap<>();
     private final Set<UUID> balanceLoading = ConcurrentHashMap.newKeySet();
@@ -62,7 +72,7 @@ public final class TownUi {
     private static final class InputSession {
         final String returnScreen;
         final AtomicBoolean completed = new AtomicBoolean();
-        ArcMenuTextInputHandle handle;
+        ScheduledTask timeout;
 
         InputSession(final String returnScreen) {
             this.returnScreen = returnScreen;
@@ -194,6 +204,7 @@ public final class TownUi {
 
     public void openCreate(final Player player) {
         writeCommon(player, plugin.service().townOf(player.getUniqueId()));
+        writeCreate(player);
         markAndOpen(player, TownMenus.CREATE);
     }
 
@@ -366,102 +377,158 @@ public final class TownUi {
 
     // ------------------------------------------------------------------ API 输入与地图拖动
 
-    /** 点击输入框 / 邀请按钮时唤起 ArcMenu 文本输入；提交后直接执行对应业务，绕开 Arcitx 需先 Esc 的问题。 */
+    /** 名称先回填草稿；邀请和经营仍在提交输入后执行各自操作。 */
     public void requestInput(final Player player, final String kind) {
         final boolean create = "name".equals(kind);
-        requestTextInput(player, create ? "镇名 · 点右侧结果提交" : "玩家 · 点右侧结果提交",
+        if (create && !TownMenus.CREATE.equals(current.get(player.getUniqueId()))) {
+            openCreate(player);
+        }
+        requestTextInput(player, create ? "填写小镇名称" : "邀请玩家",
+                create ? createNames.getOrDefault(player.getUniqueId(), "") : "",
                 create ? plugin.config().nameMaxLength() : 16, value -> {
-                    final var feedback = feedbackFor(player);
                     if (create) {
-                        plugin.service().create(player, value, feedback);
+                        final TownService.Result invalid = plugin.service().validateName(value);
+                        if (invalid != null) {
+                            createFeedback.put(player.getUniqueId(), invalid);
+                            inputFeedback(player, invalid.messageKey(), invalid.resolvers());
+                        } else {
+                            createNames.put(player.getUniqueId(), value);
+                            createFeedback.remove(player.getUniqueId());
+                        }
                     } else {
-                        plugin.service().invite(player, value, feedback);
+                        plugin.service().invite(player, value, feedbackFor(player));
                     }
                 });
     }
 
+    /** 确认按钮只读取服务器保存的名称，避免把输入直接拼成指令。 */
+    public void createFromDraft(final Player player) {
+        final UUID id = player.getUniqueId();
+        if (!TownMenus.CREATE.equals(current.get(id)) || textInputs.containsKey(id)) {
+            return;
+        }
+        final String name = createNames.get(id);
+        if (name == null || name.isBlank()) {
+            requestInput(player, "name");
+            return;
+        }
+        plugin.service().create(player, name, result -> {
+            if (result.ok()) {
+                createNames.remove(id);
+                createFeedback.remove(id);
+            } else {
+                createFeedback.put(id, result);
+            }
+            feedbackFor(player).accept(result);
+        });
+    }
+
     public void operation(Player player,String input) {operations.command(player,input);}
-    public boolean isViewing(Player player) { return api.sessions().current(player)!=null; }
+    public boolean isViewing(Player player) {
+        return textInputs.containsKey(player.getUniqueId()) || api.sessions().current(player) != null;
+    }
     public void leave(Player player) {
         forget(player.getUniqueId());
         api.close(player);
     }
     void closeOperations(Player player) {cancelTextInput(player.getUniqueId());api.close(player);current.remove(player.getUniqueId());}
     void requestOperationInput(Player player,String title,java.util.function.Consumer<String> submitted) {
-        requestTextInput(player, title, 50, submitted);
+        requestTextInput(player, title, "", 50, submitted);
     }
 
-    /** 注册先于 API 调用；旧请求的延迟回调只能结束自身，不能删除新请求。 */
-    private void requestTextInput(final Player player, final String title, final int maxLength,
+    /** 使用原生 Dialog 收集值，不再依赖 ArcMenu 的铁砧重命名和背包关闭回调。 */
+    private void requestTextInput(final Player player, final String title, final String initial, final int maxLength,
                                   final java.util.function.Consumer<String> submitted) {
         final UUID playerId = player.getUniqueId();
         final InputSession input = new InputSession(current.getOrDefault(playerId, homeScreen(player)));
         final InputSession previous = textInputs.put(playerId, input);
         closeTextInput(previous);
         try {
-            if (api.textInput() == null) {
-                throw new IllegalStateException("ArcMenu text input service unavailable");
-            }
-            final var options = ArcMenuTextInputOptions.builder().title(title)
-                    .maxLength(Math.clamp(maxLength, 1, 50)).build();
-            input.handle = api.textInput().request(plugin, player, options,
-                new com.fentai.arcmenu.api.ArcMenuTextInputListener() {
-                    @Override public void onComplete(final ArcMenuTextInputResult result) {
-                        if (!input.completed.compareAndSet(false, true)) {
-                            return;
+            // 先登记输入再关 ArcMenu，其 ui-closed 回调和刷新任务不会清掉待回填的创建页。
+            api.close(player);
+            final var callbackOptions = ClickCallback.Options.builder().uses(1)
+                    .lifetime(Duration.ofMinutes(3)).build();
+            final ActionButton save = ActionButton.builder(Component.text("保存输入")).width(150)
+                    .action(DialogAction.customClick((response, audience) -> {
+                        if (audience instanceof Player sender && sender.getUniqueId().equals(playerId)) {
+                            finishTextInput(player, input, java.util.Objects.requireNonNullElse(
+                                    response.getText("value"), ""), false, submitted);
                         }
-                        // 原生输入结束时仍可能在清理背包或恢复 ArcMenu；必须等玩家的下一 tick。
-                        player.getScheduler().run(plugin, task -> completeTextInput(player, input, result, submitted),
-                                () -> textInputs.remove(playerId, input));
+                    }, callbackOptions)).build();
+            final ActionButton cancel = ActionButton.builder(Component.text("取消并返回")).width(150)
+                    .action(DialogAction.customClick((response, audience) -> {
+                        if (audience instanceof Player sender && sender.getUniqueId().equals(playerId)) {
+                            finishTextInput(player, input, null, false, submitted);
+                        }
+                    }, callbackOptions)).build();
+            final Dialog dialog = Dialog.create(builder -> builder.empty().base(DialogBase.builder(Component.text(title))
+                    .canCloseWithEscape(true).pause(false).afterAction(DialogBase.DialogAfterAction.CLOSE)
+                    .body(List.of(DialogBody.plainMessage(Component.text("填写后点击「保存输入」；Esc 取消并返回。"), 310)))
+                    .inputs(List.of(DialogInput.text("value", Component.text("输入内容")).width(310)
+                            .initial(initial).maxLength(Math.max(maxLength, 1)).build())).build())
+                    .type(DialogType.multiAction(List.of(save)).exitAction(cancel).columns(1).build()));
+            // 脱离菜单点击事件栈后打开，防止关闭旧界面时顺带关闭新输入。
+            player.getScheduler().run(plugin, task -> {
+                if (textInputs.get(playerId) == input && !input.completed.get()) {
+                    try {
+                        player.showDialog(dialog);
+                    } catch (final RuntimeException error) {
+                        failTextInput(player, input, error);
                     }
-                });
-            if (input.handle == null && !input.completed.get()) {
-                throw new IllegalStateException("ArcMenu rejected text input request");
-            }
-            if (textInputs.get(playerId) != input) {
-                closeTextInput(input);
-            }
+                }
+            }, () -> textInputs.remove(playerId, input));
+            input.timeout = player.getScheduler().runDelayed(plugin,
+                    task -> finishTextInput(player, input, null, true, submitted),
+                    () -> textInputs.remove(playerId, input), 2400L);
         } catch (final LinkageError | RuntimeException error) {
-            if (textInputs.remove(playerId, input)) {
-                closeTextInput(input);
-                plugin.getLogger().log(java.util.logging.Level.WARNING, "ArcMenu 文本输入启动失败", error);
-                plugin.messages().send(player, "input-unavailable");
-                resumeTextInput(player, input);
-            }
+            failTextInput(player, input, error);
         }
     }
 
-    private void completeTextInput(final Player player, final InputSession input,
-                                   final ArcMenuTextInputResult result,
+    private void failTextInput(final Player player, final InputSession input, final Throwable error) {
+        if (textInputs.remove(player.getUniqueId(), input)) {
+            closeTextInput(input);
+            plugin.getLogger().log(java.util.logging.Level.WARNING, "小镇文本输入启动失败", error);
+            inputFeedback(player, "input-unavailable");
+            resumeTextInput(player, input);
+        }
+    }
+
+    private void finishTextInput(final Player player, final InputSession input, final String value,
+                                 final boolean expired, final java.util.function.Consumer<String> submitted) {
+        if (textInputs.get(player.getUniqueId()) != input || !input.completed.compareAndSet(false, true)) {
+            return;
+        }
+        player.getScheduler().run(plugin, task -> completeTextInput(player, input, value, expired, submitted),
+                () -> textInputs.remove(player.getUniqueId(), input));
+    }
+
+    private void completeTextInput(final Player player, final InputSession input, final String rawValue,
+                                   final boolean expired,
                                    final java.util.function.Consumer<String> submitted) {
         final UUID playerId = player.getUniqueId();
         if (!textInputs.remove(playerId, input) || !player.isOnline()) {
             return;
         }
-        final ArcMenuTextInputEndReason reason = result.getReason();
-        if (reason == ArcMenuTextInputEndReason.SUBMITTED) {
-            final String value = result.getValue() == null ? "" : result.getValue().trim();
+        closeTextInput(input);
+        player.closeDialog();
+        if (rawValue != null) {
+            final String value = rawValue.trim();
             if (value.isBlank()) {
-                plugin.messages().send(player, "input-empty");
+                if (TownMenus.CREATE.equals(input.returnScreen)) {
+                    createFeedback.put(playerId, TownService.Result.fail("input-empty"));
+                }
+                inputFeedback(player, "input-empty");
             } else {
                 try {
                     submitted.accept(value);
                 } catch (final RuntimeException error) {
                     plugin.getLogger().log(java.util.logging.Level.WARNING, "小镇输入提交处理失败", error);
-                    plugin.messages().send(player, "input-failed");
+                    inputFeedback(player, "input-failed");
                 }
             }
-        } else if (reason == ArcMenuTextInputEndReason.CANCELLED) {
-            plugin.messages().send(player, "input-cancelled");
-        } else if (reason == ArcMenuTextInputEndReason.ERROR) {
-            plugin.messages().send(player, "input-failed");
         } else {
-            if (reason == ArcMenuTextInputEndReason.SESSION_CLOSED) {
-                plugin.messages().send(player, "input-cancelled");
-            }
-            // 离线、停用、换页或会话真正关闭时，不把玩家拉回旧菜单。
-            clear(playerId);
-            return;
+            inputFeedback(player, expired ? "chat-input-timeout" : "input-cancelled");
         }
         resumeTextInput(player, input);
     }
@@ -480,16 +547,27 @@ public final class TownUi {
     }
 
     private void cancelTextInput(final UUID playerId) {
-        closeTextInput(textInputs.remove(playerId));
+        final InputSession input = textInputs.remove(playerId);
+        closeTextInput(input);
+        if (input != null && plugin.isEnabled()) {
+            final Player player = Bukkit.getPlayer(playerId);
+            if (player != null) {
+                Threads.forPlayer(plugin, player, player::closeDialog);
+            }
+        }
     }
 
     private static void closeTextInput(final InputSession input) {
-        if (input != null && input.handle != null) {
-            try {
-                input.handle.close();
-            } catch (final RuntimeException ignored) {
-            }
+        if (input != null && input.timeout != null) {
+            input.timeout.cancel();
         }
+    }
+
+    private void inputFeedback(final Player player, final String key,
+                               final net.kyori.adventure.text.minimessage.tag.resolver.TagResolver... resolvers) {
+        final Component message = plugin.messages().render(key, resolvers);
+        player.sendMessage(message);
+        player.sendActionBar(message);
     }
 
     /** 输入提交后的反馈：投递结果并按当前页面决定回跳。 */
@@ -523,6 +601,7 @@ public final class TownUi {
         writeCommon(player, view);
         if(screen.startsWith(TownOperationMenus.PREFIX)) {operations.write(player);api.refresh(player);return;}
         switch (screen) {
+            case TownMenus.CREATE -> writeCreate(player);
             case TownMenus.MEMBERS -> writeMembers(player);
             case TownMenus.MEMBER_DETAIL -> writeSelected(player);
             case TownMenus.INVITE_PICKER -> writeCandidates(player);
@@ -636,6 +715,8 @@ public final class TownUi {
 
     private void clear(final UUID playerId) {
         current.remove(playerId);
+        createNames.remove(playerId);
+        createFeedback.remove(playerId);
         memberPage.remove(playerId);
         invitePage.remove(playerId);
         buffPage.remove(playerId);
@@ -651,6 +732,8 @@ public final class TownUi {
 
     public void shutdown() {
         current.clear();
+        createNames.clear();
+        createFeedback.clear();
         memberPage.clear();
         invitePage.clear();
         buffPage.clear();
@@ -659,14 +742,22 @@ public final class TownUi {
         confirmations.clear();
         chunkPreviews.clear();
         mapRequests.clear();
-        final List<InputSession> inputs = List.copyOf(textInputs.values());
-        textInputs.clear();
-        inputs.forEach(TownUi::closeTextInput);
+        List.copyOf(textInputs.keySet()).forEach(this::cancelTextInput);
         balanceLoading.clear();
         balanceRetryAt.clear();
     }
 
     // ------------------------------------------------------------------ META 写入
+
+    private void writeCreate(final Player player) {
+        final String name = createNames.get(player.getUniqueId());
+        set(player, "create_name", name == null ? "点击这里输入小镇名称" : name);
+        final TownService.Result feedback = createFeedback.get(player.getUniqueId());
+        set(player, "create_status", feedback == null
+                ? (name == null ? "先填写并保存镇名，再点击开始筹备；登记免费" : "镇名已保存；点击「开始筹备」完成登记")
+                : LegacyComponentSerializer.legacyAmpersand().serialize(
+                        plugin.messages().renderPlain(feedback.messageKey(), feedback.resolvers())));
+    }
 
     void set(final Player player, final String key, final String value) {
         if (value == null) {

@@ -73,6 +73,9 @@ class TownMenusTest {
         assertEquals("command: town ui-input name",
                 create.getAsJsonObject("in-name").getAsJsonObject("actions")
                         .getAsJsonArray("all").get(0).getAsString());
+        assertEquals("command: town ui-create",
+                create.getAsJsonObject("go").getAsJsonObject("actions")
+                        .getAsJsonArray("all").get(0).getAsString(), "保存输入与确认创建必须是两个独立操作");
     }
 
     @Test

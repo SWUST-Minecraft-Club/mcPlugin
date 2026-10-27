@@ -329,6 +329,13 @@ public final class TownCommand {
                     }
                     return 1;
                 }))
+                .then(Commands.literal("ui-create").executes(ctx -> {
+                    final Player player = needPlayer(plugin, ctx);
+                    if (player != null && plugin.ui() != null) {
+                        plugin.ui().createFromDraft(player);
+                    }
+                    return 1;
+                }))
                 .then(Commands.literal("ui-input")
                         .then(Commands.argument("kind", StringArgumentType.word())
                                 .executes(ctx -> {

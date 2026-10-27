@@ -1,0 +1,86 @@
+{
+  "environment": {
+    "server": "Folia 26.3 build 5",
+    "java": "25",
+    "arcmenu": "3.2.0",
+    "wallet": "Beta_0_7_0",
+    "client": "Minecraft 26.3 Fabric, MainMenuRepair + MinecraftMcp + Fabric API"
+  },
+  "checks": [
+    {
+      "case": "numeric-save-without-creation",
+      "status": "AUDIT current=town-create inputs=0 draft=123123 town=none"
+    },
+    {
+      "case": "escape-keeps-saved-name",
+      "status": "AUDIT current=town-create inputs=0 draft=123123 town=none"
+    },
+    {
+      "case": "empty-keeps-draft",
+      "status": "AUDIT current=town-create inputs=0 draft=123123 town=none"
+    },
+    {
+      "case": "short-name-keeps-draft",
+      "status": "AUDIT current=town-create inputs=0 draft=123123 town=none"
+    },
+    {
+      "case": "invalid-character-keeps-draft",
+      "status": "AUDIT current=town-create inputs=0 draft=123123 town=none"
+    },
+    {
+      "case": "duplicate-keeps-form",
+      "status": "AUDIT current=town-create inputs=0 draft=青禾 town=none"
+    },
+    {
+      "case": "edit-chinese-name",
+      "status": "AUDIT current=town-create inputs=0 draft=春溪新镇 town=none"
+    },
+    {
+      "case": "save-after-wait",
+      "status": "AUDIT current=town-create inputs=0 draft=123123 town=none"
+    },
+    {
+      "case": "actual-create-button",
+      "status": "AUDIT current=town-home-pending inputs=0 draft=null town=123123"
+    },
+    {
+      "case": "invite-offline",
+      "status": "AUDIT current=town-members inputs=0 draft=null town=123123"
+    },
+    {
+      "case": "navigate-during-input",
+      "status": "AUDIT current=null inputs=0 draft=null town=123123"
+    },
+    {
+      "case": "operation-amount",
+      "input": "12.50",
+      "status": "AUDIT current=town-op-confirm inputs=0 draft=null town=123123",
+      "result": "真实鼠标点击保存后进入费用确认页，未执行扣款"
+    },
+    {
+      "case": "cancel-button",
+      "status": "AUDIT current=town-op-civic inputs=0 draft=null town=123123",
+      "result": "实际点击取消并返回，提示已取消输入"
+    },
+    {
+      "case": "actual-two-minute-timeout",
+      "startTick": 8138,
+      "feedbackTick": 10538,
+      "status": "AUDIT current=town-op-civic inputs=0 draft=null town=123123",
+      "result": "实际等待2400 tick后提示输入超时并返回镇库"
+    },
+    {
+      "case": "final-jar-with-held-survey-tool",
+      "input": "123123",
+      "statusBeforeCreate": "AUDIT current=town-create inputs=0 draft=123123 town=none",
+      "statusAfterCreate": "AUDIT current=town-home-pending inputs=0 draft=null town=123123",
+      "heldItem": "minecraft:stick / 小镇测绘工具",
+      "result": "空表单实际点击开始筹备唤起输入；保存后回填，再次点击开始筹备成功；工具未拦截菜单点击"
+    }
+  ],
+  "finalArtifact": {
+    "path": "./release/Town/Town-mc26_3-plugin-Beta_0_9_2.jar",
+    "sha256": "9eac06d967d5f7a5117bb53f5c8fc877062a68ab2181be1a26af63e8337220e3",
+    "serverJarIdentical": true
+  }
+}

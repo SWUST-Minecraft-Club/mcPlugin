@@ -1,0 +1,57 @@
+{
+  "resolution": [
+    1280,
+    720
+  ],
+  "method": "Raw client screenshot; RGB bounds with 18-channel tolerance for distance shading, existing 70 percent calibration; no image manipulation",
+  "checks": [
+    {
+      "element": "name-field",
+      "actualBox": [
+        604,
+        302,
+        1031,
+        358
+      ],
+      "expectedBox": [
+        604.1600000000001,
+        302.88,
+        1029.7600000000002,
+        356.64
+      ],
+      "edgeErrorCanvas": [
+        -0.143,
+        -0.786,
+        1.107,
+        1.214
+      ]
+    },
+    {
+      "element": "create-button",
+      "actualBox": [
+        604,
+        385,
+        1031,
+        438
+      ],
+      "expectedBox": [
+        604.1600000000001,
+        385.76000000000005,
+        1029.7600000000002,
+        437.28000000000003
+      ],
+      "edgeErrorCanvas": [
+        -0.143,
+        -0.679,
+        1.107,
+        0.643
+      ]
+    }
+  ],
+  "savedNumericNameInkBox": [
+    792,
+    324,
+    844,
+    335
+  ]
+}
