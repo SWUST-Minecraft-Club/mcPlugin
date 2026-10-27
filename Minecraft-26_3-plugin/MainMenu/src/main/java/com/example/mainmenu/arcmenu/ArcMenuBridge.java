@@ -64,6 +64,7 @@ public final class ArcMenuBridge implements DisplayMenus, Listener {
     private volatile String home = "mainmenu-home";
     private volatile ZoneId clockZone = DEFAULT_CLOCK_ZONE;
     private volatile boolean ready;
+    private volatile Map<String, String> presentationSources = Map.of();
 
     private static final class View {
         int page = 1;
@@ -109,6 +110,12 @@ public final class ArcMenuBridge implements DisplayMenus, Listener {
         final var menus = plugin.getDataFolder().toPath().toAbsolutePath().getParent()
                 .resolve("ArcMenu").resolve("menus").resolve("mainmenu");
         MenuTemplates.install(menus, plugin::getResource);
+        final Map<String, String> sources = new HashMap<>();
+        for (final String id : MenuTemplates.IDS) {
+            final java.nio.file.Path file = menus.resolve(id + ".yml");
+            if (java.nio.file.Files.isRegularFile(file)) sources.put(id, java.nio.file.Files.readString(file));
+        }
+        presentationSources = Map.copyOf(sources);
     }
 
     private record Settings(String home, Map<String, String> bindings, ZoneId clockZone) { }
@@ -226,6 +233,21 @@ public final class ArcMenuBridge implements DisplayMenus, Listener {
 
     private boolean open(final Player player, final String id) {
         publish(player);
+        final var provider = Bukkit.getServicesManager().load(com.example.mainmenu.api.MenuPageRenderer.class);
+        final String source = presentationSources.get(id);
+        if (provider != null && source != null && provider.open(player, id, source,
+                text -> api.state().resolveText(player, text), action -> presentationAction(player, action))) {
+            api.close(player);
+            final View state = view(player);
+            Schedulers.cancel(state.refresh);
+            state.refresh = Schedulers.runForAtFixedRate(plugin, player, () -> {
+                if (!provider.active(player, id)) { Schedulers.cancel(state.refresh); state.refresh = null; return; }
+                publish(player);
+                provider.open(player, id, source, text -> api.state().resolveText(player, text),
+                        action -> presentationAction(player, action));
+            }, 20, 20);
+            return true;
+        }
         return api.menus().open(plugin, player, id, List.of(), outcome -> {
             switch (outcome.getKind()) {
                 case REJECTED, ERROR, TIMED_OUT -> feedback(player,
@@ -233,6 +255,17 @@ public final class ArcMenuBridge implements DisplayMenus, Listener {
                 default -> { }
             }
         }).isAccepted();
+    }
+
+    private void presentationAction(final Player player, final String action) {
+        if (action.startsWith("open: ")) {
+            final String[] parts = action.substring(6).strip().split("\\s+");
+            api.dispatchRoute(player, parts[0], java.util.Arrays.asList(parts).subList(1, parts.length));
+        } else if (action.startsWith("command: ")) player.performCommand(action.substring(9));
+        else if (action.equals("close") || action.equals("close:")) {
+            final var provider = Bukkit.getServicesManager().load(com.example.mainmenu.api.MenuPageRenderer.class);
+            if (provider != null) provider.close(player);
+        }
     }
 
     private boolean admin(final Player player) {
@@ -367,6 +400,8 @@ public final class ArcMenuBridge implements DisplayMenus, Listener {
                 || !feature.clickable(click)) {
             return;
         }
+        final var presentation = Bukkit.getServicesManager().load(com.example.mainmenu.api.MenuPageRenderer.class);
+        if (presentation != null) presentation.close(player);
         api.close(player);
         try {
             feature.onClick(player, click);
@@ -398,6 +433,13 @@ public final class ArcMenuBridge implements DisplayMenus, Listener {
         if (state.input != null) {
             state.input.close();
         }
+        final var presentation = Bukkit.getServicesManager().load(com.example.mainmenu.api.MenuPageRenderer.class);
+        if (presentation != null && presentation.input(player, "自定义功能名称", "", 50, value -> {
+            if (!admin(player) || state.inputSequence != sequence) return;
+            final String id = plugin.createCustomFeature(value.trim());
+            if (id != null) { state.selected = id; attribute(player); }
+            else open(player, "mainmenu-manage");
+        }, () -> open(player, "mainmenu-manage"))) return;
         // Native input is limited to 50 characters on unmodded clients.
         state.input = api.textInput().request(plugin, player, ArcMenuTextInputOptions.builder()
                         .title("自定义功能名称").maxLength(50).build(), new ArcMenuTextInputListener() {

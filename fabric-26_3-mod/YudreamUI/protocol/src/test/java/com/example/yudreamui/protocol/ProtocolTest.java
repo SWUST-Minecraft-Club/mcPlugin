@@ -1,0 +1,10 @@
+package com.example.yudreamui.protocol;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import java.util.*;
+class ProtocolTest {
+ @Test void fragmentedUnicodeReordersAndDeduplicates(){var m=Wire.message("open");m.addProperty("html","界面🐱".repeat(20000));var frames=new ArrayList<>(Wire.encode(m));Collections.reverse(frames);var d=new Wire.Decoder();assertNull(d.accept(frames.getFirst()));assertNull(d.accept(frames.getFirst()));com.google.gson.JsonObject result=null;for(int i=1;i<frames.size();i++)result=d.accept(frames.get(i));assertEquals(m,result);}
+ @Test void invalidFramingAndVersionFail(){var d=new Wire.Decoder();assertThrows(IllegalArgumentException.class,()->d.accept(new byte[20]));var m=Wire.message("open");m.addProperty("protocol",99);assertThrows(IllegalArgumentException.class,()->d.accept(Wire.encode(m).getFirst()));assertThrows(IllegalArgumentException.class,()->d.accept(Arrays.copyOf(Wire.encode(Wire.message("hi")).getFirst(),21)));}
+ @Test void compilerExpandsBuiltinsAndPreservesResponsiveCss(){var out=HtmlCompiler.compile("<html><head><style>@media (max-width:500px){.x{width:90%;}}</style></head><body><mc-button id='buy' action='server:buy'>购买</mc-button><mc-checkbox id='check'/></body></html>",".mc-button {color:#fff;}");assertTrue(out.contains("class=\"mc-button\""));assertTrue(out.contains("@media"));assertTrue(out.contains("type=\"checkbox\""));assertFalse(out.contains("<mc-button"));}
+ @Test void compilerRejectsExecutableAndExternalContent(){for(String content:List.of("<script>alert(1)</script>","<button onclick='x()'>x</button>","<img src='https://example.org/a.png'/>","<style>@import 'bad';</style>","<div style='background:url(file:/etc/passwd)'/>"))assertThrows(IllegalArgumentException.class,()->HtmlCompiler.compile("<html><head/><body>"+content+"</body></html>",""));assertThrows(IllegalArgumentException.class,()->HtmlCompiler.compile("<!DOCTYPE html SYSTEM 'file:/etc/passwd'><html><head/><body/></html>",""));}
+}

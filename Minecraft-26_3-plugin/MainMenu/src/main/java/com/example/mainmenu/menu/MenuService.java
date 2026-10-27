@@ -48,9 +48,11 @@ public final class MenuService {
         }
         lastOpen.put(player.getUniqueId(), now);
 
+        final var provider = Bukkit.getServicesManager().load(com.example.mainmenu.api.MenuPageRenderer.class);
         if (plugin.displayMenus() != null && plugin.displayMenus().openHome(player)) {
             return;
         }
+        if (provider != null && provider.openHome(player)) return;
 
         final MenuHolder holder = new MenuHolder(player.getUniqueId(), player.getName());
         final Inventory inventory = Bukkit.createInventory(holder, MenuLayout.SIZE, plugin.menuTitle());

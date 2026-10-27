@@ -1,0 +1,202 @@
+title: 系统商店
+products:
+  arc-0:
+    name: 钻石头盔
+    category: 装备
+    material: DIAMOND_HELMET
+    amount: 1
+    price: '26'
+    currency: coin
+    description: 原商店目录 · 钻石头盔
+  arc-1:
+    name: 钻石胸甲
+    category: 装备
+    material: DIAMOND_CHESTPLATE
+    amount: 1
+    price: '40'
+    currency: coin
+    description: 原商店目录 · 钻石胸甲
+  arc-2:
+    name: 钻石护腿
+    category: 装备
+    material: DIAMOND_LEGGINGS
+    amount: 1
+    price: '34'
+    currency: coin
+    description: 原商店目录 · 钻石护腿
+  arc-3:
+    name: 钻石靴子
+    category: 装备
+    material: DIAMOND_BOOTS
+    amount: 1
+    price: '20'
+    currency: coin
+    description: 原商店目录 · 钻石靴子
+  arc-4:
+    name: 钻石
+    category: 材料
+    material: DIAMOND
+    amount: 1
+    price: '3'
+    currency: coin
+    description: 原商店目录 · 钻石
+  arc-5:
+    name: 绿宝石
+    category: 材料
+    material: EMERALD
+    amount: 1
+    price: '1'
+    currency: coin
+    description: 原商店目录 · 绿宝石
+  arc-6:
+    name: 下界合金锭
+    category: 材料
+    material: NETHERITE_INGOT
+    amount: 1
+    price: '40'
+    currency: coin
+    description: 原商店目录 · 下界合金锭
+  arc-7:
+    name: 钻石块
+    category: 材料
+    material: DIAMOND_BLOCK
+    amount: 1
+    price: '27'
+    currency: coin
+    description: 原商店目录 · 钻石块
+  arc-8:
+    name: 附魔金苹果
+    category: 珍品
+    material: ENCHANTED_GOLDEN_APPLE
+    amount: 1
+    price: '80'
+    currency: coin
+    description: 原商店目录 · 附魔金苹果
+  arc-9:
+    name: 金苹果
+    category: 珍品
+    material: GOLDEN_APPLE
+    amount: 1
+    price: '8'
+    currency: coin
+    description: 原商店目录 · 金苹果
+  arc-10:
+    name: 不死图腾
+    category: 珍品
+    material: TOTEM_OF_UNDYING
+    amount: 1
+    price: '50'
+    currency: coin
+    description: 原商店目录 · 不死图腾
+  arc-11:
+    name: 末影珍珠
+    category: 珍品
+    material: ENDER_PEARL
+    amount: 1
+    price: '2'
+    currency: coin
+    description: 原商店目录 · 末影珍珠
+  arc-12:
+    name: 信标
+    category: 珍品
+    material: BEACON
+    amount: 1
+    price: '96'
+    currency: coin
+    description: 原商店目录 · 信标
+  arc-13:
+    name: 附魔台
+    category: 珍品
+    material: ENCHANTING_TABLE
+    amount: 1
+    price: '18'
+    currency: coin
+    description: 原商店目录 · 附魔台
+  arc-14:
+    name: 钻石镐
+    category: 工具
+    material: DIAMOND_PICKAXE
+    amount: 1
+    price: '24'
+    currency: coin
+    description: 原商店目录 · 钻石镐
+  arc-15:
+    name: 钻石斧
+    category: 工具
+    material: DIAMOND_AXE
+    amount: 1
+    price: '22'
+    currency: coin
+    description: 原商店目录 · 钻石斧
+  arc-16:
+    name: 钻石锹
+    category: 工具
+    material: DIAMOND_SHOVEL
+    amount: 1
+    price: '12'
+    currency: coin
+    description: 原商店目录 · 钻石锹
+  arc-17:
+    name: 钻石锄
+    category: 工具
+    material: DIAMOND_HOE
+    amount: 1
+    price: '14'
+    currency: coin
+    description: 原商店目录 · 钻石锄
+  arc-18:
+    name: 下界合金镐
+    category: 工具
+    material: NETHERITE_PICKAXE
+    amount: 1
+    price: '64'
+    currency: coin
+    description: 原商店目录 · 下界合金镐
+  arc-19:
+    name: 铁镐
+    category: 工具
+    material: IRON_PICKAXE
+    amount: 1
+    price: '6'
+    currency: coin
+    description: 原商店目录 · 铁镐
+  arc-20:
+    name: 钻石剑
+    category: 武器
+    material: DIAMOND_SWORD
+    amount: 1
+    price: '20'
+    currency: coin
+    description: 原商店目录 · 钻石剑
+  arc-21:
+    name: 下界合金剑
+    category: 武器
+    material: NETHERITE_SWORD
+    amount: 1
+    price: '60'
+    currency: coin
+    description: 原商店目录 · 下界合金剑
+  arc-22:
+    name: 铁剑
+    category: 武器
+    material: IRON_SWORD
+    amount: 1
+    price: '5'
+    currency: coin
+    description: 原商店目录 · 铁剑
+  arc-23:
+    name: 三叉戟
+    category: 武器
+    material: TRIDENT
+    amount: 1
+    price: '48'
+    currency: coin
+    description: 原商店目录 · 三叉戟
+  arc-24:
+    name: 盾牌
+    category: 武器
+    material: SHIELD
+    amount: 1
+    price: '4'
+    currency: coin
+    description: 原商店目录 · 盾牌

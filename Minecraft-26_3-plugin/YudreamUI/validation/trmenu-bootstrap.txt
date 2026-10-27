@@ -1,0 +1,5 @@
+TrMenu 3.12.6 / Folia 26.3 build 5 — selected startup failure lines
+[12:42:31 WARN]: javax.net.ssl.SSLHandshakeException: Remote host terminated the handshake
+[12:42:34 ERROR]: [TrMenu] Failed to initialize primitive loader, the plugin "TrMenu" will be disabled!
+[12:42:34 ERROR]: [ModernPluginLoadingStrategy] Could not load plugin 'TrMenu.jar' in folder 'plugins'
+Caused by: java.lang.IllegalStateException: Failed to setup Kotlin environment. (kotlin210.Lazy not found)

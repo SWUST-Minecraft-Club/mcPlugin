@@ -31,6 +31,9 @@ jobs:
         run: ./gradlew build --no-daemon --stacktrace
 
       # Fabric 客户端模组是独立工程（不依赖 fabric-loom，只下载官方客户端 jar）
+      - name: Install native UI build dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build libfreetype6-dev
+
       - name: Build Fabric mods
         run: |
           for project in ./fabric-26_3-mod/*/; do

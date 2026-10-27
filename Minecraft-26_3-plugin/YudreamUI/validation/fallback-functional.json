@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "inventoryPatchKeepsContainer": true,
+  "transfersCancelled": true,
+  "form": "降级表单🐱",
+  "dialogActions": true,
+  "dialogEscapeCloses": true,
+  "unavailableTrMenuRecovery": "inventory"
+}

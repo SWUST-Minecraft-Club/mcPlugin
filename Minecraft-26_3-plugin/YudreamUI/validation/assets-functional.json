@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "imageAndFontRevisions": 2,
+  "stateRetained": [
+    "input",
+    "checkbox",
+    "slider",
+    "tab",
+    "scroll",
+    "localCount"
+  ],
+  "badHashKeepsPreviousScreen": true,
+  "cacheHits": 6,
+  "resourcePackReloads": 0
+}

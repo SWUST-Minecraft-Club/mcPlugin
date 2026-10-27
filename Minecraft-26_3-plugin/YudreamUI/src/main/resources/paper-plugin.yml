@@ -1,0 +1,36 @@
+name: YudreamUI
+version: '${version}'
+main: com.example.yudreamui.plugin.YudreamUiPlugin
+api-version: '26.3'
+folia-supported: true
+authors: [zhou-BZDDX]
+description: Server-driven RmlUi prototype with a bundled Minecraft-style UI library
+permissions:
+  yudreamui.use:
+    description: Open the UI prototype
+    default: true
+  yudreamui.admin:
+    description: Reload UI definitions and test asset revisions
+    default: op
+  yudreamui.shop:
+    description: Buy server-owned products through Wallet
+    default: true
+
+dependencies:
+  server:
+    TrMenu:
+      load: BEFORE
+      required: false
+      join-classpath: true
+    Wallet:
+      load: BEFORE
+      required: false
+      join-classpath: true
+    MainMenu:
+      load: BEFORE
+      required: false
+      join-classpath: true
+    Town:
+      load: BEFORE
+      required: false
+      join-classpath: true

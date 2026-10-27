@@ -1,0 +1,3 @@
+rootProject.name = 'YudreamUI'
+include 'protocol', 'runtime', 'mc26_3'
+project(':mc26_3').projectDir = file('versions/mc26_3')

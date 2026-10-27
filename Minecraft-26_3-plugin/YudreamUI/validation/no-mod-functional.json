@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "yudreamUiModInstalled": false,
+  "automaticInventory": [
+    "MainMenu",
+    "Town",
+    "RPG dialogue",
+    "Wallet shop"
+  ],
+  "quantityForm": "vanilla Dialog",
+  "migratedCatalog": 25,
+  "walletDebit": "1000 -> 974 TEST",
+  "delivery": "1 diamond helmet"
+}

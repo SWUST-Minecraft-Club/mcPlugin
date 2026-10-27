@@ -1,0 +1,30 @@
+dialogues:
+  guide:
+    title: 林间向导
+    start: welcome
+    speaker: 林间向导 · 米娅
+    portrait: COMPASS
+    nodes:
+      welcome:
+        text: 早上好，{player}。树林里的小路已经通了。出发之前，要不要带些补给，或者找一群伙伴一起建造家园？
+        choices:
+          - label: 我想了解这里的生活
+            next: life
+          - label: 看看你带来的补给
+            shop: true
+          - label: 我准备好出发了
+            next: farewell
+      life:
+        text: 你可以独自探险，也可以建立小镇。伙伴们共享镇库，研究新工具，在商业街交换收获。慢慢来，你会找到自己的节奏。
+        choices:
+          - label: 打开小镇手册
+            command: town
+          - label: 我还想问些别的
+            next: welcome
+          - label: 多谢指引
+            next: farewell
+      farewell:
+        text: 愿你的背包里总有面包，回家的路上总有灯火。下次见，{player}。
+        choices:
+          - label: 下次见
+            close: true

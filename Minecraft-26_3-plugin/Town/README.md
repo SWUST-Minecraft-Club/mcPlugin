@@ -2,11 +2,15 @@
 
 面向 **Minecraft/Folia 26.3、Java 25** 的休闲经营小镇系统。以政厅核心和玩家自建建筑为中心，提供自主区块领土、XZ 矩形地块、出租与授权、镇库发展、玩家商业及建筑迁移。
 
-- 版本：`Beta_0_10_0`，见 [ChangeLog](./Town-mc26_3-plugin-ChangeLog-Beta.md)。
+- 版本：`Beta_0_11_0`，见 [ChangeLog](./Town-mc26_3-plugin-ChangeLog-Beta.md)。
 - 主类：`com.example.town.TownPlugin`；公开查询接口：`com.example.town.api.TownApi`。
 - [实机验证记录](./assets/VALIDATION.md) · [美术素材与原始提示词](./assets/README.md)。
 
 ![小镇政务厅](./assets/screenshots/town-home.png)
+
+## 可选原生显示接管
+
+`Beta_0_11_0` 新增 `TownPageRenderer` Bukkit 服务。[YudreamUI](../YudreamUI/README.md) 可接管页面、名称输入和 7×7 领地状态网格，业务仍由 Town 执行；不安装客户端 Mod 时改用箱子菜单和 Dialog 表单。当前保留 ArcMenu API 依赖，原生网格不含地形贴图。接管/回退与验证边界见 YudreamUI 文档。
 
 ## 依赖与安装
 

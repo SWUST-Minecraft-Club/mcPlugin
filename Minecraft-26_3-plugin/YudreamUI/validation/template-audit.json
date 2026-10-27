@@ -1,0 +1,259 @@
+{
+  "scope": "Static action and condition compatibility; not a complete business-flow test",
+  "pages": 36,
+  "variants": 652,
+  "documents": [
+    {
+      "page": "mainmenu-attribute-fixed",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/mainmenu/mainmenu-attribute-fixed.yml",
+      "sha256": "f9b04fa05212ecc25f937e23b618a48e6f8c6404eb565527b10a6bfe92d49949",
+      "variants": 8,
+      "issues": []
+    },
+    {
+      "page": "mainmenu-attribute-function",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/mainmenu/mainmenu-attribute-function.yml",
+      "sha256": "9a5faac84dd3d6548644a929282ecc36358b5ad09cb6ef1cd69132def2b5380a",
+      "variants": 11,
+      "issues": []
+    },
+    {
+      "page": "mainmenu-attribute-placeholder",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/mainmenu/mainmenu-attribute-placeholder.yml",
+      "sha256": "0a22c341da495bfc8d1682b6b2791924afacc8395e1cc9464362e59b24357d23",
+      "variants": 10,
+      "issues": []
+    },
+    {
+      "page": "mainmenu-custom",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/mainmenu/mainmenu-custom.yml",
+      "sha256": "c2b29a6931b091131459fcbd22e7b6ac8b44b80c88e1680a8162dc99322dace5",
+      "variants": 6,
+      "issues": []
+    },
+    {
+      "page": "mainmenu-economy",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/mainmenu/mainmenu-economy.yml",
+      "sha256": "2f7243881461de6be4be1e24f1553e7de559dffef4673e02c7c702eab8aae692",
+      "variants": 7,
+      "issues": []
+    },
+    {
+      "page": "mainmenu-features",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/mainmenu/mainmenu-features.yml",
+      "sha256": "30e60263704e66ae1928c3a18025a3018af431fb99e78da7f9f3a8009813b99b",
+      "variants": 67,
+      "issues": []
+    },
+    {
+      "page": "mainmenu-home",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/mainmenu/mainmenu-home.yml",
+      "sha256": "1001ed37154b16e06093a2601e450191dbafbb5b60a20599764493adc007b500",
+      "variants": 26,
+      "issues": []
+    },
+    {
+      "page": "mainmenu-manage",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/mainmenu/mainmenu-manage.yml",
+      "sha256": "e0b9a5222f802671cd23fd556760404cebd5454af37eed386cd06327813e881f",
+      "variants": 27,
+      "issues": []
+    },
+    {
+      "page": "mainmenu-position",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/mainmenu/mainmenu-position.yml",
+      "sha256": "1e230ae51d8d5e01827e14293d6bb2d762a4adbcff5ea3c5abe76eebf1d64459",
+      "variants": 35,
+      "issues": []
+    },
+    {
+      "page": "mainmenu-profile",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/mainmenu/mainmenu-profile.yml",
+      "sha256": "360548fbe7a61fab64aea0e79b52f94932bf4ca56f98864f4efb997ec15d1e4f",
+      "variants": 6,
+      "issues": []
+    },
+    {
+      "page": "town-buffs",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-buffs.yml",
+      "sha256": "666822501bb812a6259959b480a35374b552af97b0591e15d1f3fd9bce1b0b15",
+      "variants": 17,
+      "issues": []
+    },
+    {
+      "page": "town-claim-waiting",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-claim-waiting.yml",
+      "sha256": "eb1c9deaadca2b081cf47de2a245b608bbc82e2b5dec3b798b1b17dc5c2945bc",
+      "variants": 106,
+      "issues": []
+    },
+    {
+      "page": "town-claim",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-claim.yml",
+      "sha256": "045e000f1a45eaa62b95fa3b10c743eedd0d49f370b2052e647b8a78c947e770",
+      "variants": 106,
+      "issues": []
+    },
+    {
+      "page": "town-confirm",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-confirm.yml",
+      "sha256": "848deb2a53936e804455c689a3c1f2871d069ca4e02061b4caa6dc9f97ddd788",
+      "variants": 4,
+      "issues": []
+    },
+    {
+      "page": "town-create",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-create.yml",
+      "sha256": "1d0e975415ecc13ecc9b7e0ded2a47f939cf4b8375c89f889835e968a23fc25b",
+      "variants": 5,
+      "issues": []
+    },
+    {
+      "page": "town-home-active",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-home-active.yml",
+      "sha256": "d4bd0af0ececce0231412073ae7069570509abdf4d8169e05b014a2d7c252b49",
+      "variants": 12,
+      "issues": []
+    },
+    {
+      "page": "town-home-invited",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-home-invited.yml",
+      "sha256": "ccfbad2721fbc6d3ec76241c93b837287822e0af858210e438567511fb58b8be",
+      "variants": 4,
+      "issues": []
+    },
+    {
+      "page": "town-home-none",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-home-none.yml",
+      "sha256": "8b6e6323a5f4e6c1c494f4baf5af01cc1ea4cec625e093d1ff3b9b441a4f0a5a",
+      "variants": 3,
+      "issues": []
+    },
+    {
+      "page": "town-home-pending",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-home-pending.yml",
+      "sha256": "f2c306663c806229e6c35a475ade4d9505f0940c7cbf1b20cbc89b45c5f6b7e6",
+      "variants": 6,
+      "issues": []
+    },
+    {
+      "page": "town-invite-picker",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-invite-picker.yml",
+      "sha256": "3f9d1d590f3b2947f9cf10751b8f66d82f2ed525560aff74620d4be37d682ce9",
+      "variants": 13,
+      "issues": []
+    },
+    {
+      "page": "town-member-detail",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-member-detail.yml",
+      "sha256": "5813f4a24527afbdd8ee5575f0f1435a3fd74feb05835520d99b45ae629b346e",
+      "variants": 7,
+      "issues": []
+    },
+    {
+      "page": "town-members",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-members.yml",
+      "sha256": "bde5fa8a413419b3c3181f34157e674af7848875bf965800641d9df899f87ca6",
+      "variants": 16,
+      "issues": []
+    },
+    {
+      "page": "town-op-approvals",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-op-approvals.yml",
+      "sha256": "6f9fbf6d4d289309b2d20a19238aadd540dfc1f84cdad368497e42ede08f9017",
+      "variants": 11,
+      "issues": []
+    },
+    {
+      "page": "town-op-catalog",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-op-catalog.yml",
+      "sha256": "ebe1c5017213a9920e37f965807e3f01aa5553eb6f3102f94703194a9e748aca",
+      "variants": 11,
+      "issues": []
+    },
+    {
+      "page": "town-op-civic",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-op-civic.yml",
+      "sha256": "9e72c0ef60ac43e8b290f1a33b496e0b186a00eb55d4ad32e112b06ff9757a4e",
+      "variants": 9,
+      "issues": []
+    },
+    {
+      "page": "town-op-confirm",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-op-confirm.yml",
+      "sha256": "ff5ee772e2a08cd8f5308202afb6fde6c14fd757c42401934631f15b5f485cda",
+      "variants": 5,
+      "issues": []
+    },
+    {
+      "page": "town-op-job",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-op-job.yml",
+      "sha256": "1a774120d32e203ef9917d3862f67eb946280802b9fddd060a83cefc4bc6cd3c",
+      "variants": 6,
+      "issues": []
+    },
+    {
+      "page": "town-op-jobs",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-op-jobs.yml",
+      "sha256": "1953a20c175e1fbd2dc487875367bd78d1e955321700d964bc237aeee6fbff86",
+      "variants": 11,
+      "issues": []
+    },
+    {
+      "page": "town-op-mail",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-op-mail.yml",
+      "sha256": "838624fdd12bd37ab2590cde8dcd03fa2e3787bacc300fbbebcda4874d5fb5bd",
+      "variants": 11,
+      "issues": []
+    },
+    {
+      "page": "town-op-market-form",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-op-market-form.yml",
+      "sha256": "df1c01e8c0178d3428ee76d655a517179ef9fcc96b60e47cd7c7cb3ae9ff4fc8",
+      "variants": 6,
+      "issues": []
+    },
+    {
+      "page": "town-op-market",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-op-market.yml",
+      "sha256": "b40cbc2381b999144543f25fa6750b930a123055aca86ac4dcdd127c9bef3f65",
+      "variants": 14,
+      "issues": []
+    },
+    {
+      "page": "town-op-planning",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-op-planning.yml",
+      "sha256": "443fe4d8200aeb3f4db63b484fe9a556866d52a0de192078bd3d6a7908a7559e",
+      "variants": 20,
+      "issues": []
+    },
+    {
+      "page": "town-op-plot-form",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-op-plot-form.yml",
+      "sha256": "64e1412d0f8f39a2f3c5a8df35202b106051399f5d2c09ca5d24641d3bf05138",
+      "variants": 9,
+      "issues": []
+    },
+    {
+      "page": "town-op-plot",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-op-plot.yml",
+      "sha256": "c3dc139df460b0fdfd5021520ca4c871f03bf167cb6529dccfd0ed7aa500cc49",
+      "variants": 15,
+      "issues": []
+    },
+    {
+      "page": "town-op-plots",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-op-plots.yml",
+      "sha256": "85eff8a48cef2f835c69ae20125b82119c0b9a96651933bb71e4c44297d26de6",
+      "variants": 14,
+      "issues": []
+    },
+    {
+      "page": "town-op-product",
+      "source": "./fabric-26_3-mod/YudreamUI/build/integration/server/plugins/ArcMenu/menus/town-op-product.yml",
+      "sha256": "5734254b71d5e8f4591c38fbcb6cebd0ca49e51aa83f40cb0cf905ecc543de4a",
+      "variants": 8,
+      "issues": []
+    }
+  ]
+}

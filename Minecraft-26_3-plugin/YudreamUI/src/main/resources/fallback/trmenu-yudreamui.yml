@@ -1,0 +1,47 @@
+# Copy to plugins/TrMenu/menus/yudreamui.yml when the installed TrMenu supports your Folia version.
+# Menu arguments are supplied by YudreamUI: {0}=session ticket, {1}=balance, {2}=status.
+# Business actions run through YudreamUI validation; do not duplicate withdrawals here.
+Title: '小镇工坊'
+Layout:
+  - '####I####'
+  - '# B S T #'
+  - '####C####'
+Options:
+  Arguments: true
+  Min-Click-Delay: 100
+Icons:
+  '#':
+    display:
+      material: Gray Stained Glass Pane
+      name: ' '
+  I:
+    display:
+      material: Book
+      name: '&f小镇工坊'
+      lore:
+        - '&7绿宝石：&a{1}'
+        - '&7{2}'
+  B:
+    display:
+      material: Emerald
+      name: '&a购买物资 · 10'
+    actions:
+      all: 'command: yui invoke {0} buy'
+  S:
+    display:
+      material: Writable Book
+      name: '&f保存小记'
+    actions:
+      all: 'command: yui invoke {0} save'
+  T:
+    display:
+      material: Clock
+      name: '&f提交委托'
+    actions:
+      all: 'command: yui invoke {0} slow'
+  C:
+    display:
+      material: Barrier
+      name: '&c关闭'
+    actions:
+      all: close

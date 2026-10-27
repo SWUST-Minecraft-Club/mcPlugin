@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-27",
+  "sourceFiles": [
+    {
+      "file": "plugins/ArcMenu/menus/shop/shop-all-2.yml",
+      "sha256": "5b97dd6ff8f37f2adaa61219c3b8ef616c56cd789bfd64bf021d1d9e332fcefe"
+    },
+    {
+      "file": "plugins/ArcMenu/menus/shop/shop-all-3.yml",
+      "sha256": "d9152098aa7774df35a5679f40b70c9fbc503f8591049c5d3d29003a331cc367"
+    },
+    {
+      "file": "plugins/ArcMenu/menus/shop/shop-armor.yml",
+      "sha256": "8ba5bab4d9b39b30df33dc43fb7a28895e341a068547e13127ab4f6f1e047674"
+    },
+    {
+      "file": "plugins/ArcMenu/menus/shop/shop-materials.yml",
+      "sha256": "07f89543414b4b29fcda8f67393fb1e0bf94949d6c8caa4ad762512f415dd08e"
+    },
+    {
+      "file": "plugins/ArcMenu/menus/shop/shop-rare.yml",
+      "sha256": "4a4516ce2b4b260b3324c842004bdfdace7d18253a4189c0cded31dac9e7d5ff"
+    },
+    {
+      "file": "plugins/ArcMenu/menus/shop/shop-tools.yml",
+      "sha256": "925d90026d4e811948adbff7af409a303a34c33c4a217a4a5b34a0cd343fade7"
+    },
+    {
+      "file": "plugins/ArcMenu/menus/shop/shop-weapons.yml",
+      "sha256": "94f43f0741fc1064249a43800ba8307a967f8cfa8a48f3126ba30f1acd4bebf1"
+    },
+    {
+      "file": "plugins/ArcMenu/menus/shop/shop.yml",
+      "sha256": "a9ccb5aed53c6d3342d75dc4f2e877ac0127c4922449b055c986714325dfab62"
+    }
+  ],
+  "products": 25,
+  "categories": {
+    "装备": 4,
+    "材料": 4,
+    "珍品": 6,
+    "工具": 6,
+    "武器": 5
+  },
+  "currency": "coin",
+  "skipped": [],
+  "mapping": "固定 shift-left 单件购买路径；材质与价格保留；take-money 改为 Wallet debit；未导入出售和任意脚本",
+  "catalogSha256": "e1e74ddec0442a4d24c50f88984ba0d657751b2ec388a7437efcbaa6c0d10665"
+}

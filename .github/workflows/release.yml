@@ -47,6 +47,9 @@ jobs:
       - name: Build all plugins
         run: ./gradlew build --no-daemon --stacktrace
 
+      - name: Install native UI build dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build libfreetype6-dev
+
       - name: Build Fabric mods
         run: |
           for project in ./fabric-26_3-mod/*/; do

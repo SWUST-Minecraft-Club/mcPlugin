@@ -44,3 +44,5 @@
 - [vehicles.md](./vehicles.md) — 双人载具：乘客退服删除根载具、Folia 停服上下文、分实体调度、碰撞坐标与模型/座位校准
 
 - [wallet-local-vault.md](./wallet-local-vault.md) — Wallet 双来源路由、菜单监听器与分页、Vault 主币种、官网迁入提交边界、头像校验及反射入口修复
+
+- [yudream-ui.md](./yudream-ui.md) — RmlUi 原生渲染、custom payload 字节边界、Unicode、热替换布局、GPU 回收、Arc 接管与 Wallet 交付恢复

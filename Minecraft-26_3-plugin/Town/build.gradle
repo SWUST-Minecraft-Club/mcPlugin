@@ -2,7 +2,7 @@
 // 公共配置（Java 工具链、Folia API 依赖、仓库、processResources、Folia 测试服版本）
 // 统一在仓库根目录的 build.gradle 里，改一次对所有插件生效。
 
-version = 'Beta_0_10_0'
+version = 'Beta_0_11_0'
 
 dependencies {
     compileOnly files(providers.gradleProperty('stardewApiJar').orElse(rootProject.file('libs/rptstardew-progression-api-1.6.0.jar').path))

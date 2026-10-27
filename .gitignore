@@ -41,3 +41,7 @@ desktop.ini
 
 ### ZCode 会话工作区 ###
 .zcode/
+
+### Python 缓存 ###
+__pycache__/
+*.pyc

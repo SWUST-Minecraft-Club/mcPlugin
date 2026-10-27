@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "assetsAdminOnly": true,
+  "ordinaryPlayerBuiltinUi": true,
+  "nativeAssetsAndMainMenuAndShop": true,
+  "installedArtifactSha256": {
+    "YudreamUI/YudreamUI-mc26_3-plugin-Beta_0_1_0.jar": "0ce047eefc2afb14af917f12dc9da8c1ec6170971c5b6edc97cff49178d927a5",
+    "YudreamUI/YudreamUI-mc26_3-fabric-Beta_0_1_0.jar": "cdf315f836bbecdc2bc6a4cf8484180d21c6e716a709c6c9cf606cafc17701fa",
+    "MainMenu/MainMenu-mc26_3-plugin-Beta_1_10_0.jar": "d9c3e52814dc2894be8e6decc83cb091d50fb710464c17e07d2da74a749a0eca",
+    "Town/Town-mc26_3-plugin-Beta_0_11_0.jar": "50d46604696e0355fd7a04e7488fdbc0ed9d8c4193224f4e7bf632fbfaf5aaef"
+  }
+}

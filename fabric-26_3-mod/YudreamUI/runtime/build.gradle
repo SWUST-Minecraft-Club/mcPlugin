@@ -1,0 +1,17 @@
+tasks.withType(JavaCompile).configureEach { options.release = 21 }
+dependencies {
+    api project(':protocol')
+    compileOnly 'com.google.code.gson:gson:2.13.2'
+    testImplementation 'com.google.code.gson:gson:2.13.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.13.4'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.13.4'
+}
+tasks.register('buildNative', Exec) {
+    workingDir rootProject.projectDir
+    commandLine 'python3', 'native/build.py', '--java-home', System.getProperty('java.home')
+    inputs.dir rootProject.file('native')
+    outputs.dir layout.buildDirectory.dir('native-resources')
+}
+sourceSets.main.resources.srcDir layout.buildDirectory.dir('native-resources')
+processResources.dependsOn 'buildNative'
+test { useJUnitPlatform() }

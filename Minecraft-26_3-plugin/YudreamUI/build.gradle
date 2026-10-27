@@ -1,0 +1,16 @@
+version = 'Beta_0_1_0'
+sourceSets.main.java.srcDir rootProject.file('fabric-26_3-mod/YudreamUI/protocol/src/main/java')
+dependencies {
+    compileOnly 'com.google.code.gson:gson:2.13.2'
+    compileOnly project(':Wallet')
+    compileOnly project(':MainMenu')
+    compileOnly project(':Town')
+    testImplementation "dev.folia:folia-api:${foliaApiVersion}"
+    testImplementation project(':Wallet')
+    testImplementation 'com.google.code.gson:gson:2.13.2'
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+tasks.named('test') { useJUnitPlatform() }
+tasks.withType(AbstractArchiveTask).configureEach {preserveFileTimestamps=false;reproducibleFileOrder=true}

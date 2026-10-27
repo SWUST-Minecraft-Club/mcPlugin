@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "shopCommand": "/arcmenu open shop-tools",
+  "shopScreen": "系统商店",
+  "catalog": 25,
+  "nativeManage": true,
+  "rpgHistory": true,
+  "claimButtons": 98,
+  "clientArtifactRestored": true
+}

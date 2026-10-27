@@ -7,7 +7,7 @@
 
 Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-26_3-plugin/<插件名>/`，由仓库根目录的一个 Gradle 工程统一管理：共享构建配置和服务端版本，每个插件又能单独打包、单独启动测试服。
 
-目前仓库里有 11 个插件：**[MainMenu](./Minecraft-26_3-plugin/MainMenu)**（主菜单框架，其它插件以它为依赖注册功能）、
+目前仓库里有 12 个插件：**[MainMenu](./Minecraft-26_3-plugin/MainMenu)**（主菜单框架，其它插件以它为依赖注册功能）、
 **[RealTime](./Minecraft-26_3-plugin/RealTime)**（在主菜单里显示当前时间）、
 **[YudreamPlaytime](./Minecraft-26_3-plugin/YudreamPlaytime)**（主菜单里显示查看者自己的在线时长，MainMenu 的伴侣插件）、
 **[Wallet](./Minecraft-26_3-plugin/Wallet)**（本地与官网按币种分流 / Vault 主币种 / 旧官网一次性迁入 + 钱包 API、管理指令与 Tab 补全）、
@@ -17,6 +17,7 @@ Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-2
 **[HandbookCore](./Minecraft-26_3-plugin/HandbookCore)**（全局双页手册：多插件内容 API、CE 图文与动态书签、全文检索和自动分页）、
 **[Town](./Minecraft-26_3-plugin/Town)**（小镇经营：政厅核心 / 自主连通领土 / 矩形地块与租赁 / 镇库科技政策 / 玩家商业 / 建筑迁移，
 26 页 ArcMenu 界面、Wallet / Vault 经济、CraftEngine 素材及 GitLab 资源分发；部署见模块 README）、
+**[YudreamUI](./Minecraft-26_3-plugin/YudreamUI)**（服务端驱动 RmlUi 原生自适应界面：HTML 子集、图片/字体热更新、RPG、Wallet 商店和 MainMenu/Town 接管；无 Mod 语义降级）、
 **[Vehicles](./Minecraft-26_3-plugin/Vehicles)**（双人小镇漫游车：原创三色模型、WASD 驾驶、刹车倒车与地面碰撞；原版客户端资源包，MainMenu / CraftEngine 可选）、
 **[yudream-minecraft-server](./Minecraft-26_3-plugin/yudream-minecraft-server)**（把玩家动态上报给 YuDream Admin 的 Bukkit 桥接插件，
 自带本地时长统计与断线补发，运行期反射兼容 Folia）。新增插件用 `./gradlew newPlugin -PpluginName=你的插件名`。
@@ -77,11 +78,13 @@ Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-2
 │   ├── ChatPrivacy/                # 聊天防举报（公开聊天改写为无签名系统消息）
 │   ├── HandbookCore/               # 全局手册核心（Dialog 双页书 + CE 图片/物品 + 多插件 API）
 │   ├── Town/                       # 小镇经营、租赁、商业与建筑迁移（ArcMenu + WalletApi + CraftEngine）
+│   ├── YudreamUI/                  # 服务端界面、RPG、Wallet 商店与菜单接管/降级
 │   ├── Vehicles/                   # 原创三色双人小车、驾驶物理与原版资源包
 │   └── yudream-minecraft-server/   # YuDream Admin 桥接插件：上报 + 本地时长统计 + 断线补发（Java 8 / Bukkit 1.13.2 目标）
 ├── fabric-26_3-mod/                # Fabric 客户端模组（独立 Gradle 工程，不参与上面的插件构建）
 │   ├── MainMenuRepair/             # 清理 ESC 暂停菜单的界面修复模组
-│   └── MinecraftMcp/               # MCP 客户端测试能力；共享核心 + 独立游戏版本适配器
+│   ├── MinecraftMcp/               # MCP 客户端测试能力；共享核心 + 独立游戏版本适配器
+│   └── YudreamUI/                  # protocol / runtime / JNI RmlUi / versions 独立适配器
 ├── release/                        # 各版本的构建产物留档（提交进仓库）
 ├── scripts/                        # 仓库维护脚本（如 rebuild-history.sh）
 ├── run/                            # 共用的测试服目录（服务端、世界、插件配置都在这里，已 gitignore）
@@ -156,7 +159,7 @@ Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-2
 
 ### ArcMenu 页面与 YAML 编辑
 
-`Beta_1_9_0` 优先使用 ArcMenu 3.2：竖屏机身、状态栏、现实时间小组件、原版物品应用图标与底部快捷栏。
+`Beta_1_10_0` 新增可选原生显示服务；未接管时优先使用 ArcMenu 3.2：竖屏机身、状态栏、现实时间小组件、原版物品应用图标与底部快捷栏。
 首页常用入口、每页 12 项的应用抽屉、“我的”、管理列表、三种属性页、位置选择与自定义功能创建，新增 Vault 资产页，共 10 页。
 小镇、Vault 资产、音乐和公告从桌面直接打开；在线时长在“我的”中查看，所有注册功能自动进入应用抽屉。
 
@@ -394,6 +397,19 @@ WASD 驾驶，空格刹车、Shift 下车；车主开车，其他玩家坐副驾
 > 本工程因此不依赖 fabric-loom（`maven.fabricmc.net` 在部分网络下被限速到 KB 级，loom 会卡在下载上），
 > 只下载官方客户端 jar + 用 `src/mixin-stubs/java` 里的 Mixin 注解桩编译，细节见模组自己的 README。
 
+## YudreamUI：原生界面与语义降级
+
+服务端插件 + 版本分离的 Fabric Mod，使用真实 RmlUi 6.3 排版受约束的 XHTML/RCSS。内置方块风格控件和中文字库零外部请求，图片/字体按哈希热更新，无需 Minecraft 资源包重载。
+
+已接管仓库 MainMenu、Town 显示入口；RPG 分支对话可跳转 Wallet 系统商店，原 Arc 商店 8 页去重为 25 项默认购买目录。无 YudreamUI Mod 时直接使用 Inventory/Dialog。TrMenu 桥仍为实验状态；当前客户端原生留档仅 Linux x86_64，尚未证明跨平台或箱子菜单延迟对等。
+
+```bash
+./gradlew :YudreamUI:build :MainMenu:build :Town:build
+./gradlew -p ./fabric-26_3-mod/YudreamUI build
+```
+
+[安装与命令](./Minecraft-26_3-plugin/YudreamUI/README.md) · [迁移边界](./Minecraft-26_3-plugin/YudreamUI/MIGRATION.md) · [协议与 HTML](./fabric-26_3-mod/YudreamUI/PROTOCOL.md) · [实机记录](./Minecraft-26_3-plugin/YudreamUI/VALIDATION.md)
+
 ## 客户端测试模组：MinecraftMcp
 
 `./fabric-26_3-mod/MinecraftMcp/` 为 **Minecraft 26.3 的 Fabric 客户端测试 Mod**，通过本机 MCP 提供 26 项测试工具：截图、GUI/控件查询与点击、键盘文本、背包/容器操作、物品组件与 tooltip、玩家/世界状态、聊天命令、等待与断言。需要安装对应版本的 Fabric API。
@@ -458,13 +474,14 @@ dependencies {
 
 | 项目 | 正式版 | 测试版（进行中） |
 | --- | --- | --- |
-| MainMenu | `1_0_1`（2026.10.18） | `Beta_1_9_0`（自定义功能按左右键、Shift 与中键配置指令；保留 10 页 YAML 手机与多侧卡） |
+| MainMenu | `1_0_1`（2026.10.18） | `Beta_1_10_0`（新增可替换显示与输入服务，接入 YudreamUI；保留功能/权限/按键业务与原显示回退） |
 | RealTime | `1_0_0`（2026.10.18） | `Beta_1_1_0`（适配 Folia；去掉固定位提示） |
 | MainMenuRepair（fabric） | `1_0_0`（2026.10.18） | `Beta_1_2_0`（新增手册正文居中、焦点白框修复与重复页脚隐藏） |
+| YudreamUI（plugin / fabric） | — | `Beta_0_1_0`（RmlUi、无感素材更新、RPG / Wallet 商店 / 菜单接管及语义降级；原生库 Linux x86_64） |
 | MinecraftMcp（fabric） | — | `Beta_0_1_0`（MCP 客户端测试工具；核心与游戏版本适配器分离） |
 | YudreamPlaytime | `1_0_0`（2026.10.19） | `Beta_1_1_0`（适配 Folia；台账缓存加锁） |
 | yudream-minecraft-server | `2_0_0`（2026.10.19） | `Beta_2_1_0`（反射适配 Folia，保持 Java 8 / 1.13.2 兼容） |
-| Town | — | `Beta_0_10_0`（真实时间科研、政策加速、离线续研与进度；可选 RptStardew 1.6+ 三技能研习政策，保留测绘、原生输入、经营/迁移和 Wallet / Vault） |
+| Town | — | `Beta_0_11_0`（新增可替换显示/输入/领地网格服务；接管会话刷新与取消恢复，保留科研、经济与原业务） |
 | Vehicles | — | `Beta_0_1_0`（原创三色双人小车、WASD/刹车/倒车、碰撞与资源包；会话内车辆） |
 | Wallet | —（还在测试版阶段） | `Beta_0_7_0`（本地与官网按币种配置双来源；新增 set/add/take 与 Tab 补全，修复菜单取物；保留 Vault 主币种和一次性迁入） |
 | ConcertoMenu | —（还在测试版阶段） | `Beta_0_2_0`（适配 Folia；首个版本：主菜单唱片机入口） |
@@ -494,6 +511,12 @@ dependencies {
 | `Beta_0_1_1` | `369f82a` | 移除三个内置玩法示例，仅留可删除的更新日志；旧示例备份迁移、保留自定义内容，删除后重启不再补回 |
 | `Beta_0_1_2` | 本次提交 | 显示缩为 293×162，文字/CE 图片/书签/命中区域同步调整，兼容原逻辑 API；修复小分辨率裁底与缩放黑缝，共享字库和原版图标图集降低重载开销 |
 
+**YudreamUI（插件 / Fabric 模组）**
+
+| 版本 | 提交 | 改动 |
+| --- | --- | --- |
+| `Beta_0_1_0` | 本次提交 | 新增 RmlUi 原生端、版本分离、热更新、RPG、Wallet 25 项商店、MainMenu/Town 接管与无 Mod 降级，附真实 MCP 验证及平台边界 |
+
 **Town（插件）**
 
 | 版本 | 提交 | 改动 |
@@ -513,6 +536,7 @@ dependencies {
 | `Beta_0_9_2` | 本次提交 | 修复铁砧通道输入未回填：统一原生 Dialog，保存名称、修改与创建分开；页面显示校验结果，取消保留草稿；85 项测试与实际客户端点击验证 |
 | `Beta_0_9_3` | 本次提交 | 测绘尺改为燧石基物，兼容投影模组默认木棍工具；旧 CE 定义备份迁移，菜单和指令领取统一关闭界面 |
 | `Beta_0_10_0` | 本次提交 | 新增科研耗时、离线与重启续研、科研协作加速和三项星露研习政策；100 项单元测试、有/无星露谷两组首次/重启验证 |
+| `Beta_0_11_0` | 本次提交 | 新增 TownPageRenderer 显示/输入/地图服务，接入 YudreamUI 与无 Mod 语义降级；原权限、交易及草稿确认保留 |
 
 **MainMenu（插件）**
 
@@ -544,6 +568,7 @@ dependencies {
 | `Beta_1_7_0` | 本次提交 | 新增 Vault 资产页与首页下一页，校验头像纹理并回退默认头；10 页模板与实际 Folia/Vault 联调 |
 | `Beta_1_8_0` | 本次提交 | 新增默认隐藏的多侧卡，YAML / API 按查看者提供内容和动作，自动分栏居中、按高度分页，数值刷新复用实体 |
 | `Beta_1_9_0` | 本次提交 | 新增自定义功能按左右键、Shift 与中键分派指令；默认指令兼容、空值禁用且保留菜单，创建新功能保留按键配置 |
+| `Beta_1_10_0` | 本次提交 | 新增 MenuPageRenderer 显示与输入服务；YudreamUI 首页和管理接管、分页及原按键回调；原显示入口回退 |
 
 **RealTime（插件）**
 

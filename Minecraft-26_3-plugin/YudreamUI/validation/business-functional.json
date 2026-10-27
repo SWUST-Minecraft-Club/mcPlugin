@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "rpgBranchAndHistory": true,
+  "dialogueToShop": true,
+  "walletDebit": "1000 -> 988 TEST",
+  "delivery": "8 bread",
+  "durableOrder": "DELIVERED",
+  "fullInventoryNoOrderOrDebit": true,
+  "insufficientFunds": "DECLINED",
+  "mainMenuToTown": true,
+  "townNativeName": "林间原型镇",
+  "townNameEscapeResumes": true,
+  "townDraftConfirmed": true,
+  "townConfirmationNative": true,
+  "townGrid": "7x7 / 98 buy and release controls",
+  "mainMenuManageNative": true
+}

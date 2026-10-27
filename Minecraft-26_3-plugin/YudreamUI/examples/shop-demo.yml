@@ -1,0 +1,36 @@
+# Server-owned prices. Amount is one pack; the UI lets players quote 1-64 packs.
+# Use the existing Wallet currency code and precision; no balances are created or changed here.
+title: 林间补给站
+products:
+  bread:
+    name: 旅途面包
+    category: 日常补给
+    material: BREAD
+    amount: 8
+    price: '12.00'
+    currency: coin
+    description: 炉火的香气，陪你走过下一段旅途。
+  torch:
+    name: 矿洞火把
+    category: 日常补给
+    material: TORCH
+    amount: 16
+    price: '8.00'
+    currency: coin
+    description: 在黑暗里留下一条回家的路。
+  iron_pickaxe:
+    name: 矿工铁镐
+    category: 工具装备
+    material: IRON_PICKAXE
+    amount: 1
+    price: '30.00'
+    currency: coin
+    description: 开始你的下一次矿洞探险。
+  oak:
+    name: 橡木原木
+    category: 建造材料
+    material: OAK_LOG
+    amount: 16
+    price: '16.00'
+    currency: coin
+    description: 为新的家园添上温暖的木色。

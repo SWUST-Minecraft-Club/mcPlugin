@@ -65,6 +65,7 @@ public final class TownUi {
     private final AtomicBoolean assetsLoading = new AtomicBoolean();
     private TownMapRenderer mapRenderer;
     private final TownOperations operations;
+    private volatile Map<String, String> presentationSources = Map.of();
 
     private record ConfirmSession(String action, String returnScreen) {
     }
@@ -112,6 +113,11 @@ public final class TownUi {
         }
         try {
             final List<TownMenus.Written> written = TownMenus.writeAll(plugin.config(), dir);
+            final Map<String, String> sources = new java.util.HashMap<>();
+            for (final var entry : TownMenus.all(plugin.config()).entrySet()) {
+                sources.put(entry.getKey(), entry.getValue().dump(entry.getKey()));
+            }
+            presentationSources = Map.copyOf(sources);
             plugin.getLogger().info("已生成 " + written.size() + " 个小镇菜单文件到 " + dir);
             mergeAnimations(dir.getParent());
         } catch (final IOException | RuntimeException e) {
@@ -359,7 +365,34 @@ public final class TownUi {
         current.put(player.getUniqueId(), menuId);
         // 不强制切换输入模式：默认 mouse（客户端 Mod 本地渲染光标，最跟手），
         // 玩家可用 /arcmenu mode 自选 touch / vision，服务器策略由 ArcMenu config 决定。
-        api.open(player, renderedMenu(player, menuId));
+        if (!present(player, menuId)) api.open(player, renderedMenu(player, menuId));
+    }
+
+    private com.example.town.api.TownPageRenderer presentation() {
+        return Bukkit.getServicesManager().load(com.example.town.api.TownPageRenderer.class);
+    }
+
+    private boolean present(final Player player, final String menuId) {
+        final var provider = presentation();
+        final String source = presentationSources.get(menuId);
+        if (provider == null || source == null) return false;
+        if (!provider.open(player, menuId, source, text -> api.state().resolveText(player, text), action -> {
+            if (action.startsWith("command: ")) player.performCommand(action.substring(9));
+            else if (action.equals("close") || action.equals("close:")) leave(player);
+        })) return false;
+        api.close(player);
+        return true;
+    }
+
+    private boolean presentationActive(final Player player, final String screen) {
+        final var provider = presentation();
+        return provider != null && provider.active(player, screen);
+    }
+
+    private void closePresentation(final Player player) {
+        final var provider = presentation();
+        final String screen = current.get(player.getUniqueId());
+        if (provider != null && screen != null && provider.active(player, screen)) provider.close(player);
     }
 
     /** 等待页完全不创建图片字形，未接收资源包的客户端也能正常操作网格。 */
@@ -425,14 +458,16 @@ public final class TownUi {
 
     public void operation(Player player,String input) {operations.command(player,input);}
     public boolean isViewing(Player player) {
-        return textInputs.containsKey(player.getUniqueId()) || api.sessions().current(player) != null;
+        return textInputs.containsKey(player.getUniqueId()) || api.sessions().current(player) != null
+                || presentationActive(player, current.get(player.getUniqueId()));
     }
     public void leave(Player player) {
+        closePresentation(player);
         forget(player.getUniqueId());
         api.close(player);
     }
-    void closeOperations(Player player) {cancelTextInput(player.getUniqueId());api.close(player);current.remove(player.getUniqueId());}
-    public void closeForSurveying(Player player) {clear(player.getUniqueId());api.close(player);}
+    void closeOperations(Player player) {closePresentation(player);cancelTextInput(player.getUniqueId());api.close(player);current.remove(player.getUniqueId());}
+    public void closeForSurveying(Player player) {closePresentation(player);clear(player.getUniqueId());api.close(player);}
     void requestOperationInput(Player player,String title,java.util.function.Consumer<String> submitted) {
         requestTextInput(player, title, "", 50, submitted);
     }
@@ -447,6 +482,15 @@ public final class TownUi {
         try {
             // 先登记输入再关 ArcMenu，其 ui-closed 回调和刷新任务不会清掉待回填的创建页。
             api.close(player);
+            final var provider = presentation();
+            if (provider != null && provider.input(player, title, initial, Math.max(maxLength, 1),
+                    value -> finishTextInput(player, input, value, false, submitted),
+                    () -> finishTextInput(player, input, null, false, submitted))) {
+                input.timeout = player.getScheduler().runDelayed(plugin,
+                        task -> finishTextInput(player, input, null, true, submitted),
+                        () -> textInputs.remove(playerId, input), 2400L);
+                return;
+            }
             final var callbackOptions = ClickCallback.Options.builder().uses(1)
                     .lifetime(Duration.ofMinutes(3)).build();
             final ActionButton save = ActionButton.builder(Component.text("保存输入")).width(150)
@@ -600,7 +644,7 @@ public final class TownUi {
         }
         final TownSnapshotView view = plugin.service().townOf(player.getUniqueId());
         writeCommon(player, view);
-        if(screen.startsWith(TownOperationMenus.PREFIX)) {operations.write(player);api.refresh(player);return;}
+        if(screen.startsWith(TownOperationMenus.PREFIX)) {operations.write(player);if (!present(player, screen)) api.refresh(player);return;}
         switch (screen) {
             case TownMenus.CREATE -> writeCreate(player);
             case TownMenus.MEMBERS -> writeMembers(player);
@@ -618,6 +662,7 @@ public final class TownUi {
             }
         }
         String rendered = renderedMenu(player, screen);
+        if (present(player, screen)) return;
         var session = api.sessions().current(player);
         if (TownMenus.CLAIM.equals(screen) && session != null && !rendered.equals(session.getId())) {
             api.open(player, rendered);
@@ -640,8 +685,8 @@ public final class TownUi {
                 }
                 var session=api.sessions().current(player);
                 String screen=current.get(id);
-                if (session==null || (!screen.equals(session.getId())
-                        && !(TownMenus.CLAIM.equals(screen) && TownMenus.CLAIM_WAITING.equals(session.getId())))) {
+                if (!presentationActive(player, screen) && (session==null || (!screen.equals(session.getId())
+                        && !(TownMenus.CLAIM.equals(screen) && TownMenus.CLAIM_WAITING.equals(session.getId()))))) {
                     clear(id);
                     return;
                 }
@@ -701,7 +746,7 @@ public final class TownUi {
             return;
         }
         player.getScheduler().runDelayed(plugin, task -> {
-            if (api.sessions().current(player) == null
+            if (api.sessions().current(player) == null && !presentationActive(player, logicalId)
                     && !textInputs.containsKey(player.getUniqueId())
                     && logicalId.equals(current.get(player.getUniqueId()))) {
                 clear(player.getUniqueId());
@@ -956,10 +1001,14 @@ public final class TownUi {
         final TownSnapshotView own = plugin.service().townOf(player.getUniqueId());
         set(player, "claim_center", center.world() + " · " + center.x() + ", " + center.z());
         final String key = TownMapRenderer.fileKey(center);
+        final var provider = presentation();
+        final boolean semanticGrid = provider != null && provider.suppliesClaimGrid(player);
         set(player, "map_status", plugin.resourcePacks().loaded(player)
                 ? (mapRenderer != null && mapRenderer.isReady(key) ? "真实地形" : "正在绘制当前位置地形")
                 : plugin.resourcePacks().message(player));
-        if (mapRenderer != null && mapRenderer.isReady(key)) {
+        if (semanticGrid) {
+            set(player, "map_status", "领地状态网格 · 选择区块后确认购买或放弃");
+        } else if (mapRenderer != null && mapRenderer.isReady(key)) {
             set(player, "map_key", key);
             plugin.resourcePacks().confirmForMap(player);
         } else {

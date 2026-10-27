@@ -1,0 +1,77 @@
+<html><head><title>小镇工坊</title><style>
+.shell { width:94%; max-width:740px; height:91%; max-height:540px; display:flex; flex-direction:column; }
+.heading { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex-shrink:0; }
+.layout { display:flex; gap:10px; flex:1; min-height:0; }
+.sidebar { width:165px; flex-shrink:0; display:flex; flex-direction:column; }
+.content { flex:1; min-width:0; min-height:0; display:flex; flex-direction:column; }
+.tab-page { flex:1; min-height:0; overflow-y:auto; padding-right:4px; }
+.summary { margin:7px 0; }.currency { font-size:22px; color:#36552a; }
+.entry { display:flex; justify-content:space-between; padding:7px 3px; border-bottom:1px #999; }
+.footer { margin-top:7px; font-size:9px; color:#555; flex-shrink:0; }
+.toolbar { display:flex; align-items:center; gap:7px; margin-bottom:8px; }
+.space { margin-bottom:9px; }.inventory { margin:8px 0; }
+@media (max-width: 520px) {
+ .shell { padding:7px; height:96%;width:98%; }.layout {flex-direction:column;gap:5px;}
+ .sidebar {width:100%;flex-direction:row;align-items:center;gap:8px;height:49px;}
+ .sidebar h2 {font-size:11px;}.summary {margin:0;}.currency {font-size:16px;}.sidebar .detail {display:none;}
+ .sidebar .mc-button {height:22px;min-width:68px;}.heading {margin-bottom:4px;}h1 {font-size:14px;}
+ .mc-tabs {margin-bottom:5px;}.mc-tab {height:22px;min-width:55px;padding:3px 6px;}
+}
+</style></head><body>
+<mc-panel class="shell" id="shell">
+ <header class="heading"><div><h1>小镇工坊</h1><span class="muted">物资、进度与生活设置</span></div><div class="row"><mc-badge>林间聚落</mc-badge><mc-button id="close" aria-label="关闭" action="ui:close">关闭</mc-button></div></header>
+ <div class="layout">
+  <mc-card class="sidebar"><div><h2>我的绿宝石</h2><div class="summary"><span class="currency" id="balance" fallback-label="绿宝石" bind="balance">120</span> 枚</div></div><p class="detail muted">来自你的小镇账户</p><mc-button id="buy" fallback-icon="EMERALD" aria-label="购买物资" class="primary" action="server:buy">购买物资 · 10</mc-button><p class="detail muted" style="margin-top:10px;">每一笔购买由服务器确认</p><div class="detail"><h2>研究进度</h2><mc-progress id="research" bind="research" value="0.62"/><p class="muted">更好的耕作工具 · 62%</p></div></mc-card>
+  <main class="content">
+   <mc-tabs><mc-tab id="tab-overview" class="selected" aria-label="总览" action="tab:overview">总览</mc-tab><mc-tab id="tab-storage" aria-label="仓库" action="tab:storage">仓库</mc-tab><mc-tab id="tab-settings" aria-label="设置" action="tab:settings">设置</mc-tab></mc-tabs>
+   <div id="overview" class="tab-page">
+    <mc-card><h2>欢迎回来，镇民</h2><p>整理随身物资，开始今天的小镇生活。</p><div class="inventory"><mc-slot id="slot-emerald" item="minecraft:emerald"/><mc-slot id="slot-diamond" item="minecraft:diamond"/><mc-slot id="slot-bread" item="minecraft:bread"/><mc-slot id="slot-compass" item="minecraft:compass"/></div><div class="toolbar"><mc-button id="local" aria-label="本地计数" action="count:local-count">整理一次</mc-button><span>已整理 <span id="local-count">0</span> 次</span></div><p class="muted">鼠标悬停在物品上可查看名称。</p></mc-card>
+    <mc-card><h2>今日小记</h2><mc-input id="nickname" aria-label="今日小记" maxlength="128" value=""/><div class="toolbar" style="margin-top:7px;"><mc-button id="save" input-ids="nickname notifications volume" fallback-icon="WRITABLE_BOOK" aria-label="保存小记" action="server:save">保存小记</mc-button><mc-button id="slow" fallback-icon="CLOCK" aria-label="慢请求" action="server:slow">提交委托</mc-button></div></mc-card>
+   </div>
+   <mc-scroll id="storage" class="tab-page hidden"><div class="entry"><span>小镇物资 · 第 01 组</span><span class="muted">库存 131</span></div>
+<div class="entry"><span>小镇物资 · 第 02 组</span><span class="muted">库存 134</span></div>
+<div class="entry"><span>小镇物资 · 第 03 组</span><span class="muted">库存 137</span></div>
+<div class="entry"><span>小镇物资 · 第 04 组</span><span class="muted">库存 140</span></div>
+<div class="entry"><span>小镇物资 · 第 05 组</span><span class="muted">库存 143</span></div>
+<div class="entry"><span>小镇物资 · 第 06 组</span><span class="muted">库存 146</span></div>
+<div class="entry"><span>小镇物资 · 第 07 组</span><span class="muted">库存 149</span></div>
+<div class="entry"><span>小镇物资 · 第 08 组</span><span class="muted">库存 152</span></div>
+<div class="entry"><span>小镇物资 · 第 09 组</span><span class="muted">库存 155</span></div>
+<div class="entry"><span>小镇物资 · 第 10 组</span><span class="muted">库存 158</span></div>
+<div class="entry"><span>小镇物资 · 第 11 组</span><span class="muted">库存 161</span></div>
+<div class="entry"><span>小镇物资 · 第 12 组</span><span class="muted">库存 164</span></div>
+<div class="entry"><span>小镇物资 · 第 13 组</span><span class="muted">库存 167</span></div>
+<div class="entry"><span>小镇物资 · 第 14 组</span><span class="muted">库存 170</span></div>
+<div class="entry"><span>小镇物资 · 第 15 组</span><span class="muted">库存 173</span></div>
+<div class="entry"><span>小镇物资 · 第 16 组</span><span class="muted">库存 176</span></div>
+<div class="entry"><span>小镇物资 · 第 17 组</span><span class="muted">库存 179</span></div>
+<div class="entry"><span>小镇物资 · 第 18 组</span><span class="muted">库存 182</span></div>
+<div class="entry"><span>小镇物资 · 第 19 组</span><span class="muted">库存 185</span></div>
+<div class="entry"><span>小镇物资 · 第 20 组</span><span class="muted">库存 188</span></div>
+<div class="entry"><span>小镇物资 · 第 21 组</span><span class="muted">库存 191</span></div>
+<div class="entry"><span>小镇物资 · 第 22 组</span><span class="muted">库存 194</span></div>
+<div class="entry"><span>小镇物资 · 第 23 组</span><span class="muted">库存 197</span></div>
+<div class="entry"><span>小镇物资 · 第 24 组</span><span class="muted">库存 200</span></div>
+<div class="entry"><span>小镇物资 · 第 25 组</span><span class="muted">库存 203</span></div>
+<div class="entry"><span>小镇物资 · 第 26 组</span><span class="muted">库存 206</span></div>
+<div class="entry"><span>小镇物资 · 第 27 组</span><span class="muted">库存 209</span></div>
+<div class="entry"><span>小镇物资 · 第 28 组</span><span class="muted">库存 212</span></div>
+<div class="entry"><span>小镇物资 · 第 29 组</span><span class="muted">库存 215</span></div>
+<div class="entry"><span>小镇物资 · 第 30 组</span><span class="muted">库存 218</span></div>
+<div class="entry"><span>小镇物资 · 第 31 组</span><span class="muted">库存 221</span></div>
+<div class="entry"><span>小镇物资 · 第 32 组</span><span class="muted">库存 224</span></div>
+<div class="entry"><span>小镇物资 · 第 33 组</span><span class="muted">库存 227</span></div>
+<div class="entry"><span>小镇物资 · 第 34 组</span><span class="muted">库存 230</span></div>
+<div class="entry"><span>小镇物资 · 第 35 组</span><span class="muted">库存 233</span></div>
+<div class="entry"><span>小镇物资 · 第 36 组</span><span class="muted">库存 236</span></div>
+<div class="entry"><span>小镇物资 · 第 37 组</span><span class="muted">库存 239</span></div>
+<div class="entry"><span>小镇物资 · 第 38 组</span><span class="muted">库存 242</span></div>
+<div class="entry"><span>小镇物资 · 第 39 组</span><span class="muted">库存 245</span></div>
+<div class="entry"><span>小镇物资 · 第 40 组</span><span class="muted">库存 248</span></div></mc-scroll>
+   <div id="settings" class="tab-page hidden"><mc-card><h2>生活设置</h2><div class="space"><mc-checkbox id="notifications" aria-label="小镇通知" value="yes"/> 小镇通知</div><label>背景音乐</label><mc-slider id="volume" aria-label="背景音乐" min="0" max="100" value="65" step="1"/><p class="muted" style="margin-top:7px;">这些控件在本地即时响应。</p><mc-button id="modal-open" aria-label="打开帮助" action="toggle:help">查看帮助</mc-button></mc-card></div>
+  </main>
+ </div>
+ <footer id="status" class="footer" bind="status">欢迎</footer>
+ <mc-modal id="help" class="hidden"><h2>小镇手册</h2><p>使用标签页浏览物资与设置。</p><mc-button id="modal-close" aria-label="关闭帮助" action="toggle:help">知道了</mc-button></mc-modal>
+</mc-panel>
+</body></html>

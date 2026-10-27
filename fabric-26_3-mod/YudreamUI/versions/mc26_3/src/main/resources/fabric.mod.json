@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1, "id": "yudreamui", "version": "${version}",
+  "name": "YudreamUI", "description": "Server-driven RmlUi screens and bundled Minecraft-style widgets",
+  "environment": "client", "entrypoints": {"client": ["com.example.yudreamui.mc26_3.YudreamUiClient"]},
+  "authors": ["zhou-BZDDX"], "license": "MIT",
+  "depends": {"fabricloader": ">=0.19.0", "minecraft": "26.3", "java": ">=25", "fabric-api": "*"}
+}
