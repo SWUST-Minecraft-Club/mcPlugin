@@ -18,6 +18,7 @@ public final class BookText {
     public static final TextColor INK = TextColor.color(0x44321f);
     public static final TextColor HEADING = TextColor.color(0x79521e);
     private static final BitSet GLYPHS = glyphs();
+    static boolean supported(int cp) { return GLYPHS.get(cp); }
     private static BitSet glyphs() {
         try (var stream = BookText.class.getResourceAsStream("/book-font.bin")) {
             return stream == null ? new BitSet() : BitSet.valueOf(stream.readAllBytes());
@@ -87,7 +88,7 @@ public final class BookText {
                 if (cp == '\r') continue;
                 boolean custom = style.font() != null && !style.font().equals(BODY);
                 Style target = custom ? style : style.font(BODY);
-                int width = (GLYPHS.get(cp) ? (HEADING_FONT.equals(style.font()) ? 15 : 13) : 9)
+                int width = (GLYPHS.get(cp) ? (HEADING_FONT.equals(style.font()) ? 15 : 13) : BookScale.FALLBACK_WIDTH)
                         + (style.decoration(TextDecoration.BOLD) == TextDecoration.State.TRUE ? 1 : 0);
                 if (custom && style.font().equals(SPACE)) width = cp - 0xe100 - 512;
                 int height = 12;

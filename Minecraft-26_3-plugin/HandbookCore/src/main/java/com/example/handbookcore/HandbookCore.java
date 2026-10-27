@@ -36,7 +36,7 @@ public final class HandbookCore extends JavaPlugin implements Listener {
         } catch (Exception error) {
             getLogger().severe("手册初始化失败：" + error.getMessage()); getServer().getPluginManager().disablePlugin(this); return;
         }
-        ce = new CraftEngineBridge(this); views = new HandbookViews(this, catalog, ce);
+        ce = new CraftEngineBridge(this); ce.installPackHook(); views = new HandbookViews(this, catalog, ce);
         HandbookService service = new DefaultHandbookService(catalog, views);
         getServer().getServicesManager().register(HandbookService.class, service, this, ServicePriority.Normal);
         getServer().getPluginManager().registerEvents(this, this);

@@ -11,6 +11,8 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.event.*;
+import com.example.handbookcore.render.BookScale;
 
 /** CE 的 Adventure 已重定位，通过 JSON 转换组件；主类无需链接任何 CE 类。 */
 public final class CraftEngineBridge {
@@ -18,6 +20,7 @@ public final class CraftEngineBridge {
     public record GlyphMetrics(int advance, int height, int bearing) { }
     private record CachedGlyph(Object definition, GlyphMetrics metrics) { }
     private final ConcurrentHashMap<String, CachedGlyph> metrics = new ConcurrentHashMap<>();
+    private volatile boolean compactPackReady;
     public CraftEngineBridge(Plugin owner) { this.owner = owner; }
     private ClassLoader loader() {
         Plugin ce = owner.getServer().getPluginManager().getPlugin("CraftEngine");
@@ -43,9 +46,39 @@ public final class CraftEngineBridge {
             return Optional.of(GsonComponentSerializer.gson().deserialize((String) serialize.invoke(null, component)));
         } catch (ReflectiveOperationException | LinkageError | RuntimeException error) { return Optional.empty(); }
     }
-    public boolean bookAvailable() { return image("handbookcore:paper_2", 0, 0).isPresent(); }
+    public boolean bookAvailable() { return compactPackReady && image("handbookcore:paper_2", 0, 0).isPresent(); }
+    /** CE 可选且由其资源包流程合并第三方图片的缩放字体。 */
+    @SuppressWarnings("unchecked")
+    public void installPackHook() {
+        ClassLoader loader = loader(); if (loader == null) return;
+        try {
+            Class<? extends Event> event = (Class<? extends Event>) Class.forName(
+                    "net.momirealms.craftengine.bukkit.api.event.AsyncResourcePackCacheEvent", true, loader);
+            owner.getServer().getPluginManager().registerEvent(event, new Listener() { }, EventPriority.NORMAL,
+                    (listener, value) -> {
+                        try {
+                            Class<?> engine = Class.forName("net.momirealms.craftengine.core.plugin.CraftEngine", true, loader);
+                            Object fonts = engine.getMethod("fontManager").invoke(engine.getMethod("instance").invoke(null));
+                            Class<?> manager = Class.forName("net.momirealms.craftengine.core.font.FontManager", true, loader);
+                            var bitmaps = (java.util.Map<?, ?>)manager.getMethod("loadedBitmapImages").invoke(fonts);
+                            Path root = owner.getDataFolder().toPath().resolve("compact-resource-pack").toAbsolutePath();
+                            CompactFontPack.write(root, new java.util.LinkedHashSet<>(bitmaps.values()));
+                            value.getClass().getMethod("registerExternalResourcePack", Path.class).invoke(value, root);
+                            metrics.clear(); compactPackReady = !bitmaps.isEmpty();
+                        } catch (ReflectiveOperationException | java.io.IOException | RuntimeException error) {
+                            compactPackReady = false;
+                            owner.getLogger().warning("手册缩放字体生成失败，暂用文字目录：" + error.getMessage());
+                        }
+                    }, owner);
+        } catch (ReflectiveOperationException | LinkageError error) {
+            owner.getLogger().warning("当前 CE 缺少资源包缓存事件，手册暂用文字目录。");
+        }
+    }
     /** 与客户端 BitmapProvider 一样，按非透明最右像素计算 advance；CE 重载后按定义身份失效。 */
     public Optional<GlyphMetrics> metrics(net.kyori.adventure.key.Key font, int cp) {
+        return metrics(font, cp, false);
+    }
+    public Optional<GlyphMetrics> metrics(net.kyori.adventure.key.Key font, int cp, boolean compact) {
         ClassLoader loader = loader(); if (loader == null) return Optional.empty();
         try {
             Class<?> engineClass = Class.forName("net.momirealms.craftengine.core.plugin.CraftEngine", true, loader);
@@ -55,11 +88,12 @@ public final class CraftEngineBridge {
             Class<?> manager = Class.forName("net.momirealms.craftengine.core.font.FontManager", true, loader);
             Optional<?> result = (Optional<?>) manager.getMethod("bitmapImageByCodepoint", key, int.class).invoke(fonts, fontKey, cp);
             if (result.isEmpty()) return Optional.empty();
-            Object bitmap = result.get(); String cacheKey = font.asString() + '/' + cp;
+            Object bitmap = result.get(); String cacheKey = font.asString() + '/' + cp + '/' + compact;
             CachedGlyph cached = metrics.get(cacheKey);
             if (cached != null && cached.definition() == bitmap) return Optional.of(cached.metrics());
             Class<?> type = bitmap.getClass(); int[][] grid = (int[][]) type.getMethod("codepointGrid").invoke(bitmap);
             int height = (int) type.getMethod("height").invoke(bitmap);
+            if (compact) height = Math.max(1, BookScale.pixels(height));
             String file = (String) type.getMethod("file").invoke(bitmap);
             String[] parts = file.split(":", 2); if (parts.length != 2) return Optional.empty();
             Path resources = owner.getDataFolder().toPath().getParent().resolve("CraftEngine/resources");

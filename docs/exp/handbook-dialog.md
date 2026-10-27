@@ -1,5 +1,59 @@
 # Dialog 双页手册与 CraftEngine
 
+## 小屏适配需要扣除原生 Dialog 的上下区域
+
+- **现象**：将书本从 520×288 缩到 390×216 后，1280×720 自动 GUI 3 倍下仍会裁掉书底。
+- **根因**：该分辨率的有效 GUI 只有 427×240，Dialog 还保留上下共 66px，正文控件自身另含上下各 4px 内边距。
+  只按窗口宽度或书图高度选比例，无法保证底部分页可见。
+- **规避/解决**：保留 520×288 逻辑画布与 API 图片尺寸，在最终输出时统一缩到 56.25%。净画布 293×162，
+  18 条原生 9px 行，正文控件 301×170；字形、CE 图片、命中区域和坐标一起变换。
+  同一原生行里的逻辑行通过 0..8 的基线偏移字体还原位置；按累计逻辑坐标取整并逐字补偿 advance，避免小数误差积累。
+- **来源**：2026.10.27，HandbookCore `Beta_0_1_2` 的 `BookScale` / `BookCanvas`、26.3 官方 `DialogScreen` 字节码，
+  1280×720 / 1366×768 / 1920×1080 自动 GUI 实机验证。MainMenuRepair 只负责可选的居中、轮廓与页脚修复。
+
+## 字体 reference 不能消除整份 Unicode 回退的内存开销
+
+- **现象**：为正文、标题、按钮生成九种基线字体并分别挂 Unicode 回退，1.5 GiB 堆客户端在加载或重载资源包时 OOM；
+  将 Unicode provider 改成单份 reference 后仍然开销很大。另一次把中文字形预先降为 8px 的尝试破坏了笔画。
+- **根因**：客户端每个 FontSet 仍会枚举其 provider 支持的字符，reference 共享 provider 不等于共享各 FontSet 的字符缓存；
+  将原本 16px 的中文字形先降采样，再交给客户端显示，丢失的笔画无法恢复。
+- **规避/解决**：正文与紧凑角色字体只包含 bitmap；不支持的字符由输出器直接选择单独的 `handbookcore:fallback`，保留 9px 原生字宽并参与换行。
+  相同 height/ascent 的 bitmap provider 共享，31,910 个支持字符紧排成 2048×4000 图集，保留 16px 原始字形细节。
+  修复后的 1.5 GiB 堆客户端完成初次加载与资源包重载；这只说明该验证包通过，不代表任意第三方资源包的内存保证。
+- **来源**：2026.10.27，`compileBookFont` / `compileCompactFonts` / `BookScale`，26.3 客户端字体加载日志、OOM 记录和最终清晰截图。
+
+## 大量单字形 bitmap provider 的空索引表会占满堆
+
+- **现象**：已共享正文 bitmap 并独立 Unicode 回退后，1.5 GiB 客户端初次打开正常，整包重载仍然 OOM。
+- **根因**：1508 个原版图标原先每个 provider 只有一个字符，大小图与九种基线副本合计约三万个 provider。
+  26.3 的每个 bitmap provider 使用 `CodepointMap`，即使只有一个字形也分配完整顶层索引数组；
+  `jcmd GC.class_histogram` 显示 30,892 个 `BitmapProvider$Glyph[][]` 单独占约 538 MB，未计行数组和字形对象。
+- **规避/解决**：构建时将原版图标整理进 32px 单元的共享图集，保留全部独立码点与对应指标；
+  每个尺寸和基线只使用一个 provider。合并的是图集存储，目录和书签仍能独立选择图标。
+  对有大量图片的第三方 CE 包也应优先使用字符网格图集；字体引用共享并不能自动合并不同贴图 provider 的索引表。
+  同一测试环境重载后，索引顶层数组降到 752 个、约 13 MB，完整 GC 后活跃对象总量由约 941 MB 降到约 324 MB；
+  修复后的 1.5 GiB 堆客户端完成资源包重载。数据仅对应本次测试包。
+- **来源**：2026.10.27，`compileVanillaIcons` / `CompactBookTest`，26.3 官方客户端 `BitmapProvider` / `CodepointMap`、专用客户端堆直方图。
+
+## 书图缩放切片需要落在整数 GUI 像素
+
+- **现象**：原先 125px 宽单元直接乘 56.25% 后，拼接边出现黑缝。
+- **根因**：单元宽为 70.3125px，而客户端 bitmap advance 和定位分别取整，独立缩放的边无法精确接合。
+- **规避/解决**：先把整张原图编译到 560×324 源图，再切成 140×108 单元，最终显示单元正好 70×54；
+  整张书图 280×162，包含书签和边缘余量的逻辑画布输出为 293×162。定位与实际非透明边界测宽分别处理。
+- **来源**：2026.10.27，`compileCompactFonts` / `BookCanvas` 与专用客户端拼接前后截图。
+
+## CE 外部字体目录需要在缓存资源包事件注入
+
+- **现象**：第三方插件注册的图片需要紧凑字体副本，只缩小手册坐标会让图片维持原尺寸；在生成结束事件添加字体目录又赶不上本轮合包。
+- **根因**：CE 的字体配置读取和最终资源包生成是不同阶段，生成结束后包内文件已经确定。
+- **规避/解决**：反射监听 `AsyncResourcePackCacheEvent`，从 `FontManager.loadedBitmapImages()` 快照生成九种基线副本，
+  通过该事件的 `registerExternalResourcePack(Path)` 注入；保留原始 texture 引用和字符网格，仅改变副本的 height/ascent。
+  每次从当前快照重建并清理旧测量缓存，避免已移除贡献留下字体。核心内建字体跳过精确 id 集合，不能跳过整个命名空间。
+  事件不支持或合包失败时回退文字目录，升级材质后需要 `/ce reload all` 并让玩家加载新包。
+- **来源**：2026.10.27，CraftEngine `26.9.2-folia26.3.1` 事件与 FontManager API，`CraftEngineBridge` / `CompactFontPack`；
+  `fixture` 命名空间的 32px 图标与 144px 图片实机及第三方字体网格测试。
+
 ## 玩法指南由所属插件贡献，配置刷新时整批替换
 
 - **现象**：小镇指南需要出现在全局手册中，成立人数、赠地和价格又由 Town 的运营配置决定。
@@ -11,7 +65,8 @@
 
 - **现象**：所有行服务端都算成同样的净 advance，客户端仍把双栏换行挤乱。
 - **根因**：26.3 的 `FocusableTextWidget` 正文左右各留 4px，传入 Dialog 的宽度不全是可绘文字宽度。
-- **规避/解决**：520px 净画布传 `DialogBody.plainMessage(component, 528)`；每条换行前通过 space 字形归到同一净宽。
+- **规避/解决**：Beta_0_1_0 的 520px 净画布传 `DialogBody.plainMessage(component, 528)`；Beta_0_1_2 的 293px 净画布传 301。
+  每条换行前通过 space 字形归到同一净宽。
   正文与图标必须使用客户端实际字形 advance，不能以 PNG 整体宽度代替非透明边界。
 - **来源**：2026.10.26，HandbookCore `BookCanvas` / `HandbookViews#showBook`，官方 26.3 客户端 `FocusableTextWidget` 字节码与专用客户端截图。
 

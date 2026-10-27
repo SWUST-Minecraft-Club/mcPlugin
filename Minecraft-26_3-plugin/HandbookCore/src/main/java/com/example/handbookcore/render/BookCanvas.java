@@ -1,6 +1,7 @@
 package com.example.handbookcore.render;
 
 import java.util.*;
+import com.example.handbookcore.hook.CraftEngineBridge;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.ShadowColor;
@@ -11,20 +12,17 @@ public final class BookCanvas {
     public static final int WIDTH = 520, ROWS = 32, COLUMN_WIDTH = 176, CONTENT_ROWS = 8, LINE_HEIGHT = 18;
     public static final int LEFT = 62, RIGHT = 282, CONTENT_ROW = 9;
     public static final int BOOKMARK_X = 477, BOOKMARK_WIDTH = 42;
+    public static final int DISPLAY_WIDTH = BookScale.pixels(WIDTH), DISPLAY_ROWS = BookScale.pixels(ROWS * 9) / 9;
     // 将标题飘带左悬边与右侧动态书签都计入可见轮廓中心。
     private static final int ART_OFFSET_X = -7;
-    private static final Properties PAPER_METRICS = paperMetrics();
-    private static Properties paperMetrics() {
-        Properties metrics = new Properties();
-        try (var input = BookCanvas.class.getResourceAsStream("/book-metrics.properties")) {
-            if (input == null) throw new IllegalStateException("缺少书页图集指标");
-            metrics.load(input);
-            return metrics;
-        } catch (java.io.IOException error) { throw new IllegalStateException("读取书页图集指标失败", error); }
-    }
     private record Cell(int x, Component value, int width) { }
     private final List<List<Cell>> rows = new ArrayList<>();
-    public BookCanvas() { for (int i = 0; i < ROWS; i++) rows.add(new ArrayList<>()); }
+    private final BookScale scale;
+    public BookCanvas() { this(null); }
+    public BookCanvas(CraftEngineBridge ce) {
+        scale = new BookScale(ce);
+        for (int i = 0; i < ROWS; i++) rows.add(new ArrayList<>());
+    }
     public void put(int row, int x, Component value, int width) {
         if (row < 0 || row >= ROWS || x < 0 || x + width > WIDTH) throw new IllegalArgumentException("内容超出书页");
         rows.get(row).add(new Cell(x + ART_OFFSET_X, value, width));
@@ -54,24 +52,31 @@ public final class BookCanvas {
     public Component build() {
         Component result = Component.empty().color(BookText.INK).shadowColor(ShadowColor.none())
                 .decoration(TextDecoration.ITALIC, false).decoration(TextDecoration.BOLD, false);
-        for (int row = 0; row < ROWS; row++) {
-            if (row > 0) result = result.append(Component.newline());
+        for (int displayRow = 0; displayRow < DISPLAY_ROWS; displayRow++) {
+            if (displayRow > 0) result = result.append(Component.newline());
             int x = 0;
-            if (row == 0) {
+            if (displayRow == 0) {
                 // 分成 12 个不超过 256px 的单元，用 ascent 将三层放在同一个文本基线上。
                 for (int tileRow = 0; tileRow < 3; tileRow++) for (int tileCol = 0; tileCol < 4; tileCol++) {
                     int target = 10 + ART_OFFSET_X + tileCol * 125;
-                    int advance = Integer.parseInt(PAPER_METRICS.getProperty("paper." + tileRow + "." + tileCol));
-                    result = result.append(BookText.shift(target - x)).append(Component.text(String.valueOf((char)(0xe000 + tileRow * 4 + tileCol)))
-                            .font(Key.key("handbookcore:paper")).color(net.kyori.adventure.text.format.NamedTextColor.WHITE));
-                    x = target + advance;
+                    var rendered = scale.render(Component.text(String.valueOf((char)(0xe000 + tileRow * 4 + tileCol)))
+                            .font(Key.key("handbookcore:paper")).color(net.kyori.adventure.text.format.NamedTextColor.WHITE), target, 0);
+                    int displayX = BookScale.pixels(10 + ART_OFFSET_X) + tileCol * BookScale.PAPER_TILE_WIDTH;
+                    result = result.append(BookText.shift(displayX - x)).append(rendered.component());
+                    x = displayX + rendered.advance();
                 }
             }
-            rows.get(row).sort(Comparator.comparingInt(Cell::x));
-            for (Cell cell : rows.get(row)) {
-                result = result.append(BookText.shift(cell.x() - x)).append(cell.value()); x = cell.x() + cell.width();
+            for (int row = 0; row < ROWS; row++) {
+                int y = BookScale.pixels(row * 9);
+                if (y / 9 != displayRow) continue;
+                rows.get(row).sort(Comparator.comparingInt(Cell::x));
+                for (Cell cell : rows.get(row)) {
+                    var rendered = scale.render(cell.value(), cell.x(), y % 9);
+                    result = result.append(BookText.shift(BookScale.pixels(cell.x()) - x)).append(rendered.component());
+                    x = BookScale.pixels(cell.x()) + rendered.advance();
+                }
             }
-            result = result.append(BookText.shift(WIDTH - x));
+            result = result.append(BookText.shift(DISPLAY_WIDTH - x));
         }
         return result;
     }

@@ -59,14 +59,30 @@ tasks.register('compileBookFont') {
             }
             rows.add(chars.toString())
         }
-        g.dispose(); ImageIO.write(atlas, 'png', new File(target, 'textures/font/glyphs.png'))
+        g.dispose()
+        // 紧排支持字符，保留 16px 原始字形细节；不对中文笔画做预先降采样。
+        def packedRows=[]; int packedCount=supported.cardinality(), packedHeight=((packedCount+127).intdiv(128))*16
+        def packed=new BufferedImage(2048,packedHeight,BufferedImage.TYPE_INT_ARGB)
+        def pg=packed.createGraphics(); int glyphIndex=0; def packedLine=new StringBuilder()
+        for (int cp=supported.nextSetBit(0);cp>=0;cp=supported.nextSetBit(cp+1)) {
+            int tx=(glyphIndex%128)*16, ty=glyphIndex.intdiv(128)*16, sx=(cp%256)*16, sy=cp.intdiv(256)*16
+            pg.drawImage(atlas,tx,ty,tx+16,ty+16,sx,sy,sx+16,sy+16,null)
+            packedLine.append((char)cp); glyphIndex++
+            if (glyphIndex%128==0) { packedRows.add(packedLine.toString()); packedLine=new StringBuilder() }
+        }
+        if (packedLine.length()>0) { while(packedLine.length()<128) packedLine.append((char)0); packedRows.add(packedLine.toString()) }
+        pg.dispose(); rows=packedRows
+        ImageIO.write(packed, 'png', new File(target, 'textures/font/glyphs.png'))
         new File(root, 'book-font.bin').bytes = supported.toByteArray()
         ['body':[12,9], 'heading':[14,13], 'button':[12,5]].each { name, size ->
             new File(target, "font/${name}.json").text = JsonOutput.toJson([providers:[
-                [type:'bitmap', file:'handbookcore:font/glyphs.png', height:size[0], ascent:size[1], chars:rows],
-                [type:'unihex', hex_file:'minecraft:font/unifont.zip', size_overrides:[[from:'\u0000',to:'\udbff\udfff',left:0,right:15]]]
+                [type:'bitmap', file:'handbookcore:font/glyphs.png', height:size[0], ascent:size[1], chars:rows]
             ]])
         }
+        // 未收录字符直接使用这一份字体；避免每个 FontSet 都枚举整份 Unicode。
+        new File(target,'font/fallback.json').text=JsonOutput.toJson([providers:[
+            [type:'unihex',hex_file:'minecraft:font/unifont.zip',size_overrides:[[from:'\u0000',to:'\udbff\udfff',left:0,right:15]]]
+        ]])
         copy { from 'assets/fonts/LICENSE.txt'; into new File(target, 'licenses'); rename { 'Droid-Apache-2.0.txt' } }
         copy { from 'assets/fonts/DejaVu-LICENSE.txt'; into new File(target, 'licenses') }
     }
@@ -79,7 +95,7 @@ tasks.register('compileVanillaIcons') {
         def root = layout.buildDirectory.dir('generated/icon-resources').get().asFile
         def target = new File(root, 'ce-pack/handbookcore/resourcepack/assets/handbookcore/font/icons.json')
         target.parentFile.mkdirs()
-        def providers = []; def smallProviders = []; def mappings = new StringBuilder(); int next = 0xe010
+        def icons = []; def mappings = new StringBuilder(); int next = 0xe010
         def parser = new JsonSlurper()
         new ZipFile(clientSource.asFile).withCloseable { zip ->
             def readJson = { String path -> def entry = zip.getEntry(path); entry == null ? null : parser.parse(zip.getInputStream(entry)) }
@@ -114,27 +130,46 @@ tasks.register('compileVanillaIcons') {
                 def image = ImageIO.read(zip.getInputStream(textureEntry))
                 // 动画纹理也以第一帧展示，交互预览仍使用原生 ItemStack 模型。
                 if (image.height != image.width) return
-                int right = 0, left = image.width
-                for (int x = 0; x < image.width; x++) for (int y = 0; y < image.height; y++)
-                    if ((image.getRGB(x,y) >>> 24) != 0) { right = Math.max(right, x + 1); left = Math.min(left, x) }
-                int cp = next++; int advance = Math.round(right * 32.0f / image.height) + 1
-                providers.add([type:'bitmap',file:texture+'.png',height:32,ascent:7,chars:[new String(Character.toChars(cp))]])
-                smallProviders.add([type:'bitmap',file:texture+'.png',height:16,ascent:-1,chars:[new String(Character.toChars(cp))]])
-                mappings.append("${id}=${cp},${advance},${Math.round(left*32.0f/image.height)},${Math.round(right*16.0f/image.height)+1},${Math.round(left*16.0f/image.height)}\n")
+                icons.add([id:id, cp:next++, image:image])
             }
         }
-        target.text = JsonOutput.toJson([providers:providers])
-        new File(target.parentFile,'icons_small.json').text = JsonOutput.toJson([providers:smallProviders])
+        // 每个 bitmap provider 都分配完整 Unicode 索引表。将缩略图合为一张图集，
+        // 避免 1508 个图标 × 多种基线各自分配空表；每个图标仍保留独立码点。
+        int columns = 64, cell = 32, count = icons.size(), rowCount = (count + columns - 1).intdiv(columns)
+        def atlas = new BufferedImage(columns * cell, rowCount * cell, BufferedImage.TYPE_INT_ARGB)
+        def graphics = atlas.createGraphics()
+        graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR)
+        def rows = []; def line = new StringBuilder()
+        icons.eachWithIndex { icon, index ->
+            int col = index % columns, row = index.intdiv(columns)
+            graphics.drawImage(icon.image, col * cell, row * cell, cell, cell, null)
+            int right = 0, left = cell
+            for (int x = 0; x < cell; x++) for (int y = 0; y < cell; y++)
+                if ((atlas.getRGB(col * cell + x, row * cell + y) >>> 24) != 0) {
+                    right = Math.max(right, x + 1); left = Math.min(left, x)
+                }
+            mappings.append("${icon.id}=${icon.cp},${right+1},${left},${Math.round(right*0.5f)+1},${Math.round(left*0.5f)}\n")
+            line.appendCodePoint(icon.cp)
+            if ((index + 1) % columns == 0) { rows.add(line.toString()); line = new StringBuilder() }
+        }
+        if (line.length() > 0) { while (line.length() < columns) line.append((char)0); rows.add(line.toString()) }
+        graphics.dispose()
+        def texture = new File(root, 'ce-pack/handbookcore/resourcepack/assets/handbookcore/textures/font/vanilla-icons.png')
+        texture.parentFile.mkdirs(); ImageIO.write(atlas, 'png', texture)
+        target.text = JsonOutput.toJson([providers:[[type:'bitmap',file:'handbookcore:font/vanilla-icons.png',height:32,ascent:7,chars:rows]]])
+        new File(target.parentFile,'icons_small.json').text = JsonOutput.toJson([providers:[
+            [type:'bitmap',file:'handbookcore:font/vanilla-icons.png',height:16,ascent:-1,chars:rows]]])
         new File(root, 'vanilla-icons.properties').text = mappings.toString()
-        logger.lifecycle("已生成 ${providers.size()} 个原版图标引用（不复制原版贴图）")
+        logger.lifecycle("已生成 ${count} 个原版图标缩略图，共用一个 bitmap provider")
     }
 }
 tasks.named('processResources') {
-    dependsOn 'compileBookFont', 'compileVanillaIcons', 'compileBookmarks'
+    dependsOn 'compileBookFont', 'compileVanillaIcons', 'compileBookmarks', 'compileCompactFonts'
     doFirst { delete destinationDir }
     from(layout.buildDirectory.dir('generated/font-resources'))
     from(layout.buildDirectory.dir('generated/icon-resources'))
     from(layout.buildDirectory.dir('generated/bookmark-resources'))
+    from(layout.buildDirectory.dir('generated/compact-resources'))
     doLast {
         def output = destinationDir
         def paths = fileTree(new File(output, 'ce-pack')).files.collect { output.toPath().relativize(it.toPath()).toString().replace('\\', '/') }.sort()
@@ -142,10 +177,101 @@ tasks.named('processResources') {
     }
 }
 tasks.named('craftEnginePack') {
-    dependsOn 'compileBookFont', 'compileVanillaIcons', 'compileBookmarks'
+    dependsOn 'compileBookFont', 'compileVanillaIcons', 'compileBookmarks', 'compileCompactFonts'
     from(layout.buildDirectory.dir('generated/font-resources/ce-pack'))
     from(layout.buildDirectory.dir('generated/icon-resources/ce-pack'))
     from(layout.buildDirectory.dir('generated/bookmark-resources/ce-pack'))
+    from(layout.buildDirectory.dir('generated/compact-resources/ce-pack'))
+}
+
+// 原 API 继续使用 520×288 逻辑画布；客户端输出为 56.25%。九种 ascent 补齐原生 9px 行高内的偏移。
+tasks.register('compileCompactFonts') {
+    dependsOn 'compileBookTexture', 'compileBookFont', 'compileVanillaIcons', 'compileBookmarks'
+    def sources = ['book', 'font', 'icon', 'bookmark'].collect { layout.buildDirectory.dir("generated/${it}-resources") }
+    inputs.files(sources)
+    inputs.file('src/main/resources/ce-pack/handbookcore/configuration/images.yml')
+    inputs.file('assets/book-v2.png')
+    outputs.dir(layout.buildDirectory.dir('generated/compact-resources'))
+    doLast {
+        def output = layout.buildDirectory.dir('generated/compact-resources').get().asFile
+        delete output
+        def assetRoot = 'ce-pack/handbookcore/resourcepack/assets'
+        def roots = sources.collect { new File(it.get().asFile, assetRoot) }
+        def fonts = [:]
+        roots.each { root -> fileTree(new File(root, 'handbookcore/font')).matching { include '*.json' }.files.sort().each { f ->
+            if (!(f.name in ['space.json','fallback.json'])) fonts[f.name.replace('.json', '')] = new JsonSlurper().parse(f)
+        } }
+        fonts.paper = [providers: (0..<3).collect { row -> [type:'bitmap',file:"handbookcore:font/paper-${row}.png",
+            height:96,ascent:7-row*96,chars:[new String(((0..<4).collect { 0xe000+row*4+it } as int[]),0,4)]] }]
+        // 先将整图编译到整数 GUI 单元，再切片，避免 70.3125px 字形拼接产生黑缝。
+        def paper = new BufferedImage(560,324,BufferedImage.TYPE_INT_ARGB)
+        def graphics = paper.createGraphics()
+        graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_BILINEAR)
+        graphics.drawImage(ImageIO.read(file('assets/book-v2.png')),0,0,560,324,null); graphics.dispose()
+        def paperTextures = new File(output,"${assetRoot}/handbookcore/textures/font")
+        paperTextures.mkdirs()
+        for (int row=0;row<3;row++) ImageIO.write(paper.getSubimage(0,row*108,560,108),'png',new File(paperTextures,"compact-paper-${row}.png"))
+        def iconMetrics = new Properties()
+        new File(layout.buildDirectory.dir('generated/icon-resources').get().asFile,'vanilla-icons.properties').withInputStream { iconMetrics.load(it) }
+        def iconByCp = iconMetrics.values().collectEntries { value -> def d=value.split(','); [(d[0] as int):d] }
+        def metrics = new TreeMap<String,String>()
+        def shared = new HashSet<String>()
+        fonts.each { name, font ->
+            font.providers.findAll { it.type == 'bitmap' && !(name in ['body','heading','button']) }.each { provider ->
+                int height = provider.height as int, compact = Math.max(1,Math.round(height*0.5625f))
+                def grid = provider.chars.collect { it.codePoints().toArray() }
+                def fileParts = provider.file.split(':',2)
+                def texture = roots.collect { new File(it, "${fileParts[0]}/textures/${fileParts[1]}") }.find { it.isFile() }
+                def png = texture == null ? null : ImageIO.read(texture)
+                for (int row=0;row<grid.size();row++) for (int col=0;col<grid[row].length;col++) {
+                    int cp=grid[row][col]; if (cp==0) continue
+                    int original, resized
+                    if (png != null) {
+                        int cw=png.width.intdiv(grid[0].length), ch=png.height.intdiv(grid.size()), right=0
+                        for (int x=0;x<cw;x++) for (int y=0;y<ch;y++)
+                            if ((png.getRGB(col*cw+x,row*ch+y)>>>24)!=0) right=Math.max(right,x+1)
+                        original=Math.round(right*height/(float)ch)+1; resized=Math.round(right*compact/(float)ch)+1
+                        if (name=='paper') {
+                            int tileRow=(cp-0xe000).intdiv(4), edge=0
+                            for (int x=0;x<140;x++) for (int y=0;y<108;y++)
+                                if ((paper.getRGB(col*140+x,tileRow*108+y)>>>24)!=0) edge=Math.max(edge,x+1)
+                            resized=Math.round(edge*0.5f)+1
+                        }
+                    } else {
+                        def data=iconByCp[cp]
+                        if (data==null) throw new GradleException("缺少缩放图标指标：${name}/${cp}")
+                        original=Math.round(((data[1] as int)-1)*height/32.0f)+1
+                        resized=Math.round(((data[1] as int)-1)*compact/32.0f)+1
+                    }
+                    metrics["handbookcore:${name}/${cp}"]="${original},${resized}"
+                }
+            }
+            for (int offset=0;offset<9;offset++) {
+                // 未收录字符由输出器保留原字体处理；紧凑字体不再枚举整份 Unicode 回退。
+                def selected = name in ['body','heading','button'] ? font.providers.findAll { it.type=='bitmap' } : font.providers
+                def providers=selected.collect { p ->
+                    def copy=new LinkedHashMap(p)
+                    if (p.type=='bitmap') {
+                        copy.height=Math.max(1,Math.round((p.height as int)*0.5625f))
+                        copy.ascent=Math.min(copy.height as int,7-Math.round((7-(p.ascent as int))*0.5625f)-offset)
+                        if (name=='paper') copy.file=(p.file as String).replace('paper-', 'compact-paper-')
+                        if (name in ['body','heading','button']) {
+                            String id="handbookcore:compact/shared/h${copy.height}_a${copy.ascent}"
+                            if (shared.add(id)) {
+                                def common=new File(output,"${assetRoot}/handbookcore/font/${id.substring(13)}.json")
+                                common.parentFile.mkdirs(); common.text=JsonOutput.toJson([providers:[copy]])
+                            }
+                            copy=[type:'reference',id:id]
+                        }
+                    }
+                    copy
+                }
+                def target=new File(output,"${assetRoot}/handbookcore/font/compact/handbookcore/${name}/${offset}.json")
+                target.parentFile.mkdirs(); target.text=JsonOutput.toJson([providers:providers])
+            }
+        }
+        new File(output,'compact-glyphs.properties').text=metrics.collect { k,v -> "${k.replace(':','\\:')}=${v}" }.join('\n')+'\n'
+    }
 }
 // 图像生成器提供完整书本和同画风的书签图集；构建只切图与缩放，不重新拼画控件。
 tasks.register('compileBookmarks') {

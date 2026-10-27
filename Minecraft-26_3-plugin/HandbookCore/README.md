@@ -1,11 +1,11 @@
 # HandbookCore
 
-Minecraft / Folia **26.3** 的全局手册核心，当前版本 **Beta_0_1_1**，Java 25。
+Minecraft / Folia **26.3** 的全局手册核心，当前版本 **Beta_0_1_2**，Java 25。
 基于 Paper Dialog 展示双页书，支持任意贡献插件注册玩法分类、图文条目和服务器更新日志。
 
-![首页实机](./assets/verification/home.png)
+![首页实机](./assets/verification/compact-home-1920.png)
 
-上图为 Beta_0_1_0 的历史布局验证，含旧示例与测试插件内容；当前默认仅保留一条更新日志。
+上图为 Beta_0_1_2 在 1920×1080、GUI 自动缩放下的实机画面，含 API 测试插件的动态章节；核心默认仅保留一条更新日志。
 
 ## 安装与构建
 
@@ -17,11 +17,11 @@ Minecraft / Folia **26.3** 的全局手册核心，当前版本 **Beta_0_1_1**�
 
 | 文件 | 用途 |
 | --- | --- |
-| `HandbookCore-mc26_3-plugin-Beta_0_1_1.jar` | 服务端插件，已包含首次安装需要释放的 CE 资源 |
-| `HandbookCore-mc26_3-plugin-Beta_0_1_1-api.jar` | 其他插件的编译依赖，不能放进 `plugins/` |
-| `HandbookCore-CraftEngine-Beta_0_1_1.zip` | CE 资源目录，解压到 `plugins/CraftEngine/resources/` |
-| `HandbookCore-mc26_3-plugin-Beta_0_1_1-install.zip` | 插件 + CE 资源 + 安装说明 + 逐文件校验表 |
-| `HandbookCore-Beta_0_1_1-SHA256SUMS.txt` | 上述四个产物的 SHA-256 |
+| `HandbookCore-mc26_3-plugin-Beta_0_1_2.jar` | 服务端插件，已包含首次安装需要释放的 CE 资源 |
+| `HandbookCore-mc26_3-plugin-Beta_0_1_2-api.jar` | 其他插件的编译依赖，不能放进 `plugins/` |
+| `HandbookCore-CraftEngine-Beta_0_1_2.zip` | CE 资源目录，解压到 `plugins/CraftEngine/resources/` |
+| `HandbookCore-mc26_3-plugin-Beta_0_1_2-install.zip` | 插件 + CE 资源 + 安装说明 + 逐文件校验表 |
+| `HandbookCore-Beta_0_1_2-SHA256SUMS.txt` | 上述四个产物的 SHA-256 |
 
 安装步骤见 [INSTALL.md](./INSTALL.md)。先让 CraftEngine 首次启动完成并释放内置 `internal` 包，
 再安装手册资源，执行 `/ce reload all`，通过当前 CE 托管方式让玩家加载新资源包。
@@ -38,8 +38,10 @@ CE 若在登录配置阶段发包，Paper 可能没有游戏阶段的成功回�
 只对手册正文隐藏焦点轮廓、整体居中并隐藏重复的灰色关闭按钮，保留鼠标和键盘交互。
 纯服务端插件不能关闭这个客户端白框；未安装模组时书内按钮仍可使用。
 
-书本画布为 520×288 GUI 像素。建议有效 GUI 画面至少约 560×340；画面较小时降低客户端 GUI 缩放。
-实机验证采用 1280×800、GUI 缩放 2（有效 640×400），范围见 [VALIDATION.md](./VALIDATION.md)。
+书本显示画布为 **293×162 GUI 像素**，整体比例约为旧版的 **56.25%**；字体、图片、书签、按钮和点击位置一同缩放。
+计入原生正文内边距后的文本控件为 301×170，适配常见自动 GUI 缩放；分页仍使用原有逻辑栏宽和容量。
+1280×720、1366×768、1920×1080 的实测范围见 [VALIDATION.md](./VALIDATION.md)。
+缩放由服务端字体资源包实现，MainMenuRepair 仍为可选的居中和焦点框修复。
 
 ## 阅读与分页
 
@@ -138,7 +140,7 @@ entries:
 | 内容块 | 行为 |
 | --- | --- |
 | 字符串 / `text` | MiniMessage 正文，自动换行与续页 |
-| `image` | 任意 CE 图片，指定实际显示尺寸，整体换页；缺失时显示 `alt` |
+| `image` | 任意 CE 图片，指定原始逻辑尺寸，统一缩小显示并整体换页；缺失时显示 `alt` |
 | `item` | 点击打开原生 Dialog 物品模型与悬停信息，支持完整原版 ItemStack、CE 物品及缺失回退 |
 | `link` | 跳转手册内另一篇文章，目标再次检查权限 |
 | `url` | HTTP(S) 网页，沿用客户端外链确认行为 |
@@ -164,14 +166,16 @@ images:
     char: '\uE000'
 ```
 
-`HandbookBlock.Image` / YAML 的 `width`、`height` 必须与该字形的实际 GUI 尺寸一致；核心不对任意 CE 字形运行时缩放。
-单图显示范围为 **1..176 × 1..144**，较大配方或地图应按纸页拆成多个图片块。
+`HandbookBlock.Image` / YAML 的 `width`、`height` 继续填写 CE 原字形的逻辑 GUI 尺寸。
+单图逻辑范围仍为 **1..176 × 1..144**，贡献 API 保持兼容；在书中统一缩放到约 56.25%，最大约 99×81。
+较大配方或地图应按纸页拆成多个图片块。核心在 CE 资源包缓存事件中为已注册的 bitmap 图片生成专用字体副本，
+复用原图和字符网格；其他菜单中的 CE 字体与图片尺寸保持原定义。新增图片定义后应执行 `/ce reload all` 并重新加载资源包。
 CE 字形的源图单元不能大于 256×256；图集可用 CE 网格切分。独立图片推荐 `ascent: 7`。
 正文也支持 `<image:example:planting_picture>` 和 `<shift:-4>`，普通插图优先使用显式 `image` 块，便于预留行高。
 
 分类目录接受不超过 76×40 的 CE 字形，书签接受不超过 24×20 的小图；推荐分别提供 32 高和 16 高两份定义，
 书签小图使用 `ascent: -1`。缺少图片或尺寸超限会改用 `icon` 原版图标。
-原版图标引用客户端自带物品纹理，不向资源包复制 Mojang 原图；特殊 3D 模型的目录图标可能是代表贴图，
+原版图标从固定版本官方客户端整理为共享缩略图集，保留 1508 项独立图标并减少字体索引开销；特殊 3D 模型的目录图标可能是代表贴图，
 完整模型由 `item` 预览展示。
 
 官方说明：[Paper Dialog](https://docs.papermc.io/paper/dev/dialogs/)、[CraftEngine 图片](https://xiao-momi.github.io/craft-engine-wiki/configuration/image/)。

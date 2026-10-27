@@ -107,7 +107,7 @@ public final class HandbookViews {
             buttons.add(button("搜索", session, this::searchDialog)); buttons.add(button("合上", session, this::close));
             showNative(player, title(), body, buttons); return;
         }
-        BookCanvas canvas = new BookCanvas();
+        BookCanvas canvas = new BookCanvas(ce);
         heading(canvas, false, title()); heading(canvas, true, "分类目录");
         var subtitle = label("玩法指南与更新记录", BookCanvas.COLUMN_WIDTH);
         canvas.centered(false, 9, subtitle.component(), subtitle.width());
@@ -174,7 +174,7 @@ public final class HandbookViews {
                     DialogBody.plainMessage(Component.text(entries.isEmpty() ? "没有找到可阅读的内容" : "选择条目开始阅读")),
                     pageCounter(page + 1, Math.max(1, (entries.size() + LIST_SIZE - 1) / LIST_SIZE))), buttons); return;
         }
-        BookCanvas canvas = new BookCanvas(); heading(canvas, false, title); heading(canvas, true, "条目目录");
+        BookCanvas canvas = new BookCanvas(ce); heading(canvas, false, title); heading(canvas, true, "条目目录");
         int row = BookCanvas.CONTENT_ROW;
         for (var line : text.wrap(text.parse(description), BookCanvas.COLUMN_WIDTH)) {
             if (row > 19) break; canvas.left(row, line.component(), line.width()); row += 2;
@@ -203,7 +203,7 @@ public final class HandbookViews {
             if (!usesBook(p)) { nativeEntry(p, entry, Math.max(0, requested), session); return; }
             List<BookPaginator.Paper> papers = paginator.paginate(entry);
             int spread = Math.min(Math.max(0, requested), (papers.size() - 1) / 2);
-            BookCanvas canvas = new BookCanvas();
+            BookCanvas canvas = new BookCanvas(ce);
             for (int side = 0; side < 2; side++) {
                 int index = spread * 2 + side; if (index >= papers.size()) continue;
                 var paper = papers.get(index); heading(canvas, side == 1, paper.title());
@@ -332,7 +332,7 @@ public final class HandbookViews {
         player.showDialog(Dialog.create(builder -> builder.empty().base(DialogBase.builder(Component.empty())
                 .externalTitle(Component.text(title())).canCloseWithEscape(true).pause(false)
                 // FocusableTextWidget 在正文两侧各留 4px，实际换行宽度需另加 8px。
-                .afterAction(DialogBase.DialogAfterAction.NONE).body(List.of(DialogBody.plainMessage(canvas.build(), BookCanvas.WIDTH + 8)))
+                .afterAction(DialogBase.DialogAfterAction.NONE).body(List.of(DialogBody.plainMessage(canvas.build(), BookCanvas.DISPLAY_WIDTH + 8)))
                 .build()).type(DialogType.notice(button("合上手册", session, this::close)))));
     }
     private void showNative(Player player, String title, List<DialogBody> body, List<ActionButton> buttons) {
