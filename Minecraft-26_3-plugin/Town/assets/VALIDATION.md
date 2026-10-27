@@ -1,5 +1,26 @@
 # Town 验证记录
 
+## Beta_0_9_3 测绘尺基物与领取后交互
+
+日期：2026-10-27。Folia 26.3 build 5 / Java 25 / ArcMenu 3.2.0 / CraftEngine 26.9.2 / Minecraft 26.3 Fabric。客户端仅 MainMenuRepair、MinecraftMcp 和 Fabric API；TownInput 使用非 OP 权限，保留 TownReader 的既有小镇。
+
+用户确认无响应与投影模组冲突。旧版 CE 定义和备用工具都使用木棍，本版改为燧石，CE ID 和测绘尺模型保留。未安装用户所用投影模组联测；上游默认木棍配置和输入处理的核对见[经验记录](../../../docs/exp/town-resource-packs.md)。
+
+- 从 `1d7e3a4` 的独立源码快照加入本次测绘改动构建，排除工作区中其他正在进行的经营系统和 Wallet 修改；`:Town:build --offline` 成功，89 项 JUnit 通过，0 失败、0 错误、0 跳过。
+- 新增 4 项持久配置迁移检查：只替换旧基物并保留自定义字段/注释、精确备份及重复执行、命名空间旧值、自定义基物保留、无效 YAML 不改写。
+- [交互审计](./surveyor-audit-Beta_0_9_3.json) 记录菜单、指令、CE 直接发放和备用路径；[实际测绘尺及选区](./screenshots/town-surveyor-flint.png) 保留原模型和亮色粒子。
+
+| 场景 | 实际结果 |
+| --- | --- |
+| 旧 CE 配置升级 | 启动时迁移 `material: stick` 为 `flint`；备份与上一版定义逐字节相同。再次启动不重复迁移 |
+| 菜单领取 | 实际点击地块页“领取测绘工具”，主手是 `minecraft:flint`，Town 页面和 ArcMenu 会话已清理；领取那次点击没有设置角点 |
+| 指令领取 | 菜单仍打开时执行 `/town select`，菜单关闭后左右键分别设置两点，不再一直被界面状态忽略 |
+| CE 原始工具 | 控制台执行 `ce item give TownInput town:surveyor 1`，底层为燧石，无 Town 发放标记也可左右键选点 |
+| 备用工具 | 临时夹具仅在发放时禁用 CE hook，得到燧石，恢复 hook 后仍由 Town 标记识别，左右键正确；没有另启完全无 CE 的服务端 |
+| 选点反馈 | 两点坐标和面积显示于聊天，声音、动作栏及边界保留；未改保护、划地与迁移业务规则 |
+
+实机安装和留档 JAR 逐字节一致，SHA-256：`2819dc4220a9e8eec7af0f0cbeb6759dea57dcf082c7d54269fff120d8158b2f`。旧背包物品不会自动转换，升级后需重新领取。临时 TestPlugin 只用于会话观测、瞄准和备用路径注入，不留档、不发布。
+
 ## Beta_0_9_2 原生对话框与镇名回填
 
 日期：2026-10-27。Folia 26.3 build 5 / Java 25 / ArcMenu 3.2.0 / Wallet Beta_0_7_0 / Minecraft 26.3 Fabric。客户端仅 MainMenuRepair、MinecraftMcp、Fabric API，1280×720，GUI 缩放 2；独立测试服保留 TownReader 的青禾镇。

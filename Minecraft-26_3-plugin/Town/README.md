@@ -2,7 +2,7 @@
 
 面向 **Minecraft/Folia 26.3、Java 25** 的休闲经营小镇系统。以政厅核心和玩家自建建筑为中心，提供自主区块领土、XZ 矩形地块、出租与授权、镇库发展、玩家商业及建筑迁移。
 
-- 版本：`Beta_0_9_2`，见 [ChangeLog](./Town-mc26_3-plugin-ChangeLog-Beta.md)。
+- 版本：`Beta_0_9_3`，见 [ChangeLog](./Town-mc26_3-plugin-ChangeLog-Beta.md)。
 - 主类：`com.example.town.TownPlugin`；公开查询接口：`com.example.town.api.TownApi`。
 - [实机验证记录](./assets/VALIDATION.md) · [美术素材与原始提示词](./assets/README.md)。
 
@@ -14,7 +14,7 @@
 | --- | --- | --- |
 | ArcMenu 3.2 | 26 页世界内菜单与每玩家动态内容；文字使用服务端原生 Dialog | 使用 `/town` 指令、聊天列表和文本地图 |
 | Wallet / Vault Economy（二选一） | 成立、扩张、租金、镇库、商品及迁移结算 | 收费与钱包相关操作提示不可用 |
-| CraftEngine | `town:town_hall` 核心、`town:surveyor` 测绘工具；保存自定义方块和家具 | 核心回落为磁石，工具回落为木棍；仍支持原版建筑迁移 |
+| CraftEngine | `town:town_hall` 核心、`town:surveyor` 测绘工具；保存自定义方块和家具 | 核心回落为磁石，工具回落为燧石；仍支持原版建筑迁移 |
 | MainMenu | 主菜单注册 `town:main`，按查看者显示信息 | 使用 `/town` 打开 |
 | HandbookCore | 全局手册中的“小镇生活”分类与 14 篇玩家指南 | `/town guide` 提示使用 `/town help` |
 
@@ -22,10 +22,14 @@
 
 1. 将 Town jar 与所需依赖放入服务端插件目录，启动服务端。
 2. Town 首次释放 `plugins/Town/config.yml`，新增键有默认值，已有运营配置保留。
-3. 自有 CraftEngine 资源在加载阶段释放到 `plugins/CraftEngine/resources/town/`，已有同名文件不会覆盖。等待 CE 延迟配置加载完成后，Town 自动执行 `reload_pack` 工作流（生成、校验、合并 ArcMenu、上传、发送）。客户端启用服务器资源包后重连即可。
+3. 自有 CraftEngine 资源在加载阶段释放到 `plugins/CraftEngine/resources/town/`，已有同名文件保留；仅将测绘尺旧默认 `stick` / `minecraft:stick` 基物迁移为 `flint`，先在同目录备份为 `town.yml.before-surveyor-flint.bak`，其他自定义基物保留。等待 CE 延迟配置加载完成后，Town 自动执行 `reload_pack` 工作流（生成、校验、合并 ArcMenu、上传、发送）。客户端启用服务器资源包后重连即可。
 4. ArcMenu 菜单自动生成到 `plugins/ArcMenu/menus/town-*.yml`。布局调整应修改生成器；Town 重载会重新生成菜单。
 
 CraftEngine 已安装且配置了核心 ID 时，必须成功放置真实自定义方块；定义未加载时提示错误，不以原版方块代替成功结果。
+
+### 测绘工具升级
+
+从 `Beta_0_9_2` 或更早版本升级：替换 Town jar 后完整重启，沿用旧默认木棍配置时，启动日志会出现“测绘工具基物已由木棍迁移为燧石”。重新领取工具，再选择两个角点；背包里已有的木棍版不会自动改变基物。模型仍为 `town:item/surveyor`。
 
 ### 玩家指南
 
@@ -74,7 +78,7 @@ CraftEngine 已安装且配置了核心 ID 时，必须成功放置真实自定�
 - 新位置仍需 ArcMenu 索引 → CE 合包 → GitLab 上传 → 客户端下载和重载，首次查看可能出现资源加载画面。请求以 1 秒短延迟合批，两批间冷却 5 秒；失败退避 30 秒。同中心共享任务，相邻视图共享区块采样，世界读取在 Folia 对应区域、着色使用只读快照。
 - 重启校验源 PNG、字体映射与最终 ZIP 后复用已有缓存；配置重载沿用渲染器，切回已看过的位置不会重新上传。地图数量最多 512，区块采样缓存最多 2048；快照不因建造自动更新。
 - CE 原版默认使用与游戏共享端口的 HTTP 托管；本仓服务端打包默认改用下方 GitLab 分发。选择 `self` 时，局域网、端口映射或代理环境需要设置玩家能访问的 `resource-pack.self-host.ip` / `url`。见 [CE 托管文档](https://xiao-momi.github.io/craft-engine-wiki/getting_start/set_up_host/self/)。
-- 已有服升级仅替换 Town jar，保留世界和 Town 数据目录；资源释放不覆盖已有 CE 自定义文件。
+- 已有服升级仅替换 Town jar，保留世界和 Town 数据目录；资源释放保留已有 CE 自定义内容；测绘尺旧木棍基物按上文备份迁移。
 
 仅服务端打包脚本：`python3 ./scripts/package-town-server.py --base <上一版服务端ZIP>`。依赖 jar 来自指定的已交付最小包，Town 来自本仓留档，不夹带本机配置、世界、玩家数据或客户端。
 
@@ -151,7 +155,8 @@ Vault API 没有幂等业务号。Town 在调用前写 `vault-transfers.bin`，�
 | `PRODUCTION` 生产 | 农场及生产建筑，按同一授权规则保护 |
 | `PUBLIC` 公共 | 由小镇管理者管理，不可作为私人房产出租；核心所在位置只可划为公共地块 |
 
-- `/town select` 领取测绘工具，左键、右键方块设置两角；CE 直接发放的 `town:surveyor` 同样可用。远距离点击按准星选择 64 格内的方块，也可用 `select pos1|pos2`。选点有聊天、动作栏与声音反馈；测绘不会破坏方块或打开容器/政厅。
+- `/town select` 或菜单领取后关闭界面；工具基物为燧石，保留 CE 测绘尺模型，避免与投影模组默认木棍工具冲突。旧木棍版需重新领取。
+- 持测绘工具，左键、右键方块设置两角；CE 直接发放的 `town:surveyor` 同样可用。远距离点击按准星选择 64 格内的方块，也可用 `select pos1|pos2`。选点有聊天、动作栏与声音反馈；测绘不会破坏方块或打开容器/政厅。
 - 选区每 8 tick 绘制亮绿轮廓与金色角点，地块在玩家附近高度预览；建筑保留真实上下沿。长边先裁剪到查看者周围 72 格再固定间距采样，避免大选区轮廓稀疏；粒子只对本人显示。
 - 镇长或官员划分地块；矩形必须完整位于本镇领土内，不能重叠。
 - 边界可扩大、缩小、迁址。预览显示新旧轮廓，提交前原归属继续生效。

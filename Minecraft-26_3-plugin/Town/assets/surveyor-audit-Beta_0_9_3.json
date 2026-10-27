@@ -1,0 +1,123 @@
+{
+  "version": "Beta_0_9_3",
+  "date": "2026-10-27",
+  "sourceBase": "1d7e3a4d8698d9f58782cad12a578590d518c790",
+  "build": "isolated HEAD source snapshot plus surveyor changes only",
+  "minecraft": "26.3",
+  "folia": "26.3 build 5",
+  "java": 25,
+  "craftEngine": "26.9.2",
+  "arcMenu": "3.2.0",
+  "clientMods": [
+    "MainMenuRepair",
+    "MinecraftMcp",
+    "Fabric API"
+  ],
+  "litematicaRuntimeTested": false,
+  "reportedConflict": "User confirmed projection mod conflict with the stick base item",
+  "artifactSha256": "2819dc4220a9e8eec7af0f0cbeb6759dea57dcf082c7d54269fff120d8158b2f",
+  "migrationBackupSha256": "6a10781f3439e762c080d881e403b6618af6c89282756d97f543f2986c6b88c5",
+  "migrationBackupMatchesPreviousDefault": true,
+  "junit": {
+    "tests": 89,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "interactions": [
+    {
+      "case": "menu-grant-does-not-select-through",
+      "messages": [
+        "[小镇] 测绘：持工具左键/右键方块选择两角；/town select pos1|pos2 选择准星方块；clear 清除。地块只使用 XZ，建筑迁移使用完整三维选区。"
+      ],
+      "status": [
+        "AUDIT current=null inputs=0 draft=null town=123123",
+        "SURVEY session=none viewing=false main=true off=false event=LEFT_CLICK_AIR hand=HAND item=FLINT tool=true viewing=false block=DENY use=DENY"
+      ]
+    },
+    {
+      "case": "menu-grant-left-right",
+      "mainHand": {
+        "empty": false,
+        "id": "minecraft:flint",
+        "count": 1,
+        "name": "[小镇] 小镇测绘工具",
+        "maxStackSize": 64
+      },
+      "messages": [
+        "[小镇] 选区已就绪：地块面积 6 方块；三维范围 3 × 1 × 2。",
+        "[小镇] 已设置第 2 点：world，-14, -61, 0。",
+        "[小镇] 已设置第 1 点：world，-12, -61, 1。",
+        "[小镇] 选区与边界预览已清除。",
+        "AUDIT current=null inputs=0 draft=null town=123123"
+      ],
+      "status": [
+        "AUDIT current=null inputs=0 draft=null town=123123",
+        "SURVEY session=none viewing=false main=true off=false event=RIGHT_CLICK_BLOCK hand=OFF_HAND item=null tool=false viewing=false block=ALLOW use=DEFAULT"
+      ]
+    },
+    {
+      "case": "command-grant-closes-menu",
+      "mainHand": {
+        "empty": false,
+        "id": "minecraft:flint",
+        "count": 2,
+        "name": "[小镇] 小镇测绘工具",
+        "maxStackSize": 64
+      },
+      "messages": [
+        "[小镇] 选区已就绪：地块面积 6 方块；三维范围 3 × 1 × 2。",
+        "[小镇] 已设置第 2 点：world，-14, -61, 0。",
+        "[小镇] 已设置第 1 点：world，-12, -61, 1。",
+        "[小镇] 选区与边界预览已清除。",
+        "[小镇] 测绘：持工具左键/右键方块选择两角；/town select pos1|pos2 选择准星方块；clear 清除。地块只使用 XZ，建筑迁移使用完整三维选区。"
+      ],
+      "status": [
+        "AUDIT current=null inputs=0 draft=null town=123123",
+        "SURVEY session=none viewing=false main=true off=false event=RIGHT_CLICK_BLOCK hand=OFF_HAND item=null tool=false viewing=false block=ALLOW use=DEFAULT"
+      ]
+    },
+    {
+      "case": "raw-ce-tool-left-right",
+      "mainHand": {
+        "empty": false,
+        "id": "minecraft:flint",
+        "count": 1,
+        "name": "镇务测绘尺",
+        "maxStackSize": 64
+      },
+      "messages": [
+        "[小镇] 选区已就绪：地块面积 6 方块；三维范围 3 × 1 × 2。",
+        "[小镇] 已设置第 2 点：world，-14, -61, 0。",
+        "[小镇] 已设置第 1 点：world，-12, -61, 1。",
+        "[小镇] 选区与边界预览已清除。",
+        "AUDIT current=null inputs=0 draft=null town=123123"
+      ],
+      "status": [
+        "AUDIT current=null inputs=0 draft=null town=123123",
+        "SURVEY session=none viewing=false main=true off=false event=RIGHT_CLICK_BLOCK hand=OFF_HAND item=null tool=false viewing=false block=ALLOW use=DEFAULT"
+      ]
+    },
+    {
+      "case": "no-ce-fallback-left-right",
+      "mainHand": {
+        "empty": false,
+        "id": "minecraft:flint",
+        "count": 1,
+        "name": "[小镇] 小镇测绘工具",
+        "maxStackSize": 64
+      },
+      "messages": [
+        "[小镇] 选区已就绪：地块面积 6 方块；三维范围 3 × 1 × 2。",
+        "[小镇] 已设置第 2 点：world，-14, -61, 0。",
+        "[小镇] 已设置第 1 点：world，-12, -61, 1。",
+        "[小镇] 选区与边界预览已清除。",
+        "[小镇] 测绘：持工具左键/右键方块选择两角；/town select pos1|pos2 选择准星方块；clear 清除。地块只使用 XZ，建筑迁移使用完整三维选区。"
+      ],
+      "status": [
+        "AUDIT current=null inputs=0 draft=null town=123123",
+        "SURVEY session=none viewing=false main=true off=false event=RIGHT_CLICK_BLOCK hand=OFF_HAND item=null tool=false viewing=false block=ALLOW use=DEFAULT"
+      ]
+    }
+  ]
+}

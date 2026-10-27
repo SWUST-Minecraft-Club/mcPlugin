@@ -41,6 +41,7 @@ public final class SelectionService implements Listener {
     private final Map<UUID,PlotService.EditProposal> edits=new ConcurrentHashMap<>();
     private record Click(Point point,int index,long at) { }
     private final Map<UUID,Click> clicks=new ConcurrentHashMap<>();
+    private final Map<UUID,Object> grants=new ConcurrentHashMap<>();
     private static final Particle.DustOptions SELECTED=new Particle.DustOptions(Color.fromRGB(48,245,168),1.65f);
     private static final Particle.DustOptions ORIGINAL=new Particle.DustOptions(Color.fromRGB(255,188,56),1.5f);
 
@@ -67,7 +68,7 @@ public final class SelectionService implements Listener {
             player.sendPlainMessage("[小镇] 物品交付处理中，请完成后再领取工具。");return;
         }
         ItemStack tool=plugin.craftEngine()==null?null:plugin.craftEngine().buildItem("town:surveyor");
-        if(tool==null) tool=new ItemStack(Material.STICK);
+        if(tool==null) tool=new ItemStack(Material.FLINT);
         tool.editMeta(meta->{
             meta.displayName(plugin.messages().render("selection-tool-name"));
             meta.lore(java.util.List.of(plugin.messages().render("selection-tool-lore")));
@@ -77,6 +78,12 @@ public final class SelectionService implements Listener {
             plugin.messages().send(player,"selection-inventory-full");
             return;
         }
+        // 领取按钮与选点可能共用同一次交互，下一 tick 才接受新工具的点击。
+        UUID actor=player.getUniqueId();
+        Object grant=new Object();
+        grants.put(actor,grant);
+        player.getScheduler().run(plugin,task->grants.remove(actor,grant),()->grants.remove(actor,grant));
+        if(plugin.ui()!=null) plugin.ui().closeForSurveying(player);
         plugin.messages().send(player,"selection-help");
     }
 
@@ -121,7 +128,7 @@ public final class SelectionService implements Listener {
     }
 
     public void previewEdit(Player player,PlotService.EditProposal proposal) { edits.put(player.getUniqueId(),proposal); render(player); }
-    public void clear(UUID player) { selections.remove(player); edits.remove(player); clicks.remove(player); }
+    public void clear(UUID player) { selections.remove(player); edits.remove(player); clicks.remove(player); grants.remove(player); }
 
     public boolean isTool(ItemStack item) {
         return item!=null && (item.getPersistentDataContainer().has(toolKey,PersistentDataType.BYTE)
@@ -132,6 +139,7 @@ public final class SelectionService implements Listener {
     public boolean click(Player player,ItemStack item,int index,Block block) {
         if(!isTool(item) || !player.hasPermission("town.use")
                 || (plugin.ui()!=null && plugin.ui().isViewing(player))) return false;
+        if(grants.containsKey(player.getUniqueId())) return true;
         Block target=block==null?player.getTargetBlockExact(64):block;
         Point point=target==null?null:Point.of(target.getLocation());
         long now=System.currentTimeMillis();

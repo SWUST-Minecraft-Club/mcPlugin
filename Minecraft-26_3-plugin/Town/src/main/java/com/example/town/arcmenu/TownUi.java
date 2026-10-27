@@ -432,6 +432,7 @@ public final class TownUi {
         api.close(player);
     }
     void closeOperations(Player player) {cancelTextInput(player.getUniqueId());api.close(player);current.remove(player.getUniqueId());}
+    public void closeForSurveying(Player player) {clear(player.getUniqueId());api.close(player);}
     void requestOperationInput(Player player,String title,java.util.function.Consumer<String> submitted) {
         requestTextInput(player, title, "", 50, submitted);
     }

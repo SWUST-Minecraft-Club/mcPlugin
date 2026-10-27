@@ -34,3 +34,10 @@
 - **根因**：当前 ArcMenu 地形为图片字体，不是独立传输的原版地图：7×7 区块采样 → 224×224 PNG → 字体索引 → CE 完整合包/上传/发送 → 客户端重载。旧渲染器每次配置重载重建，启动总重写占位图，`indexed` 仅在内存；原先还在所有玩家入服后补发同包取 PLAY 回执。只调下载超时无法减少这些步骤。
 - **规避/解决**：Town Beta_0_9_0 校验源 PNG、ArcMenu 字体 providers 和 CE ZIP 内容后恢复地图缓存；配置重载保留渲染器。相邻视图共享有界区块采样 Future，区块所属区域线程取得 `ChunkSnapshot`，异步着色，避免直接在异步回调读世界。PNG 写完保留同 key 任务直到合包结束；1 秒短延迟合批，成功后 5 秒冷却，失败退避 30 秒。仅首次实际查看地图且无对应回执时补发缓存包，普通入服不额外重载；新包仍严格匹配玩家/包 UUID。地形为快照，不随建造实时更新；首次新位置仍有整包重载成本。
 - **来源**：2026-10-27，85 项测试与 Folia 26.3 实机；从未缓存中心生成、GitLab 匿名 ZIP 与客户端加载、回切缓存和 `/town admin reload` 无额外上传。详见 Town `./assets/VALIDATION.md` Beta_0_9_0 记录；本条取代上文“全部玩家入服补发”的当前实现描述。
+
+### 自定义物品 ID 仍可能与客户端模组的基物匹配冲突
+
+- **现象**：用户反馈从菜单和 `/town select` 领取的测绘尺都没有左右键响应，随后确认与投影模组冲突。此前隔离客户端没有安装投影模组，测试通过不能覆盖该组合。
+- **根因**：旧 CE 定义的 `town:surveyor` 使用 `material: stick`，无 CE 时也发木棍。CE 自定义 ID、原版基物和显示模型是三项不同信息；资源包模型不会改变客户端看到的底层物品类型。核对 Litematica 上游 26.1 配置，默认工具是 `minecraft:stick`，输入处理会消费工具操作；本次未安装用户使用的投影模组版本实测，具体组合的冲突由用户确认。
+- **规避/解决**：Town `Beta_0_9_3` 的 CE 定义和备用工具统一改为燧石，保留 `town:surveyor` ID 及 `town:item/surveyor` 模型。启动时只迁移旧 `stick` / `minecraft:stick` 值，先备份 `town.yml.before-surveyor-flint.bak`，保留其他自定义基物、字段和注释；已有木棍物品需要重新领取。同时复现了菜单打开时用指令领取后菜单未关闭、选点被忽略的独立路径，领取成功后统一清理 Town 页面并请求关闭 ArcMenu，保留经营表单状态；发放当次交互到下一 tick 前只消费点击，避免领取按钮穿透成第一点。
+- **来源**：2026-10-27 用户确认与 Town `Beta_0_9_3`；[CE 物品定义](https://xiao-momi.github.io/craft-engine-wiki/configuration/item/)、[Litematica 工具默认值](https://github.com/sakura-ryoko/litematica/blob/26.1/src/main/java/fi/dy/masa/litematica/config/Configs.java)、[输入处理源码](https://github.com/sakura-ryoko/litematica/blob/26.1/src/main/java/fi/dy/masa/litematica/event/InputHandler.java)；实机范围见 `./Minecraft-26_3-plugin/Town/assets/VALIDATION.md`。

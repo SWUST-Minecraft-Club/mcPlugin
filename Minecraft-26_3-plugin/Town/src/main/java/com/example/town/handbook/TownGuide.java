@@ -90,6 +90,7 @@ public final class TownGuide {
                         List.of("测绘", "选区", "矩形", "左键", "右键", "XZ", "高度"),
                         page("选中两个角点",
                                 text("领取工具后，左键方块设置第一点，右键方块设置第二点。两点须在同一世界。"),
+                                text("测绘尺基物为燧石，避免与投影模组的木棍工具冲突；旧木棍版请重新领取。领取后会关闭菜单，再瞄准世界方块选点。"),
                                 text("CE 取得的镇务测绘尺也可使用。远处方块可对准后点击，最远 64 格；选点会有声音和文字反馈。"),
                                 text("也可瞄准方块使用 /town select pos1 或 /town select pos2；/town select clear 清空。"),
                                 command("领取测绘工具", "town select")),

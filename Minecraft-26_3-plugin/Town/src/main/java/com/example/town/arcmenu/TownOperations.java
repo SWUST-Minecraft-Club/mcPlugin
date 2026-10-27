@@ -61,7 +61,7 @@ final class TownOperations {
                     Pending pending=s.pending;if(pending==null || a.length!=2 || !pending.token().equals(a[1]) || pending.expires()<System.currentTimeMillis()) throw new IllegalArgumentException("确认已过期，请重新预览。");
                     s.pending=null;s.screen=pending.back();pending.action().run();show(p,s.screen.equals("plot") && s.plot.isBlank()?"plots":s.screen);
                 }
-                case "tool"->{plugin.selections().giveTool(p);ui.closeOperations(p);}
+                case "tool"->plugin.selections().giveTool(p);
                 case "plot-pick"->{s.plot=((Plot)row(s,a[1])).id();show(p,"plot");}
                 case "plot-new"->{s.plot="";s.name="新地块";s.owner=p.getName();s.kind=PlotKind.RESIDENTIAL;show(p,"plot-form");}
                 case "plot-edit"->{var plot=plot(s.plot);s.name=plot.name();s.owner=name(plot.owner());s.kind=plot.kind();show(p,"plot-form");}

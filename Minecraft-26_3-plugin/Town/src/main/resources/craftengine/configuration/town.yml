@@ -56,7 +56,7 @@ items:
             facing=west:
               appearance: west
   town:surveyor:
-    material: stick
+    material: flint
     data:
       item_name: '<!i><#79AA93>镇务测绘尺'
     model:
