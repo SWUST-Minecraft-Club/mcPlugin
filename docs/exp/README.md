@@ -41,5 +41,6 @@
 - [mainmenu-sidecards.md](./mainmenu-sidecards.md) — 私有侧卡显示层、鼠标模式等效画布、稳定自动布局与潜行点击实测
 - [arcmenu-item-angles.md](./arcmenu-item-angles.md) — UltimateShop-ArcMenu 1.0.0 的物品分类、GUI/FIXED、Y 轴旋转和深度参数，附字节码证据与手机界面验证边界
 - [town-resource-packs.md](./town-resource-packs.md) — 小镇首次合包与托管、GitLab 原生分发、CE 配置阶段回执、地图图片锚点补偿
+- [vehicles.md](./vehicles.md) — 双人载具：乘客退服删除根载具、Folia 停服上下文、分实体调度、碰撞坐标与模型/座位校准
 
 - [wallet-local-vault.md](./wallet-local-vault.md) — Wallet 双来源路由、菜单监听器与分页、Vault 主币种、官网迁入提交边界、头像校验及反射入口修复

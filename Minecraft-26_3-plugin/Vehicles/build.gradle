@@ -1,0 +1,40 @@
+// 本插件独有的配置。
+// 公共配置（Java 工具链、Folia API 依赖、仓库、processResources、Folia 测试服版本）
+// 统一在仓库根目录的 build.gradle 里，改一次对所有插件生效。
+
+version = 'Beta_0_1_0'
+
+dependencies {
+    compileOnly project(':MainMenu')
+    testImplementation "dev.folia:folia-api:${foliaApiVersion}"
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') { useJUnitPlatform() }
+tasks.register('vehiclePack', Zip) {
+    from 'assets/resourcepack'
+    archiveFileName = "Vehicles-mc${minecraftVersion.replace('.', '_')}-resourcepack-${project.version}.zip"
+    destinationDirectory = layout.buildDirectory.dir('pack')
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+tasks.named('processResources') {
+    from(tasks.named('vehiclePack')) { rename { 'vehicles-resourcepack.zip' } }
+}
+sourceSets {
+    integration { compileClasspath += sourceSets.main.output + configurations.compileClasspath }
+}
+tasks.register('vehicleIntegrationJar', Jar) {
+    dependsOn tasks.named('integrationClasses')
+    archiveBaseName = 'TestPluginVehicles'
+    archiveVersion = ''
+    from sourceSets.integration.output
+}
+tasks.register('archivePack', Copy) {
+    dependsOn tasks.named('vehiclePack')
+    from tasks.named('vehiclePack')
+    into rootProject.file('release/Vehicles')
+}
+tasks.named('build') { finalizedBy 'archivePack' }

@@ -7,7 +7,7 @@
 
 Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-26_3-plugin/<插件名>/`，由仓库根目录的一个 Gradle 工程统一管理：共享构建配置和服务端版本，每个插件又能单独打包、单独启动测试服。
 
-目前仓库里有 10 个插件：**[MainMenu](./Minecraft-26_3-plugin/MainMenu)**（主菜单框架，其它插件以它为依赖注册功能）、
+目前仓库里有 11 个插件：**[MainMenu](./Minecraft-26_3-plugin/MainMenu)**（主菜单框架，其它插件以它为依赖注册功能）、
 **[RealTime](./Minecraft-26_3-plugin/RealTime)**（在主菜单里显示当前时间）、
 **[YudreamPlaytime](./Minecraft-26_3-plugin/YudreamPlaytime)**（主菜单里显示查看者自己的在线时长，MainMenu 的伴侣插件）、
 **[Wallet](./Minecraft-26_3-plugin/Wallet)**（本地与官网按币种分流 / Vault 主币种 / 旧官网一次性迁入 + 钱包 API、管理指令与 Tab 补全）、
@@ -17,6 +17,7 @@ Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-2
 **[HandbookCore](./Minecraft-26_3-plugin/HandbookCore)**（全局双页手册：多插件内容 API、CE 图文与动态书签、全文检索和自动分页）、
 **[Town](./Minecraft-26_3-plugin/Town)**（小镇经营：政厅核心 / 自主连通领土 / 矩形地块与租赁 / 镇库科技政策 / 玩家商业 / 建筑迁移，
 26 页 ArcMenu 界面、Wallet / Vault 经济、CraftEngine 素材及 GitLab 资源分发；部署见模块 README）、
+**[Vehicles](./Minecraft-26_3-plugin/Vehicles)**（双人小镇漫游车：原创三色模型、WASD 驾驶、刹车倒车与地面碰撞；原版客户端资源包，MainMenu / CraftEngine 可选）、
 **[yudream-minecraft-server](./Minecraft-26_3-plugin/yudream-minecraft-server)**（把玩家动态上报给 YuDream Admin 的 Bukkit 桥接插件，
 自带本地时长统计与断线补发，运行期反射兼容 Folia）。新增插件用 `./gradlew newPlugin -PpluginName=你的插件名`。
 
@@ -76,6 +77,7 @@ Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-2
 │   ├── ChatPrivacy/                # 聊天防举报（公开聊天改写为无签名系统消息）
 │   ├── HandbookCore/               # 全局手册核心（Dialog 双页书 + CE 图片/物品 + 多插件 API）
 │   ├── Town/                       # 小镇经营、租赁、商业与建筑迁移（ArcMenu + WalletApi + CraftEngine）
+│   ├── Vehicles/                   # 原创三色双人小车、驾驶物理与原版资源包
 │   └── yudream-minecraft-server/   # YuDream Admin 桥接插件：上报 + 本地时长统计 + 断线补发（Java 8 / Bukkit 1.13.2 目标）
 ├── fabric-26_3-mod/                # Fabric 客户端模组（独立 Gradle 工程，不参与上面的插件构建）
 │   ├── MainMenuRepair/             # 清理 ESC 暂停菜单的界面修复模组
@@ -357,6 +359,17 @@ CraftEngine 与 MainMenu 可选，缺少书本资源时回退原生文字目录�
 安装包、YAML / API 示例和实机记录见 [HandbookCore 指南](./Minecraft-26_3-plugin/HandbookCore/README.md)。
 客户端可选 MainMenuRepair `Beta_1_2_0` 修复书本白框、居中与重复灰色页脚。
 
+## 插件：Vehicles（小镇漫游车）
+
+`Beta_0_1_0` 提供原创复古双座车，薄荷绿、陶土橙、奶油白三种配色，带奶油顶棚、木质货斗和独立转动车轮。
+WASD 驾驶，空格刹车、Shift 下车；车主开车，其他玩家坐副驾驶，右键车身即可上车。
+普通原版客户端加载资源包即可显示，MainMenu 与 CraftEngine 均为可选依赖。
+
+车辆属于会话内原型，车主退服或服务器重启后回收；没有燃料、购买、后备箱和持久车库。
+8 项物理测试及双客户端驾驶、乘客掉线、碰撞和停服/重启回归已完成。
+安装 ZIP、资源包与 JAR 留档在 `./release/Vehicles/`；[安装与命令](./Minecraft-26_3-plugin/Vehicles/README.md)、
+[模型与实机记录](./Minecraft-26_3-plugin/Vehicles/assets/VALIDATION.md)、[Folia 经验](./docs/exp/vehicles.md)。
+
 ## 客户端模组：MainMenuRepair
 
 `./fabric-26_3-mod/MainMenuRepair/` 是一个 **Fabric 客户端模组**，直接改客户端界面，把 ESC 暂停菜单里的这两样东西真正删掉：
@@ -452,6 +465,7 @@ dependencies {
 | YudreamPlaytime | `1_0_0`（2026.10.19） | `Beta_1_1_0`（适配 Folia；台账缓存加锁） |
 | yudream-minecraft-server | `2_0_0`（2026.10.19） | `Beta_2_1_0`（反射适配 Folia，保持 Java 8 / 1.13.2 兼容） |
 | Town | — | `Beta_0_10_0`（真实时间科研、政策加速、离线续研与进度；可选 RptStardew 1.6+ 三技能研习政策，保留测绘、原生输入、经营/迁移和 Wallet / Vault） |
+| Vehicles | — | `Beta_0_1_0`（原创三色双人小车、WASD/刹车/倒车、碰撞与资源包；会话内车辆） |
 | Wallet | —（还在测试版阶段） | `Beta_0_7_0`（本地与官网按币种配置双来源；新增 set/add/take 与 Tab 补全，修复菜单取物；保留 Vault 主币种和一次性迁入） |
 | ConcertoMenu | —（还在测试版阶段） | `Beta_0_2_0`（适配 Folia；首个版本：主菜单唱片机入口） |
 | JoinAnnounce | —（还在测试版阶段） | `Beta_0_4_1`（dialog 弹窗公告、默认不发聊天栏消息；默认每位玩家每天首次进服才弹；底部固定「开始冒险」+「查看完整更新日志」双按钮；`config-simple.yml` 为 SWUST 社团公告示例） |
@@ -465,6 +479,12 @@ dependencies {
 ## 版本历史
 
 `./release/<项目名>/` 里保留了每一版的产物；下面是对应的提交与改动（早期被同名覆盖的版本已用 `./scripts/rebuild-history.sh` 从 git 历史重建）。
+
+**Vehicles（插件）**
+
+| 版本 | 提交 | 改动 |
+| --- | --- | --- |
+| `Beta_0_1_0` | 本次提交 | 首个版本：原创三色复古双座模型、独立车轮、驾驶物理/碰撞、右键上车、安全下车与掉线回收；8 项物理测试、双客户端和停服/重启验证；JAR/资源包/完整安装 ZIP 与 Blockbench 源模型留档 |
 
 **HandbookCore（插件）**
 

@@ -1,0 +1,13 @@
+# 每名玩家最多放置一辆车。Shift 下车，右键车身上车。
+maximum-active-vehicles: 12
+driving:
+  # 单位：方块/tick，0.38 约为 27 km/h。
+  forward-speed: 0.38
+  reverse-speed: 0.14
+  acceleration: 0.009
+  brake: 0.025
+  rolling-resistance: 0.004
+  steering-degrees: 2.8
+  step-height: 0.6
+resources:
+  install-to-craftengine: true

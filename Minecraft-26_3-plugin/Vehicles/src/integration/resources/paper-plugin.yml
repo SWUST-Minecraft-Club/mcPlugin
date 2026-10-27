@@ -1,0 +1,11 @@
+name: TestPluginVehicles
+version: '1'
+main: com.example.vehicles.integration.VehicleProbe
+api-version: '26.3'
+folia-supported: true
+dependencies:
+  server:
+    Vehicles:
+      load: BEFORE
+      required: true
+      join-classpath: true

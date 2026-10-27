@@ -1,0 +1,24 @@
+name: Vehicles
+version: '${version}'
+main: com.example.vehicles.Vehicles
+api-version: '26.3'
+folia-supported: true
+description: 双人复古小镇车，支持原版客户端与自定义资源包
+authors: [zhou-BZDDX]
+website: https://github.com/zhou-BZDDX/mcPlugin
+dependencies:
+  server:
+    MainMenu:
+      load: BEFORE
+      required: false
+      join-classpath: true
+    CraftEngine:
+      load: BEFORE
+      required: false
+permissions:
+  vehicles.use:
+    description: 允许驾驶、乘坐和管理自己的小车
+    default: true
+  vehicles.admin:
+    description: 允许驾驶他人载具与重载配置
+    default: op
