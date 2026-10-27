@@ -1,5 +1,35 @@
 # Town 验证记录
 
+## Beta_0_8_0 玩家指南验证
+
+日期：2026-10-26。Folia 26.3 build 5 / Java 25 / HandbookCore Beta_0_1_1 / ArcMenu 3.2.0 / CraftEngine 26.9.2。
+MinecraftMcp 控制独立 Minecraft 26.3 客户端 TownReader，1280×800、GUI 缩放 2；客户端安装 MainMenuRepair Beta_1_2_0，使用普通玩家权限阅读。
+
+### 自动化
+
+- `:Town:build --offline` 成功，81 项 JUnit 测试，0 失败、0 错误、0 跳过。新增 3 项使用真实 HandbookCore 目录与分页器验证：所有内部链接可达、常用关键词可检索、权限过滤、配置替换保留稳定 ID、全文不丢失及每张纸的行数和栏宽。
+- 贡献 1 个分类、14 篇文章；内容包括成立、成员、连通领土、测绘、地块、租赁、镇库、科技政策、现货、收购、收件箱、迁移和常见问题。按钮不直接确认收费、施工或审批。
+- 文字版 `./PLAYER_GUIDE.md` 从同一 `TownGuide` 定义按默认配置导出，未另写一套玩法规则。
+
+### 实机
+
+| 场景 | 结果与证据 |
+| --- | --- |
+| 无手册核心 | 保留 ArcMenu、CE、MainMenu、Wallet 等原有依赖，移除 HandbookCore 后 Town 正常启用；`/town guide` 返回手册暂不可用与 `/town help` 提示，没有链接外部 API 的类加载异常 |
+| 注册与入口 | 加入 HandbookCore 后启动注册成功；普通玩家 `/town guide` 打开[入门双页书](./screenshots/town-handbook-start.png)，CE 书页通过当前 GitLab 分发加载 |
+| 分类与分页 | [小镇生活目录](./screenshots/town-handbook-category.png) 显示 14 篇、共 3 页；实际点击到第 3 页，显示建筑迁移和常见问题；文章箭头可切换正文 |
+| 内部链接 | 实际点击入门的“成立自己的小镇”，进入成立文章；继续翻页可阅读政厅说明 |
+| 搜索 | `/handbook search 搬家` 返回[建筑迁移及相关问题](./screenshots/town-handbook-search.png) |
+| 玩家指令按钮 | 空背包打开测绘文章，实际点击“领取测绘工具”，手册合上、背包出现 1 个带小镇名称的测绘木棍，并收到选点说明 |
+| 配置刷新 | 独立测试服将人数设为 4、成立费 2345.67、赠地 13、扩张费 78.9、斜角连接启用；`/town reload` 后文章显示[新的成立人数和费用](./screenshots/town-handbook-rules.png)。赠地与连通文案由自动化覆盖；随后恢复测试配置 |
+| 核心重载 | `/handbook reload` 后 Town 贡献保留，分类仍有 14 篇；不向核心 `content/` 写入玩法副本 |
+
+本轮验证指南贡献、阅读、导航、普通玩家按钮和配置刷新；未重跑全部经营与搬迁业务。Town 单独运行、同时缺少 ArcMenu 的启动场景存在既有 `ArcMenuTextInputListener` 类加载问题，本轮未修改该部分，因此“无手册核心”验证不代表所有软依赖都缺失时仍能启动。测试服仍有既有 Wallet 菜单构造及 CE 缓存提示。
+
+```text
+Town-mc26_3-plugin-Beta_0_8_0.jar  e1f8016fdf0887303cd574718e314c3e09f6839a95f4dc5895b180ce01d687f1
+```
+
 ## Beta_0_7_1 图标、余额与风格验证
 
 日期：2026-10-26。Town `Beta_0_7_1` / Folia 26.3 build 5 / Java 25 / ArcMenu 3.2.0 / CraftEngine 26.9.2 / 用户提供的 Folia 版 Vault。MinecraftMcp 控制 Minecraft 26.3 客户端 PackTester，1280×720；复用前轮隔离测试服，实际加载 jar 与本版留档逐字节一致。

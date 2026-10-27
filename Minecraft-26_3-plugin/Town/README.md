@@ -2,7 +2,7 @@
 
 面向 **Minecraft/Folia 26.3、Java 25** 的休闲经营小镇系统。以政厅核心和玩家自建建筑为中心，提供自主区块领土、XZ 矩形地块、出租与授权、镇库发展、玩家商业及建筑迁移。
 
-- 版本：`Beta_0_7_1`，见 [ChangeLog](./Town-mc26_3-plugin-ChangeLog-Beta.md)。
+- 版本：`Beta_0_8_0`，见 [ChangeLog](./Town-mc26_3-plugin-ChangeLog-Beta.md)。
 - 主类：`com.example.town.TownPlugin`；公开查询接口：`com.example.town.api.TownApi`。
 - [实机验证记录](./assets/VALIDATION.md) · [美术素材与原始提示词](./assets/README.md)。
 
@@ -16,6 +16,7 @@
 | Wallet / Vault Economy（二选一） | 成立、扩张、租金、镇库、商品及迁移结算 | 收费与钱包相关操作提示不可用 |
 | CraftEngine | `town:town_hall` 核心、`town:surveyor` 测绘工具；保存自定义方块和家具 | 核心回落为磁石，工具回落为木棍；仍支持原版建筑迁移 |
 | MainMenu | 主菜单注册 `town:main`，按查看者显示信息 | 使用 `/town` 打开 |
+| HandbookCore | 全局手册中的“小镇生活”分类与 14 篇玩家指南 | `/town guide` 提示使用 `/town help` |
 
 依赖均为软依赖。联合验证使用 Folia 26.3 build 5、Java 25、ArcMenu 3.2.0、CraftEngine 26.9.2；经济可选 Wallet 或向 Vault 注册的 Economy 服务。
 
@@ -25,6 +26,36 @@
 4. ArcMenu 菜单自动生成到 `plugins/ArcMenu/menus/town-*.yml`。布局调整应修改生成器；Town 重载会重新生成菜单。
 
 CraftEngine 已安装且配置了核心 ID 时，必须成功放置真实自定义方块；定义未加载时提示错误，不以原版方块代替成功结果。
+
+### 玩家指南
+
+[文字版玩家指南](./PLAYER_GUIDE.md) 由同一份手册正文按默认配置导出，可直接阅读或提供给玩家。
+
+安装 [HandbookCore](../HandbookCore/README.md) 后，Town 自动通过其公开 API 贡献指南。玩家在全局手册选择 **小镇生活**，
+或输入 `/town guide` 直接阅读入门。`/handbook category town:guide` 打开分类，`/handbook open town:start` 打开入门。
+阅读需要 `handbookcore.use` 和 `town.use`，两者默认均对玩家开放。
+
+| 章节 | 条目 ID | 内容 |
+| --- | --- | --- |
+| 从零开始 | `town:start` | 独立建镇、加入朋友、外镇租地与建设顺序 |
+| 成立与政厅 | `town:founding` | 筹备、成立扣费、放置和补领核心、自主赠地 |
+| 成员与分工 | `town:members` | 邀请、职责、私产权限、退出和交接 |
+| 领土与扩张 | `town:land` | 区块地图、连通、费用、放弃和回镇 |
+| 使用测绘工具 | `town:survey` | 两角选择、地块 XZ 与建筑 XYZ 的区别 |
+| 地块与权限 | `town:plots` | 四种用途、划分、改边界、审批和授权 |
+| 出租与承租 | `town:rent` | 挂牌、外镇租户、租金、到期和调整 |
+| 镇库与资金 | `town:treasury` | 个人与公共资金、贡献、提现和流水 |
+| 科技与政策 | `town:development` | 永久科技、限时政策、范围和祝福 |
+| 现货商铺 | `town:shops` | 上架托管、购买、手续费、下架和搬店 |
+| 预付收购单 | `town:orders` | 样品、预付款、供应与取消退款 |
+| 收件箱 | `town:mail` | 取货、退回库存和交付恢复 |
+| 建筑迁移 | `town:relocation` | 三维选区、预览、旋转、审批、施工与验收撤回 |
+| 常见问题 | `town:help` | 资源包、输入、权限、交易进度与未开放功能 |
+
+正文源为 `./src/main/java/com/example/town/handbook/TownGuide.java`，由 HandbookCore 统一搜索、分页和处理内部链接。
+按钮只打开常用入口或领取测绘工具，成立、购买、审批、施工仍使用各自的预览与确认流程。
+成立人数、费用、赠地总额、扩张价格和斜角连接规则读取当前 Town 配置；`/town reload` 原子替换指南，
+不会向 `plugins/HandbookCore/content/` 写入副本。HandbookCore 重载 YAML 保留插件贡献，Town 停用会注销自己的分类与文章。
 
 ### 资源包与领地地图
 
@@ -177,7 +208,7 @@ Vault API 没有幂等业务号。Town 在调用前写 `vault-transfers.bin`，�
 
 | 入口 | 常用子命令 |
 | --- | --- |
-| 基础 | `create 名称`、`found`、`invite 玩家`、`accept`、`reject`、`members [页]`、`leave`、`disband` |
+| 基础 | `guide`、`create 名称`、`found`、`invite 玩家`、`accept`、`reject`、`members [页]`、`leave`、`disband` |
 | 成员 | `kick|transfer|promote|demote 玩家` |
 | 领土 | `claim`、`unclaim`、`map`、`claimmap center`、`spawn` |
 | 选择 | `select`、`select pos1|pos2|clear` |
@@ -218,6 +249,6 @@ Vault API 没有幂等业务号。Town 在调用前写 `vault-transfers.bin`，�
 python3 ./Minecraft-26_3-plugin/Town/assets/rebuild_textures.py --check
 ```
 
-73 项单元测试及 Folia 联调范围见 [验证记录](./assets/VALIDATION.md)。公开 API 保留 TownApi 与 Founded / Disbanded / Claim / Unclaim / BuffActivate 事件。ArcMenu 经验见 [知识库](../../docs/exp/arcmenu-yml知识库.md)。
+81 项单元测试及 Folia 联调范围见 [验证记录](./assets/VALIDATION.md)。公开 API 保留 TownApi 与 Founded / Disbanded / Claim / Unclaim / BuffActivate 事件。ArcMenu 经验见 [知识库](../../docs/exp/arcmenu-yml知识库.md)。
 
 红名、监狱、守卫、节庆、战争、税收、SQL 与跨服同步属于后续范围。

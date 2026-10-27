@@ -7,6 +7,7 @@ import com.example.town.command.TownCommand;
 import com.example.town.event.TownEvents;
 import com.example.town.hook.CraftEngineHook;
 import com.example.town.hook.MainMenuHook;
+import com.example.town.hook.HandbookHook;
 import com.example.town.hook.EconomyHook;
 import com.example.town.hook.EconomyHooks;
 import com.example.town.model.Town;
@@ -50,6 +51,7 @@ public final class TownPlugin extends JavaPlugin {
     private BuffApplier buffApplier;
     private TownUi ui;
     private MainMenuHook menuHook;
+    private HandbookHook handbookHook;
 
     @Override
     public void onLoad() {
@@ -136,6 +138,8 @@ public final class TownPlugin extends JavaPlugin {
             menuHook.register();
         }
 
+        handbookHook = HandbookHook.create(this);
+
         buffApplier.start();
         relocation.start();
         market.start();
@@ -158,6 +162,9 @@ public final class TownPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (handbookHook != null) {
+            handbookHook.unregister();
+        }
         if (menuHook != null) {
             menuHook.unregister();
         }
@@ -194,6 +201,12 @@ public final class TownPlugin extends JavaPlugin {
         }
         if (ui != null) {
             ui.installMenus();
+        }
+        // 原子替换指南，成立人数、赠地及圈地费用随本次配置刷新。
+        if (handbookHook != null) {
+            handbookHook.register();
+        } else {
+            handbookHook = HandbookHook.create(this);
         }
     }
 
@@ -249,6 +262,12 @@ public final class TownPlugin extends JavaPlugin {
             ui.openHome(player);
         } else {
             player.sendMessage(messages.render("arcmenu-missing"));
+        }
+    }
+
+    public void openGuide(Player player) {
+        if (handbookHook == null || !handbookHook.open(player)) {
+            player.sendPlainMessage("[小镇] 玩家手册暂不可用，可用 /town help 查看指令。");
         }
     }
 }

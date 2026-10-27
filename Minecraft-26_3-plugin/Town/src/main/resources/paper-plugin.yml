@@ -31,6 +31,10 @@ dependencies:
     MainMenu:
       load: BEFORE
       required: false
+    HandbookCore:
+      load: BEFORE
+      required: false
+      join-classpath: true
     Wallet:
       load: BEFORE
       required: false

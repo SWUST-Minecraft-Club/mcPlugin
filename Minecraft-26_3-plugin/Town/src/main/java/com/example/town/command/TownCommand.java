@@ -43,6 +43,11 @@ public final class TownCommand {
                     help(plugin, ctx.getSource().getSender());
                     return 1;
                 }))
+                .then(Commands.literal("guide").executes(ctx -> {
+                    final Player player = needPlayer(plugin, ctx);
+                    if (player != null) plugin.openGuide(player);
+                    return 1;
+                }))
                 .then(PlotCommands.create(plugin))
                 .then(CivicCommands.create(plugin))
                 .then(MoveCommands.create(plugin))
@@ -597,6 +602,7 @@ public final class TownCommand {
     private static void help(final TownPlugin plugin, final org.bukkit.command.CommandSender to) {
         final List<String> lines = List.of(
                 "<gold>/town</gold> <gray>打开小镇界面",
+                "<gold>/town guide</gold> <gray>阅读小镇玩家指南",
                 "<gold>/town create <名称></gold> <gray>筹备新小镇",
                 "<gold>/town found</gold> <gray>成立小镇（需确认费用）",
                 "<gold>/town invite <玩家></gold> <gray>邀请成员",
