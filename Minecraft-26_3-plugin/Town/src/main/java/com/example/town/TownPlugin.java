@@ -117,6 +117,9 @@ public final class TownPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(
                 new TownHallListener(this, service, townHalls), this);
         getServer().getPluginManager().registerEvents(new ProtectionListener(this, service), this);
+        var territory=new com.example.town.protection.TerritoryListener(this);
+        getServer().getPluginManager().registerEvents(territory,this);
+        territory.start();
         if(craftEngine!=null) craftEngine.protect(this);
         getServer().getPluginManager().registerEvents(new TownUiListener(this), this);
 
@@ -269,5 +272,10 @@ public final class TownPlugin extends JavaPlugin {
         if (handbookHook == null || !handbookHook.open(player)) {
             player.sendPlainMessage("[小镇] 玩家手册暂不可用，可用 /town help 查看指令。");
         }
+    }
+
+    public void openMainMenu(Player player) {
+        if(ui!=null) ui.leave(player);
+        if(menuHook==null || !menuHook.open(player)) messages.send(player,"mainmenu-missing");
     }
 }

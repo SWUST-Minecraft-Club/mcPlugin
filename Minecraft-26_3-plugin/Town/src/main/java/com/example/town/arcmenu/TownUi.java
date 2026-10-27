@@ -48,6 +48,7 @@ public final class TownUi {
     private final Map<UUID, ConfirmSession> confirmations = new ConcurrentHashMap<>();
     private final Map<UUID, ArcMenuTextInputHandle> textInputs = new ConcurrentHashMap<>();
     private final Map<UUID, ChunkKey> chunkPreviews = new ConcurrentHashMap<>();
+    private final Map<UUID,ChunkKey> mapRequests=new ConcurrentHashMap<>();
     private final Set<UUID> balanceLoading = ConcurrentHashMap.newKeySet();
     private final Map<UUID, Long> balanceRetryAt = new ConcurrentHashMap<>();
     private final AtomicBoolean assetsLoading = new AtomicBoolean();
@@ -84,24 +85,19 @@ public final class TownUi {
     public void installMenus() {
         final Path dir = plugin.getDataFolder().toPath().getParent()
                 .resolve("ArcMenu").resolve("menus");
-        mapRenderer = new TownMapRenderer(plugin, dir.getParent());
-        mapRenderer.ensurePlaceholder();
-        mapRenderer.warmSpawn();
-        final boolean needResourceRebuild;
+        if(mapRenderer==null) {
+            mapRenderer = new TownMapRenderer(plugin, dir.getParent());
+            mapRenderer.initialize();
+        }
         try {
             final List<TownMenus.Written> written = TownMenus.writeAll(plugin.config(), dir);
             plugin.getLogger().info("已生成 " + written.size() + " 个小镇菜单文件到 " + dir);
             mergeAnimations(dir.getParent());
-            needResourceRebuild = mapRenderer.hasPendingIndex();
         } catch (final IOException | RuntimeException e) {
             plugin.getLogger().warning("小镇菜单写入失败：" + e.getMessage());
             return;
         }
         Threads.global(plugin, () -> {
-            if (needResourceRebuild) {
-                plugin.getLogger().info("检测到小地图图片变化，先重建 ArcMenu 资源包。");
-                mapRenderer.rebuildNow();
-            }
             final ArcMenuReloadReport report = api.menus().reload();
             if (report.isApplied()) {
                 plugin.getLogger().info("ArcMenu 菜单已重载：共 " + report.getMenuCount() + " 个，无错误。");
@@ -401,6 +397,11 @@ public final class TownUi {
     }
 
     public void operation(Player player,String input) {operations.command(player,input);}
+    public boolean isViewing(Player player) { return api.sessions().current(player)!=null; }
+    public void leave(Player player) {
+        forget(player.getUniqueId());
+        api.close(player);
+    }
     void closeOperations(Player player) {api.close(player);current.remove(player.getUniqueId());}
     void requestOperationInput(Player player,String title,java.util.function.Consumer<String> submitted) {
         if(api.textInput()==null) {plugin.messages().send(player,"input-unavailable");return;}
@@ -479,18 +480,25 @@ public final class TownUi {
                 if (!current.containsKey(id)) {
                     return;
                 }
-                if (api.sessions().current(player) == null) {
+                var session=api.sessions().current(player);
+                String screen=current.get(id);
+                if (session==null || (!screen.equals(session.getId())
+                        && !(TownMenus.CLAIM.equals(screen) && TownMenus.CLAIM_WAITING.equals(session.getId())))) {
                     clear(id);
                     return;
                 }
                 refresh(player);
-                drawChunkPreview(player);
             });
         }
     }
 
     /** 地图页常显中心区块轮廓；确认页改为高亮目标区块（买绿 / 弃红）。 */
-    private void drawChunkPreview(final Player player) {
+    public boolean hasBoundary(UUID player) {
+        return TownMenus.CLAIM.equals(current.get(player))
+                || (TownMenus.CONFIRM.equals(current.get(player)) && chunkPreviews.containsKey(player));
+    }
+
+    public void drawChunkPreview(final Player player) {
         final UUID id = player.getUniqueId();
         final String screen = current.get(id);
         ChunkKey chunk = null;
@@ -512,11 +520,11 @@ public final class TownUi {
             chunkPreviews.remove(id);
             return;
         }
-        final org.bukkit.Particle.DustOptions dust = new org.bukkit.Particle.DustOptions(color, 1.4f);
+        final org.bukkit.Particle.DustOptions dust = new org.bukkit.Particle.DustOptions(color, 1.65f);
         final int baseY = player.getLocation().getBlockY() + 1;
         final int minX = chunk.x() << 4;
         final int minZ = chunk.z() << 4;
-        for (int i = 0; i <= 16; i += 2) {
+        for (double i = 0; i <= 16; i += 1) {
             player.spawnParticle(org.bukkit.Particle.DUST, minX + i + 0.5, baseY, minZ + 0.5,
                     1, 0, 0, 0, 0, dust);
             player.spawnParticle(org.bukkit.Particle.DUST, minX + i + 0.5, baseY, minZ + 15.5,
@@ -556,6 +564,7 @@ public final class TownUi {
         selectedMember.remove(playerId);
         confirmations.remove(playerId);
         chunkPreviews.remove(playerId);
+        mapRequests.remove(playerId);
         final ArcMenuTextInputHandle input = textInputs.remove(playerId);
         if (input != null) {
             try {
@@ -576,6 +585,7 @@ public final class TownUi {
         selectedMember.clear();
         confirmations.clear();
         chunkPreviews.clear();
+        mapRequests.clear();
         textInputs.values().forEach(handle -> {
             try {
                 handle.close();
@@ -790,10 +800,13 @@ public final class TownUi {
                 : plugin.resourcePacks().message(player));
         if (mapRenderer != null && mapRenderer.isReady(key)) {
             set(player, "map_key", key);
+            plugin.resourcePacks().confirmForMap(player);
         } else {
             set(player, "map_key", "default");
-            if (mapRenderer != null && plugin.craftEngine() != null) {
+            if (mapRenderer != null && plugin.craftEngine() != null
+                    && !center.equals(mapRequests.put(player.getUniqueId(),center))) {
                 mapRenderer.ensureRendered(center).thenAccept(ready -> {
+                    mapRequests.remove(player.getUniqueId(),center);
                     if (!ready) {
                         return;
                     }

@@ -451,7 +451,7 @@ dependencies {
 | MinecraftMcp（fabric） | — | `Beta_0_1_0`（MCP 客户端测试工具；核心与游戏版本适配器分离） |
 | YudreamPlaytime | `1_0_0`（2026.10.19） | `Beta_1_1_0`（适配 Folia；台账缓存加锁） |
 | yudream-minecraft-server | `2_0_0`（2026.10.19） | `Beta_2_1_0`（反射适配 Folia，保持 Java 8 / 1.13.2 兼容） |
-| Town | — | `Beta_0_8_0`（新增 HandbookCore 小镇玩家指南、14 篇章节与操作入口；保留经营、迁移、26 页 ArcMenu、GitLab 分发及 Wallet / Vault 结算） |
+| Town | — | `Beta_0_9_0`（修复 CE 测绘、加强边界粒子，新增进镇提示/返回主菜单；地图缓存与分发优化；保留玩家指南、经营/迁移和 Wallet / Vault） |
 | Wallet | —（还在测试版阶段） | `Beta_0_7_0`（本地与官网按币种配置双来源；新增 set/add/take 与 Tab 补全，修复菜单取物；保留 Vault 主币种和一次性迁入） |
 | ConcertoMenu | —（还在测试版阶段） | `Beta_0_2_0`（适配 Folia；首个版本：主菜单唱片机入口） |
 | JoinAnnounce | —（还在测试版阶段） | `Beta_0_4_1`（dialog 弹窗公告、默认不发聊天栏消息；默认每位玩家每天首次进服才弹；底部固定「开始冒险」+「查看完整更新日志」双按钮；`config-simple.yml` 为 SWUST 社团公告示例） |
@@ -486,7 +486,8 @@ dependencies {
 | `Beta_0_6_1` | 本次提交 | 修复首次 CE 资源合包与托管、地图缺字白框和图片偏移；客户端加载回执确认、无资源包网格与仅服务端打包脚本 |
 | `Beta_0_7_0` | 本次提交 | 新增 Wallet / Vault Economy 来源、离线收款、调用回执与管理员核对、经济来源隔离及 Folia 版 Vault 打包支持 |
 | `Beta_0_7_1` | 本次提交 | 修复物品展示角度和余额排版，优化玉绿卡片、镇库币名、成员操作与长余额展示，78 项测试及实机校准 |
-| `Beta_0_8_0` | 本次提交 | 新增 HandbookCore 小镇生活分类、14 篇玩家指南与 `/town guide`，覆盖安家、租地、经营和搬迁；规则随配置刷新，81 项测试 |
+| `Beta_0_8_0` | `940ab90` | 新增 HandbookCore 小镇生活分类、14 篇玩家指南与 `/town guide`，覆盖安家、租地、经营和搬迁；规则随配置刷新，81 项测试 |
+| `Beta_0_9_0` | 本次提交 | 修复 CE 测绘尺左右键、加强边界粒子；进镇提示与主菜单返回；地图快照缓存、Folia 区域采样和合批分发优化，85 项测试与实机验证 |
 
 **MainMenu（插件）**
 

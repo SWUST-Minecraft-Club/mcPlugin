@@ -28,6 +28,7 @@ public final class TownResourcePacks implements Listener {
     private final ClassLoader loader;
     private final Map<UUID, Expected> expected = new ConcurrentHashMap<>();
     private final Map<UUID, Map<UUID, PlayerResourcePackStatusEvent.Status>> statuses = new ConcurrentHashMap<>();
+    private final Map<UUID,String> confirmationRequests=new ConcurrentHashMap<>();
     private volatile String publishedHash = "";
 
     public TownResourcePacks(TownPlugin plugin) {
@@ -96,6 +97,8 @@ public final class TownResourcePacks implements Listener {
         return root.resolve("generated/resource_pack.zip");
     }
 
+    public Path currentPack() { return packFile(); }
+
     /** 由地图渲染器在验证最终 CE 包包含本批 PNG 后发布。必须在 IO 线程调用。 */
     public void published(Path pack) throws Exception {
         String hash = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-1").digest(Files.readAllBytes(pack)));
@@ -155,13 +158,14 @@ public final class TownResourcePacks implements Listener {
         return "地形资源加载中 · 仍可选择区块";
     }
 
-    @EventHandler
-    public void onJoin(PlayerJoinEvent event) {
-        if (loader == null) return;
-        // CE 的配置阶段下载没有 PlayerResourcePackStatusEvent；进入 PLAY 后补发缓存包，取得可核验的 UUID 回执。
-        Player player = event.getPlayer();
+    /** 首次真正查看地图时才补 PLAY 回执；普通入服不再为地图额外重载一次整包。 */
+    public void confirmForMap(Player player) {
+        String hash=publishedHash;
+        if(loader==null || hash.isEmpty() || loaded(player)
+                || hash.equals(confirmationRequests.put(player.getUniqueId(),hash))) return;
         player.getScheduler().runDelayed(plugin, task -> {
-            if (publishedHash.isEmpty() || loaded(player)) return;
+            if(!hash.equals(publishedHash)) {confirmationRequests.remove(player.getUniqueId(),hash);return;}
+            if(loaded(player)) return;
             Path config = plugin.getDataFolder().toPath().getParent().resolve("CraftEngine/config.yml");
             if (!YamlConfiguration.loadConfiguration(config.toFile()).getBoolean("resource-pack.delivery.send-on-join", true)) return;
             try {
@@ -176,8 +180,10 @@ public final class TownResourcePacks implements Listener {
             } catch (ReflectiveOperationException | LinkageError error) {
                 plugin.getLogger().warning("入服资源包确认接口不可用：" + error.getClass().getSimpleName());
             }
-        }, null, 20L);
+        }, null, 10L);
     }
+
+    @EventHandler public void onJoin(PlayerJoinEvent event) { confirmationRequests.remove(event.getPlayer().getUniqueId()); }
 
     @EventHandler
     public void onStatus(PlayerResourcePackStatusEvent event) {
@@ -202,5 +208,6 @@ public final class TownResourcePacks implements Listener {
         UUID id = event.getPlayer().getUniqueId();
         expected.remove(id);
         statuses.remove(id);
+        confirmationRequests.remove(id);
     }
 }

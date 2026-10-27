@@ -65,6 +65,35 @@ class TownMapRendererTest {
         assertTrue((boolean) verify.invoke(renderer, merged, Set.of("test"), 0L));
     }
 
+    @Test
+    void restartCacheRequiresTheCurrentPngAndTheFinalFont() throws Exception {
+        Path arcDir=tempDir.resolve("ArcMenu");
+        Path arc=arcDir.resolve("generated/arcmenu-resourcepack.zip");
+        Files.createDirectories(arc.getParent());
+        String font="{\"providers\":[{\"type\":\"bitmap\",\"file\":\"arcmenu:images/town/map/v3_world_0_0.png\",\"chars\":[\"x\"]}]}";
+        Path merged=tempDir.resolve("merged.zip");
+        packMap(arc,font,"current");packMap(merged,font,"current");
+        TownMapRenderer renderer=new TownMapRenderer(null,arcDir);
+        Files.createDirectories(renderer.fileFor("v3_world_0_0").getParent());
+        Files.writeString(renderer.fileFor("v3_world_0_0"),"current");
+        assertTrue(renderer.restoreCachedPack(merged));
+        assertTrue(renderer.isReady("v3_world_0_0"));
+        Files.writeString(renderer.fileFor("v3_world_0_0"),"changed-after-build");
+        assertFalse(new TownMapRenderer(null,arcDir).restoreCachedPack(merged));
+        Files.writeString(renderer.fileFor("v3_world_0_0"),"current");
+        packMap(merged,"{\"providers\":[]}","current");
+        assertFalse(new TownMapRenderer(null,arcDir).restoreCachedPack(merged));
+    }
+
+    private void packMap(Path path,String font,String image) throws Exception {
+        try(var out=new ZipOutputStream(Files.newOutputStream(path))) {
+            out.putNextEntry(new ZipEntry("assets/arcmenu/font/images.json"));
+            out.write(font.getBytes(java.nio.charset.StandardCharsets.UTF_8));out.closeEntry();
+            out.putNextEntry(new ZipEntry("assets/arcmenu/textures/images/town/map/v3_world_0_0.png"));
+            out.write(image.getBytes(java.nio.charset.StandardCharsets.UTF_8));out.closeEntry();
+        }
+    }
+
     private void pack(Path path, String font, String image) throws Exception {
         try (var out = new ZipOutputStream(Files.newOutputStream(path))) {
             out.putNextEntry(new ZipEntry("assets/arcmenu/font/images.json"));

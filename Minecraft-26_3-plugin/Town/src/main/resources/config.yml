@@ -123,6 +123,12 @@ menu:
   # 主菜单（MainMenu）里小镇入口的排序值，越小越靠前。
   entry-order: 10
 
+# 步行、传送或入服进入已成立的小镇；同镇跨区块不重复。
+territory-notice:
+  enabled: true
+  chat: true
+  title: true
+
 # ---------------------------- 消息 ----------------------------
 # ---------------------------- 镇库与经营 ----------------------------
 civic:
@@ -186,6 +192,10 @@ messages:
   plot-lease-active: "<yellow>租约仍在生效，暂时不能进行此操作。"
   plot-updated: "<green>地块资料已更新。"
   plot-removed: "<green>地块已撤销，原范围归回小镇公共管理。"
+  territory-enter: "<green>你已经进入 <gold><town></gold>。"
+  territory-title: "<gold><town>"
+  territory-subtitle: "<green>你已经进入小镇领地"
+  mainmenu-missing: "<yellow>主菜单暂不可用，可使用 /town 返回小镇界面。"
   selection-tool-name: "<gold>小镇测绘工具</gold>"
   selection-tool-lore: "<gray>左键设置第一点，右键设置第二点。</gray>"
   selection-help: "<gold>测绘：</gold><gray>持工具左键/右键方块选择两角；/town select pos1|pos2 选择准星方块；clear 清除。地块只使用 XZ，建筑迁移使用完整三维选区。</gray>"

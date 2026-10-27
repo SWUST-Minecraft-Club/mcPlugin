@@ -21,7 +21,7 @@ import java.util.zip.ZipFile;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
+import org.bukkit.ChunkSnapshot;
 
 /**
  * 原版地图风格的小地图渲染器。真实 key 只有在 PNG 写盘且本次 CE 最终资源包验证成功后才会标记为 ready，
@@ -32,7 +32,8 @@ public final class TownMapRenderer {
     public static final int CHUNKS = 7;
     private static final int SCALE = 2;
     private static final int MAX_MAPS = 512;
-    private static final long REBUILD_THROTTLE_MS = 30_000L;
+    private static final long REBUILD_THROTTLE_MS = 5_000L;
+    private static final long BATCH_DELAY_MS = 1_000L;
     private static final String RENDER_VERSION = "v3";
 
     private final TownPlugin plugin;
@@ -42,10 +43,31 @@ public final class TownMapRenderer {
     private final Set<String> pendingIndex = new HashSet<>();
     private final Set<String> indexed = new HashSet<>();
     private final Map<String, List<CompletableFuture<Boolean>>> waiters = new HashMap<>();
+    private final Map<ChunkKey, CompletableFuture<int[]>> tiles = new java.util.LinkedHashMap<>();
     private boolean rebuildRunning;
     private boolean rebuildScheduled;
     private boolean rebuildAgain;
     private long lastRebuild;
+
+    /** 已有最终包校验通过即可复用，开服和配置重载不会为了同一张地图再次上传。 */
+    public void initialize() {
+        Threads.async(plugin,()->{
+            ensurePlaceholder();
+            try {
+                Path merged=plugin.resourcePacks().currentPack();
+                if(restoreCachedPack(merged)) {
+                    plugin.resourcePacks().published(merged);
+                    plugin.getLogger().info("已复用小镇地图资源缓存（"+indexed.size()+" 张），无需重新合包上传。");
+                }
+            } catch(Exception error) {
+                plugin.getLogger().fine("地图缓存需重新索引："+error.getMessage());
+            }
+            Threads.global(plugin,()->{
+                warmSpawn();
+                requestResourceRebuild();
+            });
+        });
+    }
 
     public TownMapRenderer(final TownPlugin plugin, final Path arcMenuDir) {
         this.plugin = plugin;
@@ -95,13 +117,37 @@ public final class TownMapRenderer {
                 g.fillRect(0, i * SCALE, img.getWidth(), SCALE);
             }
             g.dispose();
-            javax.imageio.ImageIO.write(img, "png", fileFor("default").toFile());
+            if(!Files.isRegularFile(fileFor("default")))
+                javax.imageio.ImageIO.write(img, "png", fileFor("default").toFile());
             synchronized (this) {
                 pendingIndex.add("default");
             }
         } catch (final IOException e) {
             plugin.getLogger().warning("小地图占位图写入失败：" + e.getMessage());
         }
+    }
+
+    /** 不是只信磁盘缓存：逐一比较字体映射、源 PNG 和最终包内 CRC。 */
+    boolean restoreCachedPack(Path merged) throws IOException {
+        if(!Files.isRegularFile(packFile) || !Files.isRegularFile(merged)) return false;
+        Set<String> keys=new HashSet<>();
+        try(var stream=Files.list(imageDir)) {
+            stream.filter(p->p.getFileName().toString().endsWith(".png"))
+                    .map(p->p.getFileName().toString().replaceFirst("\\.png$",""))
+                    .filter(key->key.equals("default") || key.startsWith(RENDER_VERSION+"_"))
+                    .forEach(keys::add);
+        }
+        if(keys.isEmpty() || !verifyMergedPack(merged,keys,0)) return false;
+        try(ZipFile zip=new ZipFile(merged.toFile())) {
+            for(String key:keys) {
+                var entry=zip.getEntry("assets/arcmenu/textures/images/town/map/"+key+".png");
+                var crc=new java.util.zip.CRC32();
+                crc.update(Files.readAllBytes(fileFor(key)));
+                if(entry==null || crc.getValue()!=entry.getCrc()) return false;
+            }
+        }
+        synchronized(this) { indexed.addAll(keys); pendingIndex.removeAll(keys); }
+        return true;
     }
 
     /** 启动预热出生点；返回的 Future 只有在资源包验证成功后才完成 true。 */
@@ -152,14 +198,13 @@ public final class TownMapRenderer {
                 final int cz = center.z() + r - half;
                 final int px = c * 16;
                 final int pz = r * 16;
-                jobs.add(world.getChunkAtAsync(cx, cz).thenAccept(chunk -> {
+                jobs.add(tile(world,new ChunkKey(center.world(),cx,cz)).thenAccept(colors -> {
                     for (int dx = 0; dx < 16; dx++) {
                         for (int dz = 0; dz < 16; dz++) {
-                            final Color color = columnColor(world, (cx << 4) + dx, (cz << 4) + dz);
                             for (int sy = 0; sy < SCALE; sy++) {
                                 for (int sx = 0; sx < SCALE; sx++) {
                                     img.setRGB((px + dx) * SCALE + sx, (pz + dz) * SCALE + sy,
-                                            color.getRGB());
+                                            colors[dx*16+dz]);
                                 }
                             }
                         }
@@ -184,9 +229,35 @@ public final class TownMapRenderer {
                 });
     }
 
+    /** 相邻的 7×7 视图共享区块采样；读取世界只在所属区域线程，着色在异步线程。 */
+    private synchronized CompletableFuture<int[]> tile(World world,ChunkKey key) {
+        var cached=tiles.get(key);
+        if(cached!=null) return cached;
+        CompletableFuture<int[]> result=new CompletableFuture<>();
+        tiles.put(key,result);
+        while(tiles.size()>2048) tiles.remove(tiles.keySet().iterator().next());
+        world.getChunkAtAsync(key.x(),key.z()).whenComplete((chunk,error)->{
+            if(error!=null) {result.completeExceptionally(error);return;}
+            Bukkit.getRegionScheduler().run(plugin,world,key.x(),key.z(),task->{
+                try {
+                    ChunkSnapshot snapshot=chunk.getChunkSnapshot(true,true,false);
+                    Threads.async(plugin,()->{
+                        try {
+                            int[] colors=new int[256];
+                            for(int x=0;x<16;x++) for(int z=0;z<16;z++)
+                                colors[x*16+z]=columnColor(snapshot,x,z).getRGB();
+                            result.complete(colors);
+                        } catch(RuntimeException failure) {result.completeExceptionally(failure);}
+                    });
+                } catch(RuntimeException failure) {result.completeExceptionally(failure);}
+            });
+        });
+        result.whenComplete((ignored,error)->{if(error!=null) synchronized(this) {tiles.remove(key,result);}});
+        return result;
+    }
+
     private void markWritten(final String key) {
         synchronized (this) {
-            inFlight.remove(key);
             pendingIndex.add(key);
         }
         requestResourceRebuild();
@@ -201,7 +272,7 @@ public final class TownMapRenderer {
         complete(failed, false);
     }
 
-    /** 30 秒节流有尾随重建：运行中收到新图一定会再安排一次，不会丢批次。 */
+    /** 短延迟收齐同批请求，5 秒冷却且有尾随重建；不为一张初始占位图单独合包。 */
     public void requestResourceRebuild() {
         final long delay;
         synchronized (this) {
@@ -212,7 +283,8 @@ public final class TownMapRenderer {
             if (pendingIndex.isEmpty() || rebuildScheduled) {
                 return;
             }
-            delay = lastRebuild + REBUILD_THROTTLE_MS - System.currentTimeMillis();
+            if(plugin.craftEngine()==null) return;
+            delay = Math.max(BATCH_DELAY_MS,lastRebuild + REBUILD_THROTTLE_MS - System.currentTimeMillis());
             if (delay > 0) {
                 rebuildScheduled = true;
             } else {
@@ -223,8 +295,11 @@ public final class TownMapRenderer {
             Threads.globalLater(plugin, Math.max(1L, delay / 50L), () -> {
                 synchronized (this) {
                     rebuildScheduled = false;
+                    if(rebuildRunning) { rebuildAgain=true; return; }
+                    if(pendingIndex.isEmpty()) return;
+                    rebuildRunning=true;
                 }
-                requestResourceRebuild();
+                doRebuild();
             });
         } else {
             Threads.global(plugin, this::doRebuild);
@@ -308,15 +383,16 @@ public final class TownMapRenderer {
             } else {
                 pendingIndex.addAll(batch);
             }
-            lastRebuild = System.currentTimeMillis();
+            lastRebuild = System.currentTimeMillis()+(ok?0:25_000L);
             rebuildRunning = false;
             for (final String key : batch) {
+                inFlight.remove(key);
                 final List<CompletableFuture<Boolean>> callbacks = waiters.remove(key);
                 if (callbacks != null) {
                     done.put(key, callbacks);
                 }
             }
-            again = rebuildAgain;
+            again = rebuildAgain || !pendingIndex.isEmpty();
             rebuildAgain = false;
         }
         final boolean success = ok;
@@ -396,6 +472,9 @@ public final class TownMapRenderer {
             try (var stream = Files.list(imageDir)) {
                 stream.filter(path -> path.getFileName().toString().endsWith(".png"))
                         .filter(path -> !path.getFileName().toString().equals("default.png"))
+                        .filter(path -> {
+                            synchronized(this) { return !inFlight.contains(path.getFileName().toString().replaceFirst("\\.png$","")); }
+                        })
                         .forEach(maps::add);
             }
             maps.sort((a, b) -> {
@@ -420,12 +499,10 @@ public final class TownMapRenderer {
         }
     }
 
-    private Color columnColor(final World world, final int x, final int z) {
-        try {
-            final Block top = world.getHighestBlockAt(x, z);
-            final Material type = top.getType();
+    private Color columnColor(final ChunkSnapshot snapshot, final int x, final int z) {
+            final int y = snapshot.getHighestBlockYAt(x,z);
+            final Material type = snapshot.getBlockType(x,y,z);
             final String name = type.name();
-            final int y = top.getY();
             if (name.contains("WATER")) {
                 return shade(waterColor(y), y);
             }
@@ -440,18 +517,15 @@ public final class TownMapRenderer {
             }
             if (name.contains("LEAVES") || name.contains("LOG") || name.contains("WOOD")
                     || name.contains("CACTUS")) {
-                final Color grass = grassColor(top.getBiome().name());
+                final Color grass = grassColor(snapshot.getBiome(x,y,z).getKey().getKey().toUpperCase(java.util.Locale.ROOT));
                 return shade(new Color(grass.getRed() * 70 / 100,
                         grass.getGreen() * 75 / 100, grass.getBlue() * 70 / 100), y);
             }
             if (name.contains("GRASS_BLOCK") || name.contains("PODZOL") || name.contains("MYCELIUM")
                     || name.contains("MOSS") || name.contains("DIRT")) {
-                return shade(grassColor(top.getBiome().name()), y);
+                return shade(grassColor(snapshot.getBiome(x,y,z).getKey().getKey().toUpperCase(java.util.Locale.ROOT)), y);
             }
             return shade(new Color(0x7D, 0x7D, 0x7D), y);
-        } catch (final RuntimeException e) {
-            return new Color(0x1A, 0x1A, 0x1A);
-        }
     }
 
     private static Color grassColor(final String biome) {

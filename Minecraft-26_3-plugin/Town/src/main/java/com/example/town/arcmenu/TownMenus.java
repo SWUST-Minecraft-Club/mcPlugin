@@ -92,8 +92,10 @@ public final class TownMenus {
                 MenuBuilder.spec(MenuBuilder.tooltip("&f关闭界面"), MenuBuilder.click("all", "close:")));
         m.text("hint", t(MUTE, hint), 20, hintAboveContent ? 59 : 430,
                 hintAboveContent ? 10 : 11, 5, LEFT, null);
+        smallButton(m,"main-menu",428,13,108,26,JADE,"主菜单",
+                MenuBuilder.spec(null,MenuBuilder.click("all","command: town mainmenu")));
         if (showBack) {
-            smallButton(m, "back", 664, 416, 116, 26, RAISE, "返回主页",
+            smallButton(m, "back", 664, 416, 116, 26, RAISE, "小镇主页",
                     MenuBuilder.spec(MenuBuilder.tooltip("&f返回小镇主页"),
                             MenuBuilder.click("all", "command: town")));
         }

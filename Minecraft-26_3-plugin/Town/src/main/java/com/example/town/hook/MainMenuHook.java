@@ -60,6 +60,11 @@ public final class MainMenuHook {
         feature = null;
     }
 
+    public boolean open(Player player) {
+        try { return MainMenuApi.openOrNull(player); }
+        catch(LinkageError error) { return false; }
+    }
+
     private List<net.kyori.adventure.text.Component> linesFor(Player viewer) {
         UUID viewerId = viewer.getUniqueId();
         TownSnapshotView town = plugin.service().townOf(viewerId);

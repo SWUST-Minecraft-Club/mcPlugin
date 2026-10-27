@@ -285,8 +285,8 @@ public final class RelocationService {
     }
     private void render(Player player) {
         Draft d=drafts.get(player.getUniqueId());if(d==null || !player.getWorld().getName().equals(d.move().source().world())) return;
-        outline(player,d.move().source(),Color.fromRGB(210,173,110));
-        outline(player,d.move().target(),d.problem().isBlank()?Color.fromRGB(105,192,163):Color.fromRGB(223,107,104));
+        outline(player,d.move().source(),Color.fromRGB(255,188,56));
+        outline(player,d.move().target(),d.problem().isBlank()?Color.fromRGB(48,245,168):Color.fromRGB(255,74,74));
         player.sendActionBar(Component.text(d.scanning()?"正在测绘…":!d.problem().isBlank()?"不可施工："+describe(d.problem()):"目标 "+d.move().targetX()+" / "+d.move().targetY()+" / "+d.move().targetZ()+" · "+d.move().quarterTurns()*90+"° · /town move"));
     }
     private void showGhost(Player player,Draft d) {
@@ -315,10 +315,12 @@ public final class RelocationService {
         }));
     }
     private void outline(Player player,BlockBox b,Color color) {
-        var dust=new Particle.DustOptions(color,1.1f);double[] xs={b.minX(),b.maxX()+1d},ys={b.minY(),b.maxY()+1d},zs={b.minZ(),b.maxZ()+1d};
-        for(int axis=0;axis<3;axis++) for(int a=0;a<2;a++) for(int c=0;c<2;c++) for(int i=0;i<=16;i++) {
-            double t=i/16d,x=axis==0?xs[0]+(xs[1]-xs[0])*t:xs[a],y=axis==1?ys[0]+(ys[1]-ys[0])*t:ys[axis==0?a:c],z=axis==2?zs[0]+(zs[1]-zs[0])*t:zs[c];
-            if(player.getLocation().distanceSquared(new Location(player.getWorld(),x,y,z))<128*128) player.spawnParticle(Particle.DUST,x,y,z,1,0,0,0,0,dust);
+        var dust=new Particle.DustOptions(color,1.9f);double[] xs={b.minX(),b.maxX()+1d},ys={b.minY(),b.maxY()+1d},zs={b.minZ(),b.maxZ()+1d};
+        for(int axis=0;axis<3;axis++) for(int a=0;a<2;a++) for(int c=0;c<2;c++) {
+            double ax=axis==0?xs[0]:xs[a],bx=axis==0?xs[1]:xs[a];
+            double ay=axis==1?ys[0]:ys[axis==0?a:c],by=axis==1?ys[1]:ys[axis==0?a:c];
+            double az=axis==2?zs[0]:zs[c],bz=axis==2?zs[1]:zs[c];
+            com.example.town.selection.BoundaryParticles.edge(player,ax,ay,az,bx,by,bz,dust);
         }
     }
     private Draft require(UUID actor) {

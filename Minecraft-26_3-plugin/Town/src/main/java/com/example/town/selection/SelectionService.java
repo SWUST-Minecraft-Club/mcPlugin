@@ -20,7 +20,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -40,8 +39,10 @@ public final class SelectionService implements Listener {
     private final NamespacedKey toolKey;
     private final Map<UUID,Selection> selections=new ConcurrentHashMap<>();
     private final Map<UUID,PlotService.EditProposal> edits=new ConcurrentHashMap<>();
-    private static final Particle.DustOptions SELECTED=new Particle.DustOptions(Color.fromRGB(110,174,140),1.1f);
-    private static final Particle.DustOptions ORIGINAL=new Particle.DustOptions(Color.fromRGB(211,180,122),1.0f);
+    private record Click(Point point,int index,long at) { }
+    private final Map<UUID,Click> clicks=new ConcurrentHashMap<>();
+    private static final Particle.DustOptions SELECTED=new Particle.DustOptions(Color.fromRGB(48,245,168),1.65f);
+    private static final Particle.DustOptions ORIGINAL=new Particle.DustOptions(Color.fromRGB(255,188,56),1.5f);
 
     public SelectionService(TownPlugin plugin) {
         this.plugin=plugin;
@@ -51,10 +52,14 @@ public final class SelectionService implements Listener {
     public void start() {
         Bukkit.getGlobalRegionScheduler().runAtFixedRate(plugin,task->{
             for(Player player:Bukkit.getOnlinePlayers()) {
-                if(selections.containsKey(player.getUniqueId()) || edits.containsKey(player.getUniqueId()))
-                    Threads.forPlayer(plugin,player,()->render(player));
+                if(selections.containsKey(player.getUniqueId()) || edits.containsKey(player.getUniqueId())
+                        || (plugin.ui()!=null && plugin.ui().hasBoundary(player.getUniqueId())))
+                    Threads.forPlayer(plugin,player,()->{
+                        if(plugin.ui()!=null && plugin.ui().hasBoundary(player.getUniqueId())) plugin.ui().drawChunkPreview(player);
+                        else if(plugin.ui()==null || !plugin.ui().isViewing(player)) render(player);
+                    });
             }
-        },10,10);
+        },8,8);
     }
 
     public void giveTool(Player player) {
@@ -94,6 +99,11 @@ public final class SelectionService implements Listener {
             plugin.messages().send(player,"selection-ready",Placeholder.unparsed("area",String.valueOf(box.footprint().area())),
                     Placeholder.unparsed("size",box.width()+" × "+box.height()+" × "+box.depth()));
         }
+        player.sendActionBar(plugin.messages().renderPlain("selection-point",
+                Placeholder.unparsed("index",String.valueOf(index)),Placeholder.unparsed("world",point.world()),
+                Placeholder.unparsed("position",point.x()+", "+point.y()+", "+point.z())));
+        player.playSound(player.getLocation(),org.bukkit.Sound.BLOCK_NOTE_BLOCK_PLING,0.35f,index==1?1.2f:1.6f);
+        render(player);
     }
 
     public void selectTarget(Player player,int index) {
@@ -111,25 +121,45 @@ public final class SelectionService implements Listener {
     }
 
     public void previewEdit(Player player,PlotService.EditProposal proposal) { edits.put(player.getUniqueId(),proposal); render(player); }
-    public void clear(UUID player) { selections.remove(player); edits.remove(player); }
+    public void clear(UUID player) { selections.remove(player); edits.remove(player); clicks.remove(player); }
+
+    public boolean isTool(ItemStack item) {
+        return item!=null && (item.getPersistentDataContainer().has(toolKey,PersistentDataType.BYTE)
+                || (plugin.craftEngine()!=null && plugin.craftEngine().isItem(item,"town:surveyor")));
+    }
+
+    /** CE 与 Bukkit 交互共用；一击可能经过两条事件路径，只消费一次。 */
+    public boolean click(Player player,ItemStack item,int index,Block block) {
+        if(!isTool(item) || !player.hasPermission("town.use")
+                || (plugin.ui()!=null && plugin.ui().isViewing(player))) return false;
+        Block target=block==null?player.getTargetBlockExact(64):block;
+        Point point=target==null?null:Point.of(target.getLocation());
+        long now=System.currentTimeMillis();
+        Click old=clicks.put(player.getUniqueId(),new Click(point,index,now));
+        if(old!=null && old.index()==index && java.util.Objects.equals(old.point(),point) && now-old.at()<200) return true;
+        if(point==null) plugin.messages().send(player,"selection-target-missing");
+        else point(player,index,point);
+        return true;
+    }
 
     @EventHandler(priority=EventPriority.LOWEST,ignoreCancelled=false)
     public void onTool(PlayerInteractEvent event) {
-        if(event.getHand()!=EquipmentSlot.HAND || event.getItem()==null ||
-                !event.getItem().getPersistentDataContainer().has(toolKey,PersistentDataType.BYTE)) return;
+        if(event.getHand()!=EquipmentSlot.HAND) return;
+        int index=switch(event.getAction()) {
+            case LEFT_CLICK_BLOCK,LEFT_CLICK_AIR -> 1;
+            case RIGHT_CLICK_BLOCK,RIGHT_CLICK_AIR -> 2;
+            default -> 0;
+        };
+        if(index==0 || !click(event.getPlayer(),event.getItem(),index,event.getClickedBlock())) return;
         event.setUseInteractedBlock(org.bukkit.event.Event.Result.DENY);
         event.setUseItemInHand(org.bukkit.event.Event.Result.DENY);
-        if(event.getClickedBlock()==null) return;
-        if(event.getAction()==Action.LEFT_CLICK_BLOCK) point(event.getPlayer(),1,Point.of(event.getClickedBlock().getLocation()));
-        else if(event.getAction()==Action.RIGHT_CLICK_BLOCK) point(event.getPlayer(),2,Point.of(event.getClickedBlock().getLocation()));
     }
 
     @EventHandler public void onQuit(PlayerQuitEvent event) { clear(event.getPlayer().getUniqueId()); }
 
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=false)
     public void protectToolTarget(BlockBreakEvent event) {
-        if(event.getPlayer().getInventory().getItemInMainHand().getPersistentDataContainer()
-                .has(toolKey,PersistentDataType.BYTE)) event.setCancelled(true);
+        if(isTool(event.getPlayer().getInventory().getItemInMainHand())) event.setCancelled(true);
     }
 
     private void render(Player player) {
@@ -144,26 +174,23 @@ public final class SelectionService implements Listener {
         if(selected==null) return;
         if(selected.first()!=null && selected.second()!=null) {
             BlockBox box=box(player.getUniqueId());
-            outline(player,box.footprint(),box.minY()+0.05,SELECTED);
+            // XZ 地块选择不应被山坡或点击方块遮住；另保留建筑选区的真实上下沿。
+            outline(player,box.footprint(),player.getLocation().getY()+0.12,SELECTED);
+            if(Math.abs(box.minY()+1.05-player.getLocation().getY())>0.5)
+                outline(player,box.footprint(),box.minY()+1.05,SELECTED);
             if(box.maxY()!=box.minY()) outline(player,box.footprint(),box.maxY()+1.05,SELECTED);
         }
+        marker(player,selected.first(),SELECTED);
+        marker(player,selected.second(),ORIGINAL);
+    }
+
+    private void marker(Player player,Point point,Particle.DustOptions color) {
+        if(point==null || !player.getWorld().getName().equals(point.world())) return;
+        double y=Math.max(point.y()+1.06,player.getLocation().getY()+0.1);
+        BoundaryParticles.edge(player,point.x()+0.5,y,point.z()+0.5,point.x()+0.5,y+0.75,point.z()+0.5,color);
     }
 
     private void outline(Player player,PlotBounds bounds,double y,Particle.DustOptions color) {
-        if(!player.getWorld().getName().equals(bounds.world())) return;
-        double x1=bounds.minX(),x2=(double)bounds.maxX()+1,z1=bounds.minZ(),z2=(double)bounds.maxZ()+1;
-        edge(player,x1,y,z1,x2,y,z1,color); edge(player,x2,y,z1,x2,y,z2,color);
-        edge(player,x2,y,z2,x1,y,z2,color); edge(player,x1,y,z2,x1,y,z1,color);
-    }
-
-    private void edge(Player player,double ax,double ay,double az,double bx,double by,double bz,Particle.DustOptions color) {
-        double length=Math.sqrt((bx-ax)*(bx-ax)+(by-ay)*(by-ay)+(bz-az)*(bz-az));
-        int samples=(int)Math.clamp(Math.ceil(length),1,24);
-        Location viewer=player.getLocation();
-        for(int i=0;i<=samples;i++) {
-            double t=(double)i/samples,x=ax+(bx-ax)*t,y=ay+(by-ay)*t,z=az+(bz-az)*t;
-            if(viewer.distanceSquared(new Location(player.getWorld(),x,y,z))>160*160) continue;
-            player.spawnParticle(Particle.DUST,x,y,z,1,0,0,0,0,color);
-        }
+        BoundaryParticles.outline(player,bounds,y,color);
     }
 }

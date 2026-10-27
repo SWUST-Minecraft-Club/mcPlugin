@@ -76,6 +76,16 @@ class TownMenusTest {
     }
 
     @Test
+    void everyPageCanReturnToMainMenuThroughTheSessionBridge() {
+        for(var entry:TownMenus.all(CONFIG).entrySet()) {
+            JsonObject backend=JsonParser.parseString(entry.getValue().dump(entry.getKey()))
+                    .getAsJsonObject().getAsJsonObject("backend");
+            assertEquals("command: town mainmenu",backend.getAsJsonObject("main-menu")
+                    .getAsJsonObject("actions").getAsJsonArray("all").get(0).getAsString(),entry.getKey());
+        }
+    }
+
+    @Test
     void claimHasFortyNineCellsWithRealMapImageAndDragButtons() {
         JsonObject doc = doc(TownMenus.CLAIM);
         JsonObject backend = doc.getAsJsonObject("backend");

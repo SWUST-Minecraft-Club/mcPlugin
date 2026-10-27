@@ -2,6 +2,7 @@ package com.example.town.hook;
 
 import com.example.town.TownPlugin;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.entity.Player;
 
 /**
  * CraftEngine 软依赖隔离层：全程反射，不引入 CE 编译期依赖。
@@ -64,6 +65,17 @@ public final class CraftEngineHook {
         try {
             return byId.invoke(null, id) != null;
         } catch (ReflectiveOperationException e) {
+            return false;
+        }
+    }
+
+    /** 从 CE 正规发放或创造物品栏取得的物品也保留其自定义 ID，不依赖 Town 的交付标记。 */
+    public boolean isItem(ItemStack item, String id) {
+        if (item == null || item.getType().isAir()) return false;
+        try {
+            Object key = api("CraftEngineItems").getMethod("getCustomItemId", ItemStack.class).invoke(null, item);
+            return key != null && id.equals(key.toString());
+        } catch (ReflectiveOperationException | LinkageError error) {
             return false;
         }
     }
@@ -244,6 +256,21 @@ public final class CraftEngineHook {
             try {
                 @SuppressWarnings("unchecked") Class<? extends org.bukkit.event.Event> type=(Class<? extends org.bukkit.event.Event>)
                         Class.forName("net.momirealms.craftengine.bukkit.api.event."+name,true,loader).asSubclass(org.bukkit.event.Event.class);
+                if(name.equals("CustomBlockInteractEvent")) {
+                    plugin.getServer().getPluginManager().registerEvent(type,listener,org.bukkit.event.EventPriority.LOWEST,(ignored,event)->{
+                        try {
+                            Player player=((org.bukkit.event.player.PlayerEvent)event).getPlayer();
+                            if(!"MAIN_HAND".equals(type.getMethod("hand").invoke(event).toString())) return;
+                            String action=type.getMethod("action").invoke(event).toString();
+                            int index=action.contains("LEFT")?1:action.contains("RIGHT")?2:0;
+                            if(index!=0 && plugin.selections().click(player,(ItemStack)type.getMethod("item").invoke(event),index,
+                                    (org.bukkit.block.Block)type.getMethod("bukkitBlock").invoke(event)))
+                                ((org.bukkit.event.Cancellable)event).setCancelled(true);
+                        } catch(ReflectiveOperationException error) {
+                            plugin.getLogger().warning("CraftEngine 测绘交互接口变化："+error.getClass().getSimpleName());
+                        }
+                    },plugin,false);
+                }
                 plugin.getServer().getPluginManager().registerEvent(type,listener,org.bukkit.event.EventPriority.HIGHEST,(ignored,event)->{
                     if(!(event instanceof org.bukkit.event.Cancellable cancel) || !(event instanceof org.bukkit.event.player.PlayerEvent pe)) return;
                     try {
@@ -253,7 +280,8 @@ public final class CraftEngineHook {
                             org.bukkit.block.Block block=(org.bukkit.block.Block)type.getMethod("block").invoke(event);location=block.getLocation();
                         }
                         var action=name.contains("Interact")?com.example.town.model.PlotRules.Action.CONTAINER:com.example.town.model.PlotRules.Action.BUILD;
-                        if(plugin.service().denied(pe.getPlayer(),location,action)
+                        if((name.equals("CustomBlockBreakEvent") && plugin.selections().isTool(pe.getPlayer().getInventory().getItemInMainHand()))
+                                || plugin.service().denied(pe.getPlayer(),location,action)
                                 || (name.equals("CustomBlockBreakEvent") && plugin.townHalls().hallAt(location.getBlock())!=null)) cancel.setCancelled(true);
                     }catch(ReflectiveOperationException|ClassCastException error) {
                         cancel.setCancelled(true);

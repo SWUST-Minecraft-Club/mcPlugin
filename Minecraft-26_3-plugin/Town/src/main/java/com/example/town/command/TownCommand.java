@@ -43,6 +43,11 @@ public final class TownCommand {
                     help(plugin, ctx.getSource().getSender());
                     return 1;
                 }))
+                .then(Commands.literal("mainmenu").executes(ctx -> {
+                    Player player=needPlayer(plugin,ctx);
+                    if(player!=null) plugin.openMainMenu(player);
+                    return 1;
+                }))
                 .then(Commands.literal("guide").executes(ctx -> {
                     final Player player = needPlayer(plugin, ctx);
                     if (player != null) plugin.openGuide(player);

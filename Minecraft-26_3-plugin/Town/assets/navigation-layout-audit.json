@@ -1,0 +1,29 @@
+{
+  "resolution": [
+    1280,
+    720
+  ],
+  "design": [
+    428,
+    13,
+    108,
+    26
+  ],
+  "actualBox": [
+    671,
+    122,
+    793,
+    152
+  ],
+  "expectedBox": [
+    671.3600000000001,
+    122.56,
+    792.32,
+    151.68
+  ],
+  "centerErrorCanvas": [
+    0.14285714285706366,
+    -0.10714285714286119
+  ],
+  "method": "JADE exact RGB bounding box, existing 70 percent frame calibration"
+}
