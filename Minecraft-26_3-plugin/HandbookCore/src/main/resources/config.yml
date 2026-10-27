@@ -1,0 +1,15 @@
+book:
+  enabled: true
+  title: '服务器手册'
+  # CE 在配置阶段加载资源包时 Paper 可能没有 PLAY 阶段的状态。
+  # false：CE 书页已注册且未收到资源包失败回执时显示双页书。
+  # true：必须收到 Paper 成功回执，适合只在 PLAY 阶段发送资源包的服务器。
+  require-pack-confirmation: false
+  welcome:
+    - '欢迎来到服务器'
+    - '在右页选择章节，'
+    - '查阅玩法与更新记录。'
+    - ''
+    - '各玩法与公告持续收录。'
+main-menu:
+  enabled: true

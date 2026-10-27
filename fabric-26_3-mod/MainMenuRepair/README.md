@@ -1,6 +1,6 @@
 # MainMenuRepair
 
-一个 **Fabric 客户端模组**：清理 ESC 暂停菜单里两样碍眼的东西。
+一个 **Fabric 客户端模组**：清理 ESC / Dialog 界面，并为 HandbookCore 提供书本布局增强。当前测试版 `Beta_1_2_0`。
 
 | 改动 | 实现 |
 | --- | --- |
@@ -9,6 +9,8 @@
 | 跳过 ESC →「主菜单」的中间 dialog 页 | Fabric API `ScreenEvents.AFTER_INIT` 把按钮换成直接发 `/cd`；Mixin `Gui#setScreen` 拦下 dialog 界面兜底 |
 | 手持时钟右键空气打开主菜单 | `ClientTickEvents.END_CLIENT_TICK` 检测“按下使用键 + 瞄准空气”，发 `/cd clockair`；仅在服务端提供该命令（装了 MainMenu）时启用 |
 | 去掉服务端自定义界面右上角的黄色「自定义屏幕」警告图标 | Fabric API `ScreenEvents.AFTER_INIT` 遍历 `DialogScreen` 控件，按 `menu.custom_screen_info` 提示文本识别并隐藏，尺寸归零后标题重新居中 |
+| HandbookCore 书本整体居中、隐藏重复灰色页脚 | 识别正文的 `handbookcore` 字体，递归定位 `bodyScroll` 内文字控件并移动整个滚动容器，裁剪区域同步移动 |
+| 去掉点击书本外层出现的白框 | `HandbookFocusMixin` 只重定向正文渲染路径的焦点判断，保留实际焦点、键盘和点击行为；普通 Dialog 不受此项影响 |
 
 ## 为什么需要模组
 
@@ -26,7 +28,7 @@ Paper 插件侧没有对应 API；资源包也只能改文案/贴图（图标会
 ./gradlew -p ./fabric-26_3-mod/MainMenuRepair build
 ```
 
-产物：`./build/libs/MainMenuRepair-<版本>.jar`
+产物：`./fabric-26_3-mod/MainMenuRepair/build/libs/MainMenuRepair-mc26_3-fabric-Beta_1_2_0.jar`，自动留档到 `./release/MainMenuRepair/`。
 
 ### 关于构建方式（没有用 fabric-loom）
 
@@ -50,7 +52,7 @@ dependencies {
 ## 安装
 
 1. 客户端装好 Fabric Loader（26.3，本模组要求 `>=0.20.0`）；
-2. 把 `MainMenuRepair-<版本>.jar` 放进该实例的 `mods/` 目录；
+2. 把 `MainMenuRepair-mc26_3-fabric-Beta_1_2_0.jar` 放进该实例的 `mods/` 目录；
 3. 重启客户端。
 
 不需要 Fabric API，也不需要服务端做任何事（纯客户端模组，`fabric.mod.json` 里 `environment: client`）。
@@ -58,11 +60,14 @@ dependencies {
 
 ## 注意
 
-- 两处注入都用 `require = 0`：将来 Minecraft 改了方法名或调用点，模组不会让客户端崩溃，只是那一项改动失效（此时按新版客户端更新 mixin 目标即可）。
+- 注入使用 `require = 0`：将来 Minecraft 改了方法名或调用点，模组不会让客户端崩溃，只是那一项改动失效（此时按新版客户端更新 mixin 目标即可）。
 - 模组只影响**客户端界面**，不改服务端行为。
 - 「时钟右键空气」只在服务端命令树里存在 `/cd clockair`（即装了 MainMenu）时判定；没装的服务器上不会发任何指令，
   状态文件会记录“功能不启用”。
 - 服务端 dialog 右上角的黄色警告图标由客户端 `DialogScreen` 无条件创建（提示“这是服务器提供的自定义界面”），
   模组会把它隐藏；这只影响界面显示，不改变任何服务端行为。
+- 手册白框来自客户端原生 `FocusableTextWidget`，纯服务端无法去掉。手册增强只识别带 `handbookcore` 字体的正文；
+  检索输入、外链确认、物品预览等普通 Dialog 保留原生布局。实机环境与截图见
+  [手册验证记录](../../Minecraft-26_3-plugin/HandbookCore/VALIDATION.md)。
 - 想只保留其中一项：删掉 `PauseScreenMixin` 里对应的那个注入方法。
 - 目标方法/调用点取自 26.3 官方客户端 jar：`PauseScreen#addCustomDialogButtons`、`PauseScreen#createPauseMenu`、`LinearLayout#horizontal()`、`Button$Builder#tooltip(Tooltip)`。

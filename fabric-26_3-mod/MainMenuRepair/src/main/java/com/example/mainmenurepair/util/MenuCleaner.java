@@ -101,6 +101,7 @@ public final class MenuCleaner {
     public static void clean(final Screen screen, final String source) {
         if (screen instanceof DialogScreen) {
             removeDialogWarning(screen, source);
+            HandbookDialogLayout.center(screen);
             return;
         }
         if (!(screen instanceof PauseScreen)) {

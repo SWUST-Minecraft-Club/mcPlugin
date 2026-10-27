@@ -7,13 +7,14 @@
 
 Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-26_3-plugin/<插件名>/`，由仓库根目录的一个 Gradle 工程统一管理：共享构建配置和服务端版本，每个插件又能单独打包、单独启动测试服。
 
-目前仓库里有 9 个插件：**[MainMenu](./Minecraft-26_3-plugin/MainMenu)**（主菜单框架，其它插件以它为依赖注册功能）、
+目前仓库里有 10 个插件：**[MainMenu](./Minecraft-26_3-plugin/MainMenu)**（主菜单框架，其它插件以它为依赖注册功能）、
 **[RealTime](./Minecraft-26_3-plugin/RealTime)**（在主菜单里显示当前时间）、
 **[YudreamPlaytime](./Minecraft-26_3-plugin/YudreamPlaytime)**（主菜单里显示查看者自己的在线时长，MainMenu 的伴侣插件）、
 **[Wallet](./Minecraft-26_3-plugin/Wallet)**（本地多币种 / Vault 主币种 / 旧官网一次性迁入 + 钱包 API 和管理指令）、
 **[ConcertoMenu](./Minecraft-26_3-plugin/ConcertoMenu)**（主菜单唱片机 → 打开客户端 Concerto 界面）、
 **[JoinAnnounce](./Minecraft-26_3-plugin/JoinAnnounce)**（进服公告：dialog 弹窗 / 聊天栏可切换 + 首次进服文案 / 进出服广播 + 主菜单公告入口）、
 **[ChatPrivacy](./Minecraft-26_3-plugin/ChatPrivacy)**（聊天防举报：把公开聊天改写为无签名系统消息，客户端无法把它作为举报证据）、
+**[HandbookCore](./Minecraft-26_3-plugin/HandbookCore)**（全局双页手册：多插件内容 API、CE 图文与动态书签、全文检索和自动分页）、
 **[Town](./Minecraft-26_3-plugin/Town)**（小镇经营：政厅核心 / 自主连通领土 / 矩形地块与租赁 / 镇库科技政策 / 玩家商业 / 建筑迁移，
 26 页 ArcMenu 界面、Wallet / Vault 经济、CraftEngine 素材及 GitLab 资源分发；部署见模块 README）、
 **[yudream-minecraft-server](./Minecraft-26_3-plugin/yudream-minecraft-server)**（把玩家动态上报给 YuDream Admin 的 Bukkit 桥接插件，
@@ -73,6 +74,7 @@ Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-2
 │   ├── ConcertoMenu/               # 主菜单里的 Concerto 音乐入口（唱片机 → 打开客户端 Concerto 界面）
 │   ├── JoinAnnounce/               # 进服公告（本人公告 / 首次进服文案 / 进出服广播 + 主菜单公告入口）
 │   ├── ChatPrivacy/                # 聊天防举报（公开聊天改写为无签名系统消息）
+│   ├── HandbookCore/               # 全局手册核心（Dialog 双页书 + CE 图片/物品 + 多插件 API）
 │   ├── Town/                       # 小镇经营、租赁、商业与建筑迁移（ArcMenu + WalletApi + CraftEngine）
 │   └── yudream-minecraft-server/   # YuDream Admin 桥接插件：上报 + 本地时长统计 + 断线补发（Java 8 / Bukkit 1.13.2 目标）
 ├── fabric-26_3-mod/                # Fabric 客户端模组（独立 Gradle 工程，不参与上面的插件构建）
@@ -341,6 +343,15 @@ ESC 菜单按钮：已就绪：pause_screen_additions 包含 mainmenu:main_menu�
 Folia 适配：延迟公告与弹窗都在 `player.getScheduler()` 里执行；广播直接改写事件消息，不跨区域遍历在线玩家；
 配置在 reload 时整体替换为不可变快照（`volatile` 引用），不同区域线程读到的都是完整配置。
 
+## 插件：HandbookCore（全局手册）
+
+`Beta_0_1_0` 用 Paper Dialog 展示统一双页书，各玩法插件可以独立注册分类、攻略、插图与服务器更新日志。
+支持原版 / CE 图标、独立书签、长文自动续页、全文检索、当前页 / 总页数、内部文章链接、外链和玩家指令。
+CraftEngine 与 MainMenu 可选，缺少书本资源时回退原生文字目录。
+
+安装包、YAML / API 示例和实机记录见 [HandbookCore 指南](./Minecraft-26_3-plugin/HandbookCore/README.md)。
+客户端可选 MainMenuRepair `Beta_1_2_0` 修复书本白框、居中与重复灰色页脚。
+
 ## 客户端模组：MainMenuRepair
 
 `./fabric-26_3-mod/MainMenuRepair/` 是一个 **Fabric 客户端模组**，直接改客户端界面，把 ESC 暂停菜单里的这两样东西真正删掉：
@@ -356,7 +367,7 @@ Folia 适配：延迟公告与弹窗都在 `player.getScheduler()` 里执行；�
 
 ```bash
 ./gradlew -p ./fabric-26_3-mod/MainMenuRepair build
-# 产物：./fabric-26_3-mod/MainMenuRepair/build/libs/MainMenuRepair-1.0.0.jar
+# 产物：./fabric-26_3-mod/MainMenuRepair/build/libs/MainMenuRepair-mc26_3-fabric-Beta_1_2_0.jar
 ```
 
 把 jar 放进客户端该实例的 `mods/` 目录，重启客户端即可。模组是纯客户端的，**不需要 Fabric API，也不需要服务端做任何事**。
@@ -431,7 +442,7 @@ dependencies {
 | --- | --- | --- |
 | MainMenu | `1_0_1`（2026.10.18） | `Beta_1_8_0`（10 页 YAML 手机；默认隐藏的多侧卡、按高度自动布局、独立分页与 YAML / API 接入） |
 | RealTime | `1_0_0`（2026.10.18） | `Beta_1_1_0`（适配 Folia；去掉固定位提示） |
-| MainMenuRepair（fabric） | `1_0_0`（2026.10.18） | `Beta_1_1_2`（去掉 dialog 警告图标并居中；移除暂停菜单图标后收掉空行） |
+| MainMenuRepair（fabric） | `1_0_0`（2026.10.18） | `Beta_1_2_0`（新增手册正文居中、焦点白框修复与重复页脚隐藏） |
 | MinecraftMcp（fabric） | — | `Beta_0_1_0`（MCP 客户端测试工具；核心与游戏版本适配器分离） |
 | YudreamPlaytime | `1_0_0`（2026.10.19） | `Beta_1_1_0`（适配 Folia；台账缓存加锁） |
 | yudream-minecraft-server | `2_0_0`（2026.10.19） | `Beta_2_1_0`（反射适配 Folia，保持 Java 8 / 1.13.2 兼容） |
@@ -440,6 +451,7 @@ dependencies {
 | ConcertoMenu | —（还在测试版阶段） | `Beta_0_2_0`（适配 Folia；首个版本：主菜单唱片机入口） |
 | JoinAnnounce | —（还在测试版阶段） | `Beta_0_4_1`（dialog 弹窗公告、默认不发聊天栏消息；默认每位玩家每天首次进服才弹；底部固定「开始冒险」+「查看完整更新日志」双按钮；`config-simple.yml` 为 SWUST 社团公告示例） |
 | ChatPrivacy | —（还在测试版阶段） | `Beta_0_1_0`（首个版本：公开聊天改写为无签名系统消息，客户端无法举报） |
+| HandbookCore | — | `Beta_0_1_0`（全局双页手册、多插件 API、CE 图文/物品、动态书签、检索与自动分页） |
 
 > 涨号规则（正式版之后再改动先回到测试版 `Beta_<第 1 位>_x_x`，转正时去掉 `Beta`、第 3 位归 0、第 2 位至少 +1，第 1 位不变）见
 > [`./docs/dev/版本与产物规范.md`](./docs/dev/版本与产物规范.md) §2；
@@ -448,6 +460,12 @@ dependencies {
 ## 版本历史
 
 `./release/<项目名>/` 里保留了每一版的产物；下面是对应的提交与改动（早期被同名覆盖的版本已用 `./scripts/rebuild-history.sh` 从 git 历史重建）。
+
+**HandbookCore（插件）**
+
+| 版本 | 提交 | 改动 |
+| --- | --- | --- |
+| `Beta_0_1_0` | 本次提交 | 全局双页手册、多个贡献插件 API、CE 图片/物品与原版图标、动态书签、检索/分页、外链/指令；15 项测试与 26.3 实机验证，API/CE/安装 ZIP 已留档 |
 
 **Town（插件）**
 
@@ -525,6 +543,7 @@ dependencies {
 | `Beta_1_1_0` | `c3c9587` | 新增：去掉服务端 dialog 右上角的「自定义屏幕」警告图标；产物已留档 |
 | `Beta_1_1_1` | `e287e34` | 修：警告图标移除后标题仍偏左；改为隐藏按钮后把标题控件按屏幕宽度重新居中；产物已留档 |
 | `Beta_1_1_2` | `f141dba` | 修：移除暂停菜单图标按钮后中间留出空行；按实际位置算出行距，把下方按钮整体上移；产物已留档 |
+| `Beta_1_2_0` | 本次提交 | 新增 HandbookCore 书本整体居中、焦点白框修复、重复灰色页脚隐藏；修正 Redirect 注解桩 |
 
 **YudreamPlaytime（插件，MainMenu 伴侣）**
 

@@ -7,7 +7,7 @@
 
   | 排查项 | 结论 |
   | --- | --- |
-  | 注解保留级别 | 必须是 `RUNTIME`，否则运行期报 `missing @Mixin annotation` |
+  | 注解保留级别 | 早期排查曾统一改为 `RUNTIME`；2026.10.26 已核实需逐注解匹配真实签名，`@Mixin` 为 CLASS，`@Redirect` 为 RUNTIME，见 [后续验证](./handbook-dialog.md#注解桩保留级别应与真实注解一致) |
   | `@Invoker` | 必须声明成**类**（`@Invoker` 接口），写成方法不生效 |
   | 注入参数 | 全部要 `remap = false`（本仓库手工编译、无 mappings） |
   | 构造时序 | 构造函数里控件还没创建，要排队到下一个 tick 再清理 |

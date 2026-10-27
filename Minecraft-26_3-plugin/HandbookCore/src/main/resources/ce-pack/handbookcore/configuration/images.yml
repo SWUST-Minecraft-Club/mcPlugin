@@ -1,0 +1,19 @@
+images:
+  handbookcore:paper_0:
+    file: handbookcore:font/paper-0.png
+    height: 96
+    ascent: 7
+    font: handbookcore:paper
+    chars: ["\ue000\ue001\ue002\ue003"]
+  handbookcore:paper_1:
+    file: handbookcore:font/paper-1.png
+    height: 96
+    ascent: -89
+    font: handbookcore:paper
+    chars: ["\ue004\ue005\ue006\ue007"]
+  handbookcore:paper_2:
+    file: handbookcore:font/paper-2.png
+    height: 96
+    ascent: -185
+    font: handbookcore:paper
+    chars: ["\ue008\ue009\ue00a\ue00b"]

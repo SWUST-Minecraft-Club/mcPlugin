@@ -1,0 +1,25 @@
+name: HandbookCore
+version: '${version}'
+main: com.example.handbookcore.HandbookCore
+api-version: '26.3'
+folia-supported: true
+description: 可扩展的全局双页手册，Dialog 与 CraftEngine 图文渲染
+authors: [zhou-BZDDX]
+website: https://github.com/zhou-BZDDX/mcPlugin
+permissions:
+  handbookcore.use:
+    description: 阅读手册、目录与搜索
+    default: true
+  handbookcore.admin:
+    description: 重载手册、释放 CE 资源与查看诊断
+    default: op
+dependencies:
+  server:
+    CraftEngine:
+      load: BEFORE
+      required: false
+      join-classpath: true
+    MainMenu:
+      load: BEFORE
+      required: false
+      join-classpath: true

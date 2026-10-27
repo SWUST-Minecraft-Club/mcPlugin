@@ -1,0 +1,112 @@
+// 本插件独有的配置。
+// 公共配置（Java 工具链、Folia API 依赖、仓库、processResources、Folia 测试服版本）
+// 统一在仓库根目录的 build.gradle 里，改一次对所有插件生效。
+
+version = 'Beta_0_1_0'
+
+dependencies {
+    testImplementation "dev.folia:folia-api:${foliaApiVersion}"
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') { useJUnitPlatform() }
+
+// 将 ImageGen 原图编译成 Minecraft 字体图集：每个单元不能超过 256×256。
+// 保留 assets/ 中的原始 RGBA，输出只由构建任务生成。
+def generatedBook = layout.buildDirectory.dir('generated/book-resources')
+tasks.register('compileBookTexture') {
+    inputs.file('assets/book-v2.png')
+    outputs.dir(generatedBook)
+    doLast {
+        def metrics = new StringBuilder()
+        delete generatedBook
+        ['paper': 'book-v2.png'].each { name, sourceName ->
+            def source = javax.imageio.ImageIO.read(file("assets/${sourceName}"))
+            // 4 列 × 3 行，单元 250×192，逻辑尺寸 125×96；整本 500×288 GUI 像素。
+            def atlas = new java.awt.image.BufferedImage(1000, 576, java.awt.image.BufferedImage.TYPE_INT_ARGB)
+            def graphics = atlas.createGraphics()
+            graphics.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR)
+            graphics.drawImage(source, 0, 0, 1000, 576, null)
+            graphics.dispose()
+            for (int row = 0; row < 3; row++) {
+                def target = generatedBook.get().file("ce-pack/handbookcore/resourcepack/assets/handbookcore/textures/font/${name}-${row}.png").asFile
+                target.parentFile.mkdirs()
+                javax.imageio.ImageIO.write(atlas.getSubimage(0, row * 192, 1000, 192), 'png', target)
+                for (int col = 0; col < 4; col++) {
+                    int right = 0
+                    for (int x = 0; x < 250; x++) for (int y = 0; y < 192; y++)
+                        if ((atlas.getRGB(col * 250 + x, row * 192 + y) >>> 24) != 0) right = Math.max(right, x + 1)
+                    metrics.append("${name}.${row}.${col}=${Math.round(right * 0.5f) + 1}\n")
+                }
+            }
+        }
+        generatedBook.get().file('book-metrics.properties').asFile.text = metrics.toString()
+    }
+}
+tasks.named('processResources') {
+    dependsOn 'compileBookTexture'
+    from(generatedBook)
+}
+
+tasks.register('apiJar', Jar) {
+    archiveClassifier = 'api'
+    from sourceSets.main.output
+    include 'com/example/handbookcore/api/**'
+}
+tasks.register('craftEnginePack', Zip) {
+    archiveFileName = "HandbookCore-CraftEngine-${project.version}.zip"
+    destinationDirectory = layout.buildDirectory.dir('distributions')
+    from('src/main/resources/ce-pack')
+    dependsOn 'compileBookTexture'
+    from(generatedBook.map { it.dir('ce-pack') })
+}
+tasks.named('build') { dependsOn 'apiJar', 'craftEnginePack' }
+apply from: 'asset-pipeline.gradle'
+
+def installation = layout.buildDirectory.dir('installation')
+tasks.register('prepareInstallation', Sync) {
+    dependsOn 'jar', 'craftEnginePack'
+    into installation
+    from(tasks.named('jar').flatMap { it.archiveFile }) { into 'plugins' }
+    from({ zipTree(tasks.named('craftEnginePack').get().archiveFile.get().asFile) }) {
+        into 'plugins/CraftEngine/resources'
+    }
+    from('INSTALL.md')
+    doLast {
+        def root = installation.get().asFile
+        def sums = fileTree(root).files.findAll { it.name != 'SHA256SUMS.txt' }.sort {
+            root.toPath().relativize(it.toPath()).toString()
+        }.collect { item ->
+            def digest = java.security.MessageDigest.getInstance('SHA-256').digest(item.bytes).encodeHex()
+            "${digest}  ${root.toPath().relativize(item.toPath()).toString().replace('\\', '/')}"
+        }
+        new File(root, 'SHA256SUMS.txt').text = sums.join('\n') + '\n'
+    }
+}
+tasks.register('installationBundle', Zip) {
+    dependsOn 'prepareInstallation'
+    archiveFileName = "${base.archivesName.get()}-${project.version}-install.zip"
+    destinationDirectory = layout.buildDirectory.dir('distributions')
+    from installation
+}
+tasks.withType(AbstractArchiveTask).configureEach {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+tasks.named('build') { dependsOn 'installationBundle' }
+tasks.named('archiveArtifact') {
+    def extras = ['apiJar', 'craftEnginePack', 'installationBundle'].collect { name ->
+        tasks.named(name).flatMap { it.archiveFile }
+    }
+    inputs.files(extras)
+    doLast {
+        def target = rootProject.file('release/HandbookCore')
+        copy { from extras; into target }
+        def artifacts = [tasks.named('jar').get().archiveFile.get().asFile] + extras.collect { it.get().asFile }
+        new File(target, "HandbookCore-${project.version}-SHA256SUMS.txt").text = artifacts.sort { it.name }.collect { item ->
+            "${java.security.MessageDigest.getInstance('SHA-256').digest(item.bytes).encodeHex()}  ${item.name}"
+        }.join('\n') + '\n'
+    }
+}
