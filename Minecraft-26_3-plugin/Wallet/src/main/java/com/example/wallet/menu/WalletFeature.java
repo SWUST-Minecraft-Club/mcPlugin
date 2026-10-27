@@ -42,7 +42,7 @@ public final class WalletFeature implements MenuFeature {
     private final WalletService service;
     private final WalletMenus menus;
     private final Map<UUID, Long> lastRefresh = new ConcurrentHashMap<>();
-    private final Map<UUID, Boolean> unbound = new ConcurrentHashMap<>();
+    private final Map<String, Boolean> unbound = new ConcurrentHashMap<>();
 
     public WalletFeature(final WalletPlugin plugin, final WalletConfig config, final WalletService service,
                          final WalletMenus menus) {
@@ -96,7 +96,7 @@ public final class WalletFeature implements MenuFeature {
                 final String value;
                 if (balance != null) {
                     value = Format.amount(balance.balance(), asset);
-                } else if (Boolean.TRUE.equals(this.unbound.get(viewer.getUniqueId()))) {
+                } else if (Boolean.TRUE.equals(this.unbound.get(viewer.getUniqueId() + "|" + asset.code()))) {
                     value = "未绑定网站账号";
                 } else {
                     value = "…";
@@ -165,15 +165,17 @@ public final class WalletFeature implements MenuFeature {
         this.lastRefresh.put(viewer.getUniqueId(), now);
 
         this.service.assets().exceptionally(error -> List.of());
+        final UUID playerId = viewer.getUniqueId();
+        final String playerName = viewer.getName();
         for (final WalletAsset asset : this.menus.enabledAssets()) {
-            this.service.balance(viewer.getUniqueId(), viewer.getName(), asset.code())
+            this.service.balance(playerId, playerName, asset.code())
                     .whenComplete((balance, error) -> {
                         if (error == null) {
-                            this.unbound.remove(viewer.getUniqueId());
+                            this.unbound.remove(playerId + "|" + asset.code());
                             return;
                         }
                         if (unboundError(error)) {
-                            this.unbound.put(viewer.getUniqueId(), Boolean.TRUE);
+                            this.unbound.put(playerId + "|" + asset.code(), Boolean.TRUE);
                         }
                     });
         }

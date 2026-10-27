@@ -111,9 +111,11 @@ def main():
     for source, target in (
         ("Minecraft-26_3-plugin/MainMenu/deploy/安装说明.md", "安装说明.md"),
         ("Minecraft-26_3-plugin/MainMenu/deploy/Wallet-local.yml", "config-merge/Wallet-local.yml"),
+        ("Minecraft-26_3-plugin/Wallet/deploy/Wallet-hybrid.yml", "config-merge/Wallet-hybrid.yml"),
         ("Minecraft-26_3-plugin/MainMenu/deploy/Town-vault.yml", "config-merge/Town-vault.yml"),
         ("Minecraft-26_3-plugin/Wallet/README.md", "docs/Wallet-README.md"),
         ("Minecraft-26_3-plugin/Wallet/VALIDATION.md", "docs/Wallet-VALIDATION.md"),
+        ("Minecraft-26_3-plugin/Wallet/assets/hybrid-validation-results.json", "docs/hybrid-validation-results.json"),
         ("Minecraft-26_3-plugin/MainMenu/assets/VALIDATION.md", "docs/MainMenu-VALIDATION.md"),
         ("Minecraft-26_3-plugin/MainMenu/SIDECARDS.md", "docs/MainMenu-SIDECARDS.md"),
         ("Minecraft-26_3-plugin/MainMenu/assets/sidecards-validation-results.json", "docs/sidecards-validation-results.json"),
@@ -123,9 +125,12 @@ def main():
         text = (ROOT / source).read_text()
         if target == "docs/Wallet-README.md":
             text = text.replace("(./VALIDATION.md)", "(./Wallet-VALIDATION.md)")
+            text = text.replace("(./deploy/Wallet-hybrid.yml)", "(../config-merge/Wallet-hybrid.yml)")
         elif target == "docs/Wallet-VALIDATION.md":
             text = text.replace("(../MainMenu/assets/VALIDATION.md)", "(./MainMenu-VALIDATION.md)")
             text = text.replace("(../MainMenu/assets/vault-validation-results.json)", "(./vault-validation-results.json)")
+            text = text.replace("(./assets/hybrid-history.png)", "(./screenshots/wallet-hybrid-history.png)")
+            text = text.replace("(./assets/hybrid-validation-results.json)", "(./hybrid-validation-results.json)")
         elif target == "docs/MainMenu-VALIDATION.md":
             text = text.split("以下是 Beta_1_6_0", 1)[0].replace("(../../Wallet/VALIDATION.md)", "(./Wallet-VALIDATION.md)")
             text = text.replace("(../SIDECARDS.md)", "(./MainMenu-SIDECARDS.md)")
@@ -134,6 +139,7 @@ def main():
         files[target] = text.encode()
     for name in ("vault-home", "vault-economy", "sidecards-default", "sidecards-multi", "sidecards-page2"):
         files[f"docs/screenshots/{name}.png"] = (ROOT / f"Minecraft-26_3-plugin/MainMenu/assets/screenshots/{name}.png").read_bytes()
+    files["docs/screenshots/wallet-hybrid-history.png"] = (ROOT / "Minecraft-26_3-plugin/Wallet/assets/hybrid-history.png").read_bytes()
     files["versions.json"] = (json.dumps(versions, ensure_ascii=False, indent=2) + "\n").encode()
     files["SHA256SUMS.txt"] = "".join(f"{hashlib.sha256(data).hexdigest()}  {name}\n"
                                            for name, data in sorted(files.items())).encode()

@@ -26,7 +26,7 @@ public final class LocalWalletService implements WalletService, AutoCloseable {
 
     public LocalWalletService(final Plugin plugin, final WalletConfig config) throws IOException {
         this.plugin = plugin;
-        assets = config.currencies();
+        assets = config.localCurrencies();
         ledger = new LocalLedger(plugin.getDataFolder().toPath().resolve("wallet-ledger.wal"));
     }
 
@@ -72,6 +72,10 @@ public final class LocalWalletService implements WalletService, AutoCloseable {
     @Override public CompletableFuture<WalletTransaction> debit(UUID player, String name, String code,
             BigDecimal amount, String businessNo, String remark) {
         return async(() -> changeNow(player, name, code, amount, false, businessNo, remark));
+    }
+    @Override public CompletableFuture<WalletTransaction> setBalance(UUID player, String name, String code,
+            BigDecimal amount, String businessNo, String remark) {
+        return async(() -> ledger.setBalance(player, name, asset(code).code(), amount(code, amount), businessNo, remark));
     }
     @Override public CompletableFuture<WalletTransactionPage> transactions(UUID player, String name, int page, int size) {
         return transactions(player, name, null, page, size);

@@ -109,6 +109,31 @@ public final class LocalLedger implements AutoCloseable {
         commit(new Event(1, "CHANGE", "", now, List.of(new Entry(player, name, tx))));
     }
 
+    public synchronized WalletTransaction setBalance(final UUID player, final String name, final String code,
+            final BigDecimal amount, final String businessNo, final String remark) {
+        healthy();
+        if (importing) throw new WalletException(0, "官网余额正在迁入，请稍后重试");
+        if (player == null || code == null || code.isBlank() || amount == null || amount.signum() < 0
+                || amount.precision() > 15 || businessNo == null || businessNo.isBlank()) {
+            throw new WalletException(0, "玩家、币种、非负目标余额和业务号无效");
+        }
+        if (businessNo.startsWith("account:") || businessNo.startsWith("site-import:")) {
+            throw new WalletException(0, "业务号使用了钱包内部保留前缀");
+        }
+        final Entry previous = business.get(businessNo);
+        if (previous != null) {
+            final WalletTransaction tx = previous.transaction();
+            if (!previous.player().equals(player) || !tx.assetCode().equals(code) || !tx.type().equals("SET")
+                    || tx.amount().compareTo(amount) != 0) throw new WalletException(0, "业务号已被不同的交易使用");
+            return tx;
+        }
+        final long now = System.currentTimeMillis();
+        final WalletTransaction tx = new WalletTransaction(UUID.randomUUID().toString(), businessNo, "SET", "LOCAL",
+                code, "SET", amount, amount, (remark == null ? "" : remark) + "；原余额 " + balance(player, code), now);
+        commit(new Event(1, "CHANGE", "", now, List.of(new Entry(player, name, tx))));
+        return tx;
+    }
+
     public synchronized void beginImport() {
         healthy();
         if (migration.complete()) throw new WalletException(0, "官网余额已经迁入，禁止重复执行");

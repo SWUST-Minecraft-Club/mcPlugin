@@ -1,4 +1,42 @@
-# Wallet Beta_0_6_0 验证
+# Wallet 验证
+
+## Beta_0_7_0 双来源与交互验证（2026-10-27）
+
+### 自动测试
+
+Java 25 / Gradle 9.8.1 / Folia API `26.3.build.5-alpha`，离线运行 `:Wallet:build`；41 项 JUnit 全通过：配置 12、指令 2、来源路由 6、账本 10、迁入 11。
+
+- 配置：任意本服 code、source 与官网 code 映射；非法来源、重复 code / 官网映射、官网币作为 Vault 主币种均拒绝。
+- 路由：本地与官网读写分流、官网故障不改来源且本地继续、官网 set 零请求拒绝、精度与币种检查；520 条两来源流水跨后端 200 条分页合并，无重复或漏项。
+- 本地 set：允许 0、同业务号幂等、业务号冲突与保留前缀、迁入写锁、并发 set/add、重开账本恢复。
+- 指令：按权限和前缀提示根子命令；set 允许 0，add/take 拒绝 0，负数与科学计数法均拒绝。既有迁入隔离测试继续通过。
+
+### 独立 Folia 与客户端
+
+独立 Folia 26.3 build 5、Vault 1.7.3-b0-folia、Minecraft 26.3 + MinecraftMcp 客户端；使用生存模式测试玩家与本机模拟官网。先验证缺少 MainMenu，再加入 MainMenu `Beta_1_8_0`，使用其原版背包回退入口。
+
+| 检查 | 实测结果 |
+| --- | --- |
+| hybrid 启动 | gold 本地、emerald 映射官网 EMERALD；Vault 注册 Wallet/gold；无 MainMenu 可直接用 Wallet 命令 |
+| 本地管理款项 | set 100、add 25、take 7 得 118；set 0 再设 118 成功；scale=0 的小数与负扣款拒绝 |
+| 官网管理款项 | 初始 100，add 12、take 2 得 110；set 999 拒绝，未发官网写请求 |
+| Tab | 正常分词输入后，set 子命令、在线玩家名、本地 gold、官网 emerald 及旧 walletin 玩家名补全成功；set 不列 emerald |
+| 币种页 | 左键停用变红、右键启用变绿；来源 lore 分别为本地/官网；分页按钮可重新打开 |
+| 防取物 | Shift、数字键交换、丢弃、双击均无光标物品或背包图标；下方玩家背包 8 个石头 Shift 后数量与位置保持 |
+| 拖拽 | 临时 TestPluginWalletCheck 在玩家线程通过实际事件总线发送上方和下方 InventoryDragEvent，两者均被已注册的监听器取消；未声称客户端手动拖拽 |
+| 流水筛选 | 本地 5 条、官网 2 条、合并 7 条；左下筛选切到 gold 后保留本地 5 条；SET 显示目标余额与原余额 |
+| 重启与 Vault | 完整停服重启，本地 118、官网 110；实际 Vault 服务入账 2、扣款 2，余额 118 → 120 → 118；合并流水增至 9 条 |
+| MainMenu 接入 | 从 /cd 右键钱包进入币种页，币种切换与返回主菜单正常；未安装 MainMenu 时返回按钮关闭钱包 |
+| 官网请求审计 | 仅 EMERALD 一次 credit 与一次 debit，无 GOLD 余额/资金调用，所有本地操作和 Vault 操作均留本地 |
+
+[合并流水截图](./assets/hybrid-history.png) · [结构化结果](./assets/hybrid-validation-results.json)。临时 TestPlugin 仅在 ignored 测试目录运行，不打包、不发布。
+
+### 本轮边界
+
+- 没有访问真实官网或使用真实密钥；没有执行生产迁入。官网 HTTP 行为使用与现有接口字段一致的本机夹具。
+- 本轮 MainMenu 验证为其原版背包回退；ArcMenu 手机显示沿用已有版本的验证范围。
+- 菜单与 Tab 为真实客户端操作；拖拽为实际事件总线验证。混合流水合并上限为前 10000 条，更早可按单币种查询。
+- 本地账本格式和原有完成标记保持。配置来源切换不会自动搬钱；已迁入 GOLD 的服务器保留 gold 账本并启用官网 emerald 即可。
 
 ## Beta_0_6_2 迁入 UUID 隔离回归（2026-10-27）
 

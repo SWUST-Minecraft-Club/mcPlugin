@@ -2,12 +2,9 @@ package com.example.wallet.menu;
 
 import com.example.wallet.WalletConfig;
 import com.example.wallet.api.WalletService;
-import com.example.wallet.internal.AssetSwitchStore;
-import com.example.wallet.internal.PlaytimeLedgerReader;
 import com.example.wallet.WalletPlugin;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * MainMenu 软依赖隔离层。
@@ -91,23 +88,12 @@ public final class WalletMainMenuHook {
         }
     }
 
-    /** 反射构造 WalletFeature 与其依赖的菜单对象，避开对本类的类型引用。 */
+    /** 反射构造 WalletFeature，复用已注册监听器的菜单实例。 */
     private Object buildFeature() {
         try {
             final Class<?> featureClass = Class.forName("com.example.wallet.menu.WalletFeature");
             final Class<?> menusClass = Class.forName("com.example.wallet.menu.WalletMenus");
-            final Class<?> readerClass = Class.forName(
-                    "com.example.wallet.internal.PlaytimeLedgerReader");
-            final Class<?> switchClass = Class.forName(
-                    "com.example.wallet.internal.AssetSwitchStore");
-
-            final Object reader = readerClass.getDeclaredConstructor(org.bukkit.plugin.Plugin.class)
-                    .newInstance(this.plugin);
-            final Object switchStore = this.plugin.assetSwitches();
-            final Object menus = menusClass.getDeclaredConstructor(
-                            WalletPlugin.class, WalletConfig.class, WalletService.class,
-                            readerClass, switchClass)
-                    .newInstance(this.plugin, this.config, this.service, reader, switchStore);
+            final Object menus = this.plugin.walletMenus();
             final Constructor<?> ctor = featureClass.getDeclaredConstructor(
                     WalletPlugin.class, WalletConfig.class, WalletService.class, menusClass);
             return ctor.newInstance(this.plugin, this.config, this.service, menus);

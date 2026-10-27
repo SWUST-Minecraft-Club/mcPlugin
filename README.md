@@ -10,7 +10,7 @@ Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-2
 目前仓库里有 10 个插件：**[MainMenu](./Minecraft-26_3-plugin/MainMenu)**（主菜单框架，其它插件以它为依赖注册功能）、
 **[RealTime](./Minecraft-26_3-plugin/RealTime)**（在主菜单里显示当前时间）、
 **[YudreamPlaytime](./Minecraft-26_3-plugin/YudreamPlaytime)**（主菜单里显示查看者自己的在线时长，MainMenu 的伴侣插件）、
-**[Wallet](./Minecraft-26_3-plugin/Wallet)**（本地多币种 / Vault 主币种 / 旧官网一次性迁入 + 钱包 API 和管理指令）、
+**[Wallet](./Minecraft-26_3-plugin/Wallet)**（本地与官网按币种分流 / Vault 主币种 / 旧官网一次性迁入 + 钱包 API、管理指令与 Tab 补全）、
 **[ConcertoMenu](./Minecraft-26_3-plugin/ConcertoMenu)**（主菜单唱片机 → 打开客户端 Concerto 界面）、
 **[JoinAnnounce](./Minecraft-26_3-plugin/JoinAnnounce)**（进服公告：dialog 弹窗 / 聊天栏可切换 + 首次进服文案 / 进出服广播 + 主菜单公告入口）、
 **[ChatPrivacy](./Minecraft-26_3-plugin/ChatPrivacy)**（聊天防举报：把公开聊天改写为无签名系统消息，客户端无法把它作为举报证据）、
@@ -447,7 +447,7 @@ dependencies {
 | YudreamPlaytime | `1_0_0`（2026.10.19） | `Beta_1_1_0`（适配 Folia；台账缓存加锁） |
 | yudream-minecraft-server | `2_0_0`（2026.10.19） | `Beta_2_1_0`（反射适配 Folia，保持 Java 8 / 1.13.2 兼容） |
 | Town | — | `Beta_0_8_0`（新增 HandbookCore 小镇玩家指南、14 篇章节与操作入口；保留经营、迁移、26 页 ArcMenu、GitLab 分发及 Wallet / Vault 结算） |
-| Wallet | —（还在测试版阶段） | `Beta_0_6_2`（迁入时 UUID 不一致整人跳过并报告，正常账户继续；本地持久多币种、Vault 可配主币种、旧官网一次性迁入；保留 API 和原钱包界面） |
+| Wallet | —（还在测试版阶段） | `Beta_0_7_0`（本地与官网按币种配置双来源；新增 set/add/take 与 Tab 补全，修复菜单取物；保留 Vault 主币种和一次性迁入） |
 | ConcertoMenu | —（还在测试版阶段） | `Beta_0_2_0`（适配 Folia；首个版本：主菜单唱片机入口） |
 | JoinAnnounce | —（还在测试版阶段） | `Beta_0_4_1`（dialog 弹窗公告、默认不发聊天栏消息；默认每位玩家每天首次进服才弹；底部固定「开始冒险」+「查看完整更新日志」双按钮；`config-simple.yml` 为 SWUST 社团公告示例） |
 | ChatPrivacy | —（还在测试版阶段） | `Beta_0_1_0`（首个版本：公开聊天改写为无签名系统消息，客户端无法举报） |
@@ -582,6 +582,7 @@ dependencies {
 | `Beta_0_5_0` | `b645a8e` | 新增：本地测试模式 `test-mode`，余额与流水写入本机账本，默认关闭 |
 | `Beta_0_6_0` | 本次提交 | 新增本地持久多币种及 Vault 主币种经济服务、旧 YuDream 官网一次性迁入；修复钱包菜单桥接 |
 | `Beta_0_6_1` | 本次提交 | 修复旧配置缺少 currencies 时默认 coin 未加载、钱包启动失败；新增配置回归测试与官网后端升级说明 |
+| `Beta_0_7_0` | 本次提交 | 新增本地与官网按币种分流、set/add/take 与 Tab；修复菜单取物、缺失 MainMenu 时独立打开及官网流水身份解析币种 |
 
 **ConcertoMenu（插件）**
 

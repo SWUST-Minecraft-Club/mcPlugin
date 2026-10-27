@@ -17,6 +17,7 @@ public final class WalletHolder implements InventoryHolder {
     private final int page;
     private final UUID viewer;
     private Inventory inventory;
+    private String currency;
 
     public WalletHolder(final Kind kind, final int page, final UUID viewer) {
         this.kind = kind;
@@ -35,6 +36,9 @@ public final class WalletHolder implements InventoryHolder {
     public UUID viewer() {
         return viewer;
     }
+
+    public String currency() { return currency; }
+    public void currency(String value) { currency = value; }
 
     public void inventory(final Inventory inventory) {
         this.inventory = inventory;

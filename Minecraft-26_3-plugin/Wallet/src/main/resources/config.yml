@@ -1,23 +1,36 @@
 # Wallet（主菜单里的钱包）
 #
-# local：本地持久多币种钱包，向 Vault 暴露主币种；website：保留旧官网服务。
+# local：本地多币种；website：全部官网；hybrid：按 currencies.<code>.source 分流。
 backend: local
 
 currencies:
   coin:
+    source: local
     name: 金币
     symbol: 金币
     scale: 2
     enabled: true
     transfer-enabled: true
 
+# 双来源示例（将 backend 改为 hybrid 后，可在 currencies 下添加以下条目）：
+# emerald:
+#   source: website
+#   website-code: EMERALD
+#   name: 星空晶
+#   symbol: 星空晶
+#   scale: 0
+#   enabled: true
+#   transfer-enabled: true
+# code、名称、精度均可自行配置；官网币种的 scale 必须与官网一致。
+# website-code 可与本服 code 不同；同一官网币种只能映射一次。未声明的币种不会自动出现在 hybrid 中。
+
 # 标准 Vault 每个经济服务只能提供一个主币种；其他币种继续通过 WalletApi 与钱包界面使用。
 vault:
   enabled: true
   currency: coin
 
-# 下面的官网配置用于 website 模式，以及 /wallet migrate-site 一次性余额迁入。
-# 迁入按币种 code 对应；请先把旧官网币种配置到上面的 currencies，保持相同 scale。
+# 下面的官网配置用于 website / hybrid 的官网币种，以及 /wallet migrate-site 一次性迁入。
+# 迁入仅处理 source: local 的币种，按 code 对应官网，保持相同 scale。
 
 # 官网地址（不要带结尾斜杠）。接口前缀固定为 /api/plugins/yudream-wallet
 base-url: "https://www.swustmc.cn"
@@ -27,7 +40,7 @@ base-url: "https://www.swustmc.cn"
 api-key: ""
 
 # 本服启用的货币 code 初始列表（游戏内管理开关保存到 assets.yml，后者优先）。
-# local 使用 currencies 的 code，website 使用官网 code；留空 = 当前后端所有 enabled 币种。
+# local/hybrid 使用 currencies 的本服 code，website 使用官网 code；留空 = 所有 enabled 币种。
 assets: []
 
 # 缓存时间（秒）：货币种类 / 余额。菜单每秒重绘，只读缓存，不阻塞。

@@ -1,6 +1,5 @@
 package com.example.wallet.menu;
 
-import com.example.mainmenu.api.MainMenuApi;
 import com.example.wallet.WalletConfig;
 import com.example.wallet.WalletPlugin;
 import com.example.wallet.api.WalletAsset;
@@ -59,7 +58,7 @@ public final class WalletMenus {
         this.switches = switches;
     }
 
-    /** 本服启用且官网启用的货币（初始列表来自 config 的 assets，管理员游戏内切换后以 assets.yml 为准）。 */
+    /** 本服启用且对应来源可用的货币（管理员开关优先取 assets.yml）。 */
     public List<WalletAsset> enabledAssets() {
         final List<String> codes = enabledCodes();
         final List<WalletAsset> result = new ArrayList<>();
@@ -76,13 +75,25 @@ public final class WalletMenus {
         return this.switches.effective(this.service.cachedAssets());
     }
 
-    /** 从当前界面返回上一级：下一 tick 在玩家区域线程重新打开主菜单（旧版 MainMenu 没有 open API 时退回执行 /cd）。 */
+    public void clickLater(Player player, WalletHolder holder, Runnable action) {
+        player.getScheduler().execute(plugin, () -> {
+            if (viewing(player, holder)) action.run();
+        }, null, 1);
+    }
+
+    /** 返回主菜单；未安装 MainMenu 时关闭钱包。点击入口已延后到下一 tick。 */
     public void back(final Player player) {
         PlayerTasks.run(this.plugin, player, () -> {
+            final var mainMenu = Bukkit.getPluginManager().getPlugin("MainMenu");
+            if (mainMenu == null || !mainMenu.isEnabled()) {
+                player.closeInventory();
+                return;
+            }
             boolean opened = false;
             try {
-                opened = MainMenuApi.openOrNull(player);
-            } catch (Throwable ignored) {
+                opened = (boolean) Class.forName("com.example.mainmenu.api.MainMenuApi")
+                        .getMethod("openOrNull", Player.class).invoke(null, player);
+            } catch (ReflectiveOperationException | LinkageError ignored) {
                 // 运行期是旧版 MainMenu（没有 MainMenuApi.open）时会抛 LinkageError，退回命令
             }
             if (!opened) {
@@ -98,11 +109,12 @@ public final class WalletMenus {
         }
 
         final List<WalletAsset> assets = this.service.cachedAssets();
-        if (slot < 0 || slot >= CONTENT_SLOTS || slot >= assets.size()) {
+        final int position = (holder.page() - 1) * CONTENT_SLOTS + slot;
+        if (slot < 0 || slot >= CONTENT_SLOTS || position >= assets.size()) {
             return;
         }
 
-        final WalletAsset asset = assets.get(slot);
+        final WalletAsset asset = assets.get(position);
         if (!asset.enabled()) {
             player.sendMessage(Component.text("[钱包] 配置已停用该货币，无法在本服启用。", NamedTextColor.RED));
             return;
@@ -118,19 +130,29 @@ public final class WalletMenus {
         switch (kind) {
             case HISTORY -> openHistory(player, page);
             case PLAYERS -> openPlayers(player, page);
-            case ASSETS -> openAssets(player);
+            case ASSETS -> openAssets(player, page);
         }
+    }
+
+    public void reopen(final Player player, final WalletHolder holder, final int page) {
+        if (holder.kind() == WalletHolder.Kind.HISTORY) openHistory(player, page, holder.currency());
+        else reopen(player, holder.kind(), page);
     }
 
     // ------------------------------------------------------------------ 流水页
 
     public void openHistory(final Player player, final int page) {
+        openHistory(player, page, null);
+    }
+
+    public void openHistory(final Player player, final int page, final String currency) {
         if (!PlayerTasks.ownedBy(player)) {
-            PlayerTasks.run(this.plugin, player, () -> openHistory(player, page));
+            PlayerTasks.run(this.plugin, player, () -> openHistory(player, page, currency));
             return;
         }
         final WalletHolder holder = new WalletHolder(WalletHolder.Kind.HISTORY, Math.max(page, 1),
                 player.getUniqueId());
+        holder.currency(currency);
         final Inventory inventory = Bukkit.createInventory(holder, 54,
                 Component.text("钱包流水 · 第 " + holder.page() + " 页"));
         holder.inventory(inventory);
@@ -139,13 +161,22 @@ public final class WalletMenus {
         drawControls(inventory, holder, 1);
         player.openInventory(inventory);
 
-        this.service.transactions(player.getUniqueId(), player.getName(), enabledCodes(), holder.page(),
+        final List<String> codes = currency == null ? enabledCodes()
+                : enabledCodes().stream().filter(code -> code.equalsIgnoreCase(currency)).toList();
+        this.service.transactions(player.getUniqueId(), player.getName(), codes, holder.page(),
                         this.config.historyPageSize())
                 .whenComplete((result, error) -> runFor(player, () -> {
                     if (viewing(player, holder)) {
                         drawHistory(holder, result, error);
                     }
                 }));
+    }
+
+    public void cycleHistoryCurrency(Player player, WalletHolder holder) {
+        final List<String> options = enabledCodes();
+        final int current = holder.currency() == null ? -1 : options.indexOf(holder.currency());
+        final String next = current + 1 >= options.size() ? null : options.get(current + 1);
+        openHistory(player, 1, next);
     }
 
     private void drawHistory(final WalletHolder holder, final WalletTransactionPage page, final Throwable error) {
@@ -184,6 +215,7 @@ public final class WalletMenus {
             case "CREDIT" -> "入账";
             case "DEBIT" -> "出账";
             case "TRANSFER" -> "转账";
+            case "SET" -> "设余额";
             default -> type.isEmpty() ? "流水" : type;
         };
         final String sign = credit ? "+" : debit ? "-" : "";
@@ -209,11 +241,17 @@ public final class WalletMenus {
     // ------------------------------------------------------------------ 货币类型页（管理员）
 
     public void openAssets(final Player player) {
+        openAssets(player, 1);
+    }
+
+    public void openAssets(final Player player, final int page) {
+        if (!player.hasPermission("wallet.admin")) return;
         if (!PlayerTasks.ownedBy(player)) {
-            PlayerTasks.run(this.plugin, player, () -> openAssets(player));
+            PlayerTasks.run(this.plugin, player, () -> openAssets(player, page));
             return;
         }
-        final WalletHolder holder = new WalletHolder(WalletHolder.Kind.ASSETS, 1, player.getUniqueId());
+        final int pages = Math.max(1, (service.cachedAssets().size() + CONTENT_SLOTS - 1) / CONTENT_SLOTS);
+        final WalletHolder holder = new WalletHolder(WalletHolder.Kind.ASSETS, Math.clamp(page, 1, pages), player.getUniqueId());
         final Inventory inventory = Bukkit.createInventory(holder, 54, Component.text("货币类型"));
         holder.inventory(inventory);
         drawAssets(holder);
@@ -238,7 +276,7 @@ public final class WalletMenus {
                     Component.text("暂无货币（请检查配置）", NamedTextColor.GRAY), List.of()));
         } else {
             int slot = 0;
-            for (final WalletAsset asset : assets) {
+            for (final WalletAsset asset : assets.subList(Math.min((holder.page() - 1) * CONTENT_SLOTS, assets.size()), assets.size())) {
                 if (slot >= CONTENT_SLOTS) {
                     break;
                 }
@@ -248,6 +286,8 @@ public final class WalletMenus {
                 lore.add(line("code：", asset.code()));
                 lore.add(line("符号：", asset.symbol() == null || asset.symbol().isBlank() ? "（无）" : asset.symbol()));
                 lore.add(line("小数位：", String.valueOf(asset.scale())));
+                lore.add(line("来源：", this.config.testMode() ? "测试账本"
+                        : this.config.source(asset.code()).equals("website") ? "官网" : "本地"));
                 lore.add(line("配置启用：", asset.enabled() ? "是" : "否"));
                 lore.add(line("本服启用：", localEnabled ? "是" : "否"));
                 if (asset.enabled()) {
@@ -261,12 +301,13 @@ public final class WalletMenus {
             }
         }
 
-        drawControls(inventory, holder, 1);
+        drawControls(inventory, holder, Math.max(1, (assets.size() + CONTENT_SLOTS - 1) / CONTENT_SLOTS));
     }
 
     // ------------------------------------------------------------------ 玩家货币页（管理员）
 
     public void openPlayers(final Player player, final int page) {
+        if (!player.hasPermission("wallet.admin")) return;
         if (!PlayerTasks.ownedBy(player)) {
             PlayerTasks.run(this.plugin, player, () -> openPlayers(player, page));
             return;
@@ -346,6 +387,10 @@ public final class WalletMenus {
     private void drawControls(final Inventory inventory, final WalletHolder holder, final int pages) {
         final boolean hasPrevious = holder.page() > 1;
         final boolean hasNext = holder.page() < pages;
+        if (holder.kind() == WalletHolder.Kind.HISTORY) {
+            inventory.setItem(45, item(Material.BOOK, Component.text("币种：" + (holder.currency() == null ? "全部" : holder.currency()), NamedTextColor.YELLOW),
+                    List.of(Component.text("点击切换；官网不可用时可单独查看本地币种", NamedTextColor.GRAY))));
+        }
         inventory.setItem(SLOT_PREVIOUS, item(Material.ARROW,
                 Component.text(hasPrevious ? "上一页" : "已经是第一页",
                         hasPrevious ? NamedTextColor.YELLOW : NamedTextColor.DARK_GRAY),

@@ -1,0 +1,103 @@
+{
+  "version": "Beta_0_7_0",
+  "date": "2026-10-27",
+  "platform": "Folia 26.3 build 5 / Java 25",
+  "junit": {
+    "total": 41,
+    "passed": 41
+  },
+  "fixtures": "Local mock website; no production access or migration",
+  "checks": {
+    "mainmenu-audit": {
+      "mainmenu": "Beta_1_8_0 inventory fallback; wallet right click, toggle, back passed",
+      "historyRowsAfterVault": 9,
+      "websiteWrites": {
+        "EMERALD-credit": 1,
+        "EMERALD-debit": 1,
+        "GOLD": 0
+      },
+      "currencySourceLore": {
+        "gold": "本地",
+        "emerald": "官网"
+      }
+    },
+    "command-results": [
+      {
+        "history": "gold",
+        "rows": 5
+      },
+      {
+        "history": "emerald",
+        "rows": 2
+      },
+      {
+        "history": "all",
+        "rows": 7
+      },
+      {
+        "check": "filter all -> gold",
+        "passed": true
+      }
+    ],
+    "click-results": [
+      {
+        "check": "QUICK_MOVE",
+        "passed": true
+      },
+      {
+        "check": "SWAP",
+        "passed": true
+      },
+      {
+        "check": "THROW",
+        "passed": true
+      },
+      {
+        "check": "PICKUP_ALL",
+        "passed": true
+      },
+      {
+        "check": "left toggle off",
+        "passed": true
+      },
+      {
+        "check": "right toggle on",
+        "passed": true
+      },
+      {
+        "check": "next button reopen",
+        "passed": true
+      }
+    ],
+    "drag-vault-restart": {
+      "restart": {
+        "gold": 118,
+        "emerald": 110
+      },
+      "vault": "Wallet/gold: 118 -> 120 -> 118",
+      "dragEventBus": {
+        "top": true,
+        "bottom": true
+      },
+      "playerInventoryShiftBlocked": true
+    },
+    "tab-results": [
+      {
+        "input": "/wallet set Wal",
+        "completion": "/wallet set WalletTester"
+      },
+      {
+        "input": "/wallet set WalletTester ",
+        "completion": "/wallet set WalletTester gold"
+      },
+      {
+        "input": "/wallet add WalletTester em",
+        "completion": "/wallet add WalletTester emerald"
+      },
+      {
+        "input": "/walletin Wal",
+        "completion": "/walletin WalletTester"
+      }
+    ]
+  }
+}

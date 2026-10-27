@@ -10,8 +10,8 @@ import java.util.concurrent.CompletableFuture;
  *
  * <p>约定：
  * <ul>
- *     <li>backend=local 时使用本地持久账本；backend=website 时使用旧官网；测试模式使用独立测试账本。</li>
- *     <li>credit / debit 写入当前后端；本地模式与 Vault 共用同一账本及流水。</li>
+ *     <li>backend=local 使用本地持久账本；website 使用官网；hybrid 按币种 source 分流；测试模式使用独立测试账本。</li>
+ *     <li>credit / debit 写入币种对应后端，setBalance 仅限本地；本地币种与 Vault 共用账本及流水。</li>
  *     <li>资金操作返回异步结果，不要在服务端主线程阻塞等待结果。</li>
  *     <li>{@code businessNo} 是当前后端的幂等键：重试时传同一个值不会重复记账；
  *         使用不带业务号的重载时由插件生成随机值（只适合"确定只调用一次"的场景）。</li>
@@ -21,7 +21,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface WalletService {
 
-    /** 当前后端全部货币（含配置启用状态；本服菜单启停看 {@code config.yml} 的 assets）。 */
+    /** 当前后端全部货币（hybrid 仅返回配置币种；本服开关优先取 assets.yml）。 */
     CompletableFuture<List<WalletAsset>> assets();
 
     /** 玩家在某种货币上的余额。 */
@@ -34,6 +34,12 @@ public interface WalletService {
     /** 给玩家扣货币（记一条 DEBIT 流水）。 */
     CompletableFuture<WalletTransaction> debit(UUID playerId, String playerName, String assetCode,
                                                BigDecimal amount, String businessNo, String remark);
+
+    /** 原子设置本地余额，允许 0；官网接口不提供此操作。 */
+    default CompletableFuture<WalletTransaction> setBalance(UUID playerId, String playerName, String assetCode,
+            BigDecimal amount, String businessNo, String remark) {
+        return CompletableFuture.failedFuture(new WalletException(0, "set 仅支持本地币种；官网币种请使用 add/take"));
+    }
 
     /** 给玩家加货币（自动生成幂等键；只适合确定只调用一次的场景）。 */
     default CompletableFuture<WalletTransaction> credit(final UUID playerId, final String playerName,

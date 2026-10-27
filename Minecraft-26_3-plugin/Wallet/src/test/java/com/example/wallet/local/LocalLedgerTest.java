@@ -19,6 +19,53 @@ class LocalLedgerTest {
     @TempDir Path directory;
     final UUID alice = UUID.randomUUID(), bob = UUID.randomUUID();
     Path file() { return directory.resolve("wallet.wal"); }
+
+    @Test void setIsAtomicDurableAndIdempotentIncludingZero() throws Exception {
+        try (var ledger = new LocalLedger(file())) {
+            ledger.change(alice, "Alice", "gold", new BigDecimal("10"), true, "seed", "");
+            var set = ledger.setBalance(alice, "Alice", "gold", new BigDecimal("25"), "set-one", "admin");
+            assertEquals("SET", set.type());
+            ledger.change(alice, "Alice", "gold", new BigDecimal("3"), true, "later", "");
+            assertEquals(set, ledger.setBalance(alice, "Alice", "gold", new BigDecimal("25"), "set-one", "retry"));
+            assertEquals(new BigDecimal("28"), ledger.balance(alice, "gold"));
+            assertThrows(WalletException.class, () -> ledger.setBalance(alice, "Alice", "gold", BigDecimal.ZERO, "set-one", "collision"));
+            assertThrows(WalletException.class, () -> ledger.change(alice, "Alice", "gold", new BigDecimal("25"), true, "set-one", "collision"));
+            ledger.setBalance(alice, "Alice", "gold", BigDecimal.ZERO, "set-zero", "admin");
+        }
+        try (var ledger = new LocalLedger(file())) {
+            assertEquals(0, ledger.balance(alice, "gold").signum());
+            assertEquals(4, ledger.transactions(alice, List.of("gold"), 1, 45).total());
+            assertEquals("SET", ledger.transactions(alice, List.of("gold"), 1, 45).records().getFirst().type());
+        }
+    }
+
+    @Test void setCannotBypassImportLockNegativeAmountOrReservedBusinessNumber() throws Exception {
+        try (var ledger = new LocalLedger(file())) {
+            assertThrows(WalletException.class, () -> ledger.setBalance(alice, "Alice", "gold", BigDecimal.ONE.negate(), "bad", ""));
+            assertThrows(WalletException.class, () -> ledger.setBalance(alice, "Alice", "gold", BigDecimal.ONE, "site-import:x", ""));
+            ledger.beginImport();
+            assertThrows(WalletException.class, () -> ledger.setBalance(alice, "Alice", "gold", BigDecimal.TEN, "during", ""));
+            ledger.endImport();
+            assertEquals(0, ledger.balance(alice, "gold").signum());
+        }
+    }
+
+    @Test void concurrentSetsAndCreditsEachPersistOneWholeTransaction() throws Exception {
+        try (var ledger = new LocalLedger(file()); var pool = Executors.newFixedThreadPool(4)) {
+            var tasks = new java.util.ArrayList<java.util.concurrent.Future<?>>();
+            for (int i = 0; i < 40; i++) {
+                final int n = i;
+                tasks.add(pool.submit(() -> {
+                    if (n % 2 == 0) ledger.setBalance(alice, "Alice", "gold", BigDecimal.TEN, "set-" + n, "");
+                    else ledger.change(alice, "Alice", "gold", BigDecimal.ONE, true, "add-" + n, "");
+                }));
+            }
+            for (var task : tasks) task.get();
+            var latest = ledger.transactions(alice, List.of("gold"), 1, 45);
+            assertEquals(40, latest.total());
+            assertEquals(latest.records().getFirst().balanceAfter(), ledger.balance(alice, "gold"));
+        }
+    }
     LocalLedger.Imported row(UUID id, String amount) {
         return new LocalLedger.Imported(id, "player", "coin", new BigDecimal(amount), id.toString());
     }

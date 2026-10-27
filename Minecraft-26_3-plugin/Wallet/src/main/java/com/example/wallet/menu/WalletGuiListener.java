@@ -3,10 +3,12 @@ package com.example.wallet.menu;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 
-/** Wallet 三个界面的点击处理：一律取消原版交互，只响应 47 上一页 / 49 返回 / 51 下一页。 */
+/** Wallet 菜单取消所有取放与拖拽；普通点击响应分页、返回、筛选和币种开关。 */
 public final class WalletGuiListener implements Listener {
 
     private final WalletMenus menus;
@@ -15,7 +17,7 @@ public final class WalletGuiListener implements Listener {
         this.menus = menus;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onInventoryClick(final InventoryClickEvent event) {
         if (!(event.getView().getTopInventory().getHolder() instanceof WalletHolder holder)) {
             return;
@@ -28,20 +30,29 @@ public final class WalletGuiListener implements Listener {
         if (event.getClickedInventory() != event.getView().getTopInventory()) {
             return;
         }
+        if (event.getClick() != ClickType.LEFT && event.getClick() != ClickType.RIGHT) return;
+        if (!holder.viewer().equals(player.getUniqueId())) return;
 
-        switch (event.getRawSlot()) {
-            case 47 -> this.menus.reopen(player, holder.kind(), holder.page() - 1);
-            case 49 -> this.menus.back(player);
-            case 51 -> this.menus.reopen(player, holder.kind(), holder.page() + 1);
-            default -> {
-                if (holder.kind() == WalletHolder.Kind.ASSETS) {
-                    this.menus.toggleAsset(player, holder, event.getRawSlot());
+        // Open/close views after the event has finished, on this player's Folia thread.
+        final int slot = event.getRawSlot();
+        this.menus.clickLater(player, holder, () -> {
+            switch (slot) {
+                case 45 -> {
+                    if (holder.kind() == WalletHolder.Kind.HISTORY) this.menus.cycleHistoryCurrency(player, holder);
+                }
+                case 47 -> this.menus.reopen(player, holder, holder.page() - 1);
+                case 49 -> this.menus.back(player);
+                case 51 -> this.menus.reopen(player, holder, holder.page() + 1);
+                default -> {
+                    if (holder.kind() == WalletHolder.Kind.ASSETS) {
+                        this.menus.toggleAsset(player, holder, slot);
+                    }
                 }
             }
-        }
+        });
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onInventoryDrag(final InventoryDragEvent event) {
         if (event.getView().getTopInventory().getHolder() instanceof WalletHolder) {
             event.setCancelled(true);

@@ -11,6 +11,57 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
 
 class WalletConfigTest {
+    private YamlConfiguration hybrid() throws Exception {
+        var yaml = legacy();
+        yaml.loadFromString("""
+                backend: hybrid
+                currencies:
+                  gold: {source: local, name: 星空币, scale: 0}
+                  emerald: {source: website, website-code: EMERALD, name: 星空晶, scale: 0}
+                vault: {enabled: true, currency: gold}
+                """);
+        return yaml;
+    }
+
+    @Test void hybridRoutesAreExplicitAndOnlyLocalCurrenciesReachTheLedger() throws Exception {
+        var loaded = WalletConfig.load(hybrid());
+        assertEquals(List.of("gold"), loaded.localCurrencies().stream().map(WalletAsset::code).toList());
+        assertEquals("website", loaded.source("EMERALD"));
+        assertEquals("EMERALD", loaded.routes().get("emerald").websiteCode());
+        assertEquals("gold", loaded.vaultCurrency());
+    }
+
+    @Test void arbitraryCurrencyNamesAndRemoteCodesCanBeConfigured() throws Exception {
+        var yaml = hybrid();
+        yaml.set("currencies.emerald", null);
+        yaml.set("currencies.tokens.source", "website");
+        yaml.set("currencies.tokens.website-code", "SITE_CREDIT");
+        var loaded = WalletConfig.load(yaml);
+        assertEquals("SITE_CREDIT", loaded.routes().get("tokens").websiteCode());
+        assertEquals("website", loaded.source("tokens"));
+        assertEquals("local", loaded.source("gold"));
+    }
+
+    @Test void invalidSourceAndWebsiteVaultSelectionAreRejected() throws Exception {
+        var yaml = hybrid();
+        yaml.set("currencies.gold.source", "fallback");
+        assertThrows(IllegalArgumentException.class, () -> WalletConfig.load(yaml));
+        yaml.set("currencies.gold.source", "local");
+        yaml.set("vault.currency", "emerald");
+        assertThrows(IllegalArgumentException.class, () -> WalletConfig.load(yaml));
+    }
+
+    @Test void duplicateWebsiteAliasesCannotExposeTheSameBalanceTwice() throws Exception {
+        var yaml = hybrid();
+        yaml.set("currencies.second.source", "website");
+        yaml.set("currencies.second.website-code", "emerald");
+        assertThrows(IllegalArgumentException.class, () -> WalletConfig.load(yaml));
+    }
+
+    @Test void localModeCannotSilentlyStoreAWebsiteCurrencyLocally() throws Exception {
+        var yaml = hybrid(); yaml.set("backend", "local");
+        assertThrows(IllegalArgumentException.class, () -> WalletConfig.load(yaml));
+    }
     private YamlConfiguration defaults() throws Exception {
         try (var stream = getClass().getResourceAsStream("/config.yml")) {
             assertNotNull(stream);

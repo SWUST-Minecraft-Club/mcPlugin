@@ -52,11 +52,11 @@
 - 不要在文档里写 `C:/D:` 盘符路径 —— 仓库改过名，写死路径的脚本已经因此坏过一次。
 - 不要把规范复制到 README 与 docs 两处：规范只写在 `docs/dev/`，README 只留指针。
 
-## 现状快照（2026-10-27，Wallet 迁入 UUID 不一致跳过修复后更新本行）
+## 现状快照（2026-10-27，Wallet 双来源、管理指令与菜单修复后更新本行）
 
 插件 MainMenu（正式版 `1_0_1` / 测试中 `Beta_1_8_0`，ArcMenu 3.2 原生 YAML 方块手机与 10 页界面，Vault 资产页、首页翻页与无效头像回退；可选多侧卡默认隐藏，YAML / API 接入、按高度自动分栏居中与独立分页，见 `./Minecraft-26_3-plugin/MainMenu/SIDECARDS.md`；保留功能注册、管理与背包回退）· RealTime（`1_0_0` / `Beta_1_1_0`）· MainMenuRepair Fabric 模组（`1_0_0` / `Beta_1_2_0`，时钟右键空气先探测 `/cd clockair`；隐藏 dialog 警告并居中标题、收掉暂停菜单空行；新增手册正文整体居中、白色焦点框修复与重复页脚隐藏）·
 MinecraftMcp Fabric 模组（`Beta_0_1_0`，本机 MCP 26 项客户端测试工具；Java 21 协议核心 + Java 25 的 26.3 独立适配器，支持后续新增版本模块分别构建与发布）·
-YudreamPlaytime（正式版 `1_0_0` / 测试中 `Beta_1_1_0`，MainMenu 伴侣插件：菜单里显示查看者自己的在线时长）· Wallet（`Beta_0_6_2`，迁入时 UUID 不一致整人跳过、即时警告与分类统计，正常账户继续；默认本地持久多币种、配置 Vault 主币种与旧 YuDream 官网一次性迁入；保留官网后端、独立测试模式、原钱包界面及 WalletApi；迁入范围与验证见 `./Minecraft-26_3-plugin/Wallet/README.md`）·
+YudreamPlaytime（正式版 `1_0_0` / 测试中 `Beta_1_1_0`，MainMenu 伴侣插件：菜单里显示查看者自己的在线时长）· Wallet（`Beta_0_7_0`，按币种配置本地/官网双来源、官网 code 映射；set 仅本地、add/take 双来源与 Tab 补全；菜单点击/拖拽拦截、币种筛选与独立打开；保留本地账本、Vault 主币种、一次性迁入与 UUID 跳过策略、测试模式及 WalletApi；配置与验证见 `./Minecraft-26_3-plugin/Wallet/README.md`）·
 ConcertoMenu（`Beta_0_2_0`，主菜单唱片机 → 发 `concerto:menu` 指令打开客户端 Concerto 主界面）·
 JoinAnnounce（`Beta_0_4_1`，进服公告：dialog 弹窗 / 聊天栏可切换 + 首次进服文案 / 进出服广播 + 主菜单「服务器公告」入口；`announce.once-per-day` 默认开、每位玩家每天首次进服才弹、跨天在线不打断、服务器重启重置；弹窗底部固定「开始冒险」+「查看完整更新日志」双按钮（外部链接）；`config-simple.yml` 为 SWUST 社团公告文案，无徽章）·
 ChatPrivacy（`Beta_0_1_0`，聊天防举报：把玩家公开聊天改写为无签名系统消息，客户端无法把它作为举报证据；纯 API、不依赖 NMS）·

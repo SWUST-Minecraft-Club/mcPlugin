@@ -146,7 +146,7 @@ public final class WalletServiceImpl implements WalletService {
                 return new WalletTransactionPage(List.of(), 0L);
             }
 
-            final String userId = resolveUserId(playerId, playerName);
+            final String userId = resolveUserId(playerId, playerName, assetCodes);
 
             if (assetCodes == null) {
                 return fetchTransactions(userId, null, safePage, safeSize);
@@ -208,7 +208,7 @@ public final class WalletServiceImpl implements WalletService {
         return new WalletTransactionPage(List.copyOf(list), total);
     }
 
-    private String resolveUserId(final UUID playerId, final String playerName) {
+    private String resolveUserId(final UUID playerId, final String playerName, final List<String> requested) {
         if (playerId == null) {
             throw new WalletException(0, "playerId 不能为空");
         }
@@ -216,6 +216,9 @@ public final class WalletServiceImpl implements WalletService {
         final String cached = this.userIds.get(playerId);
         if (cached != null && !cached.isBlank()) {
             return cached;
+        }
+        if (requested != null && !requested.isEmpty()) {
+            return fetchBalance(playerId, playerName, requested.getFirst()).userId();
         }
 
         List<WalletAsset> assets = cachedAssets();
