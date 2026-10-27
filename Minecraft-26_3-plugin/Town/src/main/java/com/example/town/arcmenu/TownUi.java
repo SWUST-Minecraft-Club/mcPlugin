@@ -14,6 +14,7 @@ import com.fentai.arcmenu.api.ArcMenuStateScope;
 import com.fentai.arcmenu.api.ArcMenuTextInputEndReason;
 import com.fentai.arcmenu.api.ArcMenuTextInputHandle;
 import com.fentai.arcmenu.api.ArcMenuTextInputOptions;
+import com.fentai.arcmenu.api.ArcMenuTextInputResult;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -46,7 +47,7 @@ public final class TownUi {
     private final Map<UUID, ChunkKey> claimCenter = new ConcurrentHashMap<>();
     private final Map<UUID, UUID> selectedMember = new ConcurrentHashMap<>();
     private final Map<UUID, ConfirmSession> confirmations = new ConcurrentHashMap<>();
-    private final Map<UUID, ArcMenuTextInputHandle> textInputs = new ConcurrentHashMap<>();
+    private final Map<UUID, InputSession> textInputs = new ConcurrentHashMap<>();
     private final Map<UUID, ChunkKey> chunkPreviews = new ConcurrentHashMap<>();
     private final Map<UUID,ChunkKey> mapRequests=new ConcurrentHashMap<>();
     private final Set<UUID> balanceLoading = ConcurrentHashMap.newKeySet();
@@ -56,6 +57,16 @@ public final class TownUi {
     private final TownOperations operations;
 
     private record ConfirmSession(String action, String returnScreen) {
+    }
+
+    private static final class InputSession {
+        final String returnScreen;
+        final AtomicBoolean completed = new AtomicBoolean();
+        ArcMenuTextInputHandle handle;
+
+        InputSession(final String returnScreen) {
+            this.returnScreen = returnScreen;
+        }
     }
 
     private TownUi(final TownPlugin plugin, final ArcMenuApi api) {
@@ -296,6 +307,13 @@ public final class TownUi {
     }
 
     private void reopen(final Player player, final String screen) {
+        if (screen.startsWith(TownOperationMenus.PREFIX)) {
+            writeCommon(player, plugin.service().townOf(player.getUniqueId()));
+            if (operations.write(player)) {
+                markAndOpen(player, screen);
+            }
+            return;
+        }
         switch (screen) {
             case TownMenus.CREATE -> openCreate(player);
             case TownMenus.MEMBERS -> openMembers(player, memberPage.getOrDefault(player.getUniqueId(), 1));
@@ -326,6 +344,7 @@ public final class TownUi {
     }
 
     void markAndOpen(final Player player, final String menuId) {
+        cancelTextInput(player.getUniqueId());
         current.put(player.getUniqueId(), menuId);
         // 不强制切换输入模式：默认 mouse（客户端 Mod 本地渲染光标，最跟手），
         // 玩家可用 /arcmenu mode 自选 touch / vision，服务器策略由 ArcMenu config 决定。
@@ -350,50 +369,15 @@ public final class TownUi {
     /** 点击输入框 / 邀请按钮时唤起 ArcMenu 文本输入；提交后直接执行对应业务，绕开 Arcitx 需先 Esc 的问题。 */
     public void requestInput(final Player player, final String kind) {
         final boolean create = "name".equals(kind);
-        if (api.textInput() == null) {
-            plugin.messages().send(player, "input-unavailable");
-            return;
-        }
-        final ArcMenuTextInputOptions options;
-        try {
-            final ArcMenuTextInputOptions.Builder builder = ArcMenuTextInputOptions.builder()
-                    .title(create ? "输入小镇名称" : "输入要邀请的玩家名")
-                    .maxLength(create ? Math.min(50, plugin.config().nameMaxLength()) : 16);
-            options = builder.build();
-        } catch (final LinkageError | RuntimeException e) {
-            plugin.getLogger().warning("ArcMenu 文本输入不可用：" + e.getClass().getSimpleName());
-            plugin.messages().send(player, "input-unavailable");
-            return;
-        }
-        final UUID playerId = player.getUniqueId();
-        final ArcMenuTextInputHandle previous = textInputs.remove(playerId);
-        if (previous != null) {
-            try {
-                previous.close();
-            } catch (final RuntimeException ignored) {
-            }
-        }
-        final ArcMenuTextInputHandle handle = api.textInput().request(plugin, player, options,
-                new com.fentai.arcmenu.api.ArcMenuTextInputListener() {
-                    @Override
-                    public void onComplete(final com.fentai.arcmenu.api.ArcMenuTextInputResult result) {
-                        textInputs.remove(playerId);
-                        if (result.getReason() != ArcMenuTextInputEndReason.SUBMITTED
-                                || result.getValue() == null || result.getValue().isBlank()) {
-                            return;
-                        }
-                        Threads.forPlayer(plugin, player, () -> {
-                            final String value = result.getValue().trim();
-                            final var feedback = TownUi.this.feedbackFor(player);
-                            if (create) {
-                                plugin.service().create(player, value, feedback);
-                            } else {
-                                plugin.service().invite(player, value, feedback);
-                            }
-                        });
+        requestTextInput(player, create ? "镇名 · 点右侧结果提交" : "玩家 · 点右侧结果提交",
+                create ? plugin.config().nameMaxLength() : 16, value -> {
+                    final var feedback = feedbackFor(player);
+                    if (create) {
+                        plugin.service().create(player, value, feedback);
+                    } else {
+                        plugin.service().invite(player, value, feedback);
                     }
                 });
-        textInputs.put(playerId, handle);
     }
 
     public void operation(Player player,String input) {operations.command(player,input);}
@@ -402,25 +386,119 @@ public final class TownUi {
         forget(player.getUniqueId());
         api.close(player);
     }
-    void closeOperations(Player player) {api.close(player);current.remove(player.getUniqueId());}
+    void closeOperations(Player player) {cancelTextInput(player.getUniqueId());api.close(player);current.remove(player.getUniqueId());}
     void requestOperationInput(Player player,String title,java.util.function.Consumer<String> submitted) {
-        if(api.textInput()==null) {plugin.messages().send(player,"input-unavailable");return;}
-        var old=textInputs.remove(player.getUniqueId());if(old!=null) old.close();
-        var handle=api.textInput().request(plugin,player,ArcMenuTextInputOptions.builder().title(title).maxLength(50).build(),
+        requestTextInput(player, title, 50, submitted);
+    }
+
+    /** 注册先于 API 调用；旧请求的延迟回调只能结束自身，不能删除新请求。 */
+    private void requestTextInput(final Player player, final String title, final int maxLength,
+                                  final java.util.function.Consumer<String> submitted) {
+        final UUID playerId = player.getUniqueId();
+        final InputSession input = new InputSession(current.getOrDefault(playerId, homeScreen(player)));
+        final InputSession previous = textInputs.put(playerId, input);
+        closeTextInput(previous);
+        try {
+            if (api.textInput() == null) {
+                throw new IllegalStateException("ArcMenu text input service unavailable");
+            }
+            final var options = ArcMenuTextInputOptions.builder().title(title)
+                    .maxLength(Math.clamp(maxLength, 1, 50)).build();
+            input.handle = api.textInput().request(plugin, player, options,
                 new com.fentai.arcmenu.api.ArcMenuTextInputListener() {
-                    @Override public void onComplete(com.fentai.arcmenu.api.ArcMenuTextInputResult result) {
-                        textInputs.remove(player.getUniqueId());
-                        if(result.getReason()==ArcMenuTextInputEndReason.SUBMITTED && result.getValue()!=null && !result.getValue().isBlank())
-                            Threads.forPlayer(plugin,player,()->submitted.accept(result.getValue().trim()));
+                    @Override public void onComplete(final ArcMenuTextInputResult result) {
+                        if (!input.completed.compareAndSet(false, true)) {
+                            return;
+                        }
+                        // 原生输入结束时仍可能在清理背包或恢复 ArcMenu；必须等玩家的下一 tick。
+                        player.getScheduler().run(plugin, task -> completeTextInput(player, input, result, submitted),
+                                () -> textInputs.remove(playerId, input));
                     }
                 });
-        textInputs.put(player.getUniqueId(),handle);
+            if (input.handle == null && !input.completed.get()) {
+                throw new IllegalStateException("ArcMenu rejected text input request");
+            }
+            if (textInputs.get(playerId) != input) {
+                closeTextInput(input);
+            }
+        } catch (final LinkageError | RuntimeException error) {
+            if (textInputs.remove(playerId, input)) {
+                closeTextInput(input);
+                plugin.getLogger().log(java.util.logging.Level.WARNING, "ArcMenu 文本输入启动失败", error);
+                plugin.messages().send(player, "input-unavailable");
+                resumeTextInput(player, input);
+            }
+        }
+    }
+
+    private void completeTextInput(final Player player, final InputSession input,
+                                   final ArcMenuTextInputResult result,
+                                   final java.util.function.Consumer<String> submitted) {
+        final UUID playerId = player.getUniqueId();
+        if (!textInputs.remove(playerId, input) || !player.isOnline()) {
+            return;
+        }
+        final ArcMenuTextInputEndReason reason = result.getReason();
+        if (reason == ArcMenuTextInputEndReason.SUBMITTED) {
+            final String value = result.getValue() == null ? "" : result.getValue().trim();
+            if (value.isBlank()) {
+                plugin.messages().send(player, "input-empty");
+            } else {
+                try {
+                    submitted.accept(value);
+                } catch (final RuntimeException error) {
+                    plugin.getLogger().log(java.util.logging.Level.WARNING, "小镇输入提交处理失败", error);
+                    plugin.messages().send(player, "input-failed");
+                }
+            }
+        } else if (reason == ArcMenuTextInputEndReason.CANCELLED) {
+            plugin.messages().send(player, "input-cancelled");
+        } else if (reason == ArcMenuTextInputEndReason.ERROR) {
+            plugin.messages().send(player, "input-failed");
+        } else {
+            if (reason == ArcMenuTextInputEndReason.SESSION_CLOSED) {
+                plugin.messages().send(player, "input-cancelled");
+            }
+            // 离线、停用、换页或会话真正关闭时，不把玩家拉回旧菜单。
+            clear(playerId);
+            return;
+        }
+        resumeTextInput(player, input);
+    }
+
+    private void resumeTextInput(final Player player, final InputSession input) {
+        final UUID playerId = player.getUniqueId();
+        if (textInputs.containsKey(playerId) || !input.returnScreen.equals(current.get(playerId))) {
+            return;
+        }
+        final var session = api.sessions().current(player);
+        if (session == null || !session.getId().equals(renderedMenu(player, input.returnScreen))) {
+            reopen(player, input.returnScreen);
+        } else {
+            refresh(player);
+        }
+    }
+
+    private void cancelTextInput(final UUID playerId) {
+        closeTextInput(textInputs.remove(playerId));
+    }
+
+    private static void closeTextInput(final InputSession input) {
+        if (input != null && input.handle != null) {
+            try {
+                input.handle.close();
+            } catch (final RuntimeException ignored) {
+            }
+        }
     }
 
     /** 输入提交后的反馈：投递结果并按当前页面决定回跳。 */
     private java.util.function.Consumer<TownService.Result> feedbackFor(final Player player) {
         return result -> {
             plugin.service().deliver(player, result);
+            if (!result.ok()) {
+                player.sendActionBar(plugin.messages().render(result.messageKey(), result.resolvers()));
+            }
             afterResult(player, result);
         };
     }
@@ -438,7 +516,7 @@ public final class TownUi {
 
     public void refresh(final Player player) {
         final String screen = current.get(player.getUniqueId());
-        if (screen == null || !player.isOnline()) {
+        if (screen == null || !player.isOnline() || textInputs.containsKey(player.getUniqueId())) {
             return;
         }
         final TownSnapshotView view = plugin.service().townOf(player.getUniqueId());
@@ -477,7 +555,7 @@ public final class TownUi {
                 continue;
             }
             Threads.forPlayer(plugin, player, () -> {
-                if (!current.containsKey(id)) {
+                if (!current.containsKey(id) || textInputs.containsKey(id)) {
                     return;
                 }
                 var session=api.sessions().current(player);
@@ -544,6 +622,7 @@ public final class TownUi {
         }
         player.getScheduler().runDelayed(plugin, task -> {
             if (api.sessions().current(player) == null
+                    && !textInputs.containsKey(player.getUniqueId())
                     && logicalId.equals(current.get(player.getUniqueId()))) {
                 clear(player.getUniqueId());
             }
@@ -565,13 +644,7 @@ public final class TownUi {
         confirmations.remove(playerId);
         chunkPreviews.remove(playerId);
         mapRequests.remove(playerId);
-        final ArcMenuTextInputHandle input = textInputs.remove(playerId);
-        if (input != null) {
-            try {
-                input.close();
-            } catch (final RuntimeException ignored) {
-            }
-        }
+        cancelTextInput(playerId);
         balanceLoading.remove(playerId);
         balanceRetryAt.remove(playerId);
     }
@@ -586,13 +659,9 @@ public final class TownUi {
         confirmations.clear();
         chunkPreviews.clear();
         mapRequests.clear();
-        textInputs.values().forEach(handle -> {
-            try {
-                handle.close();
-            } catch (final RuntimeException ignored) {
-            }
-        });
+        final List<InputSession> inputs = List.copyOf(textInputs.values());
         textInputs.clear();
+        inputs.forEach(TownUi::closeTextInput);
         balanceLoading.clear();
         balanceRetryAt.clear();
     }

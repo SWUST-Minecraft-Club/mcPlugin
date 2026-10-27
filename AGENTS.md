@@ -52,7 +52,7 @@
 - 不要在文档里写 `C:/D:` 盘符路径 —— 仓库改过名，写死路径的脚本已经因此坏过一次。
 - 不要把规范复制到 README 与 docs 两处：规范只写在 `docs/dev/`，README 只留指针。
 
-## 现状快照（2026-10-27，MainMenu 自定义按键与 Wallet 菜单修复后更新本行）
+## 现状快照（2026-10-27，Town 输入回调修复后更新本行）
 
 插件 MainMenu（正式版 `1_0_1` / 测试中 `Beta_1_9_0`，自定义功能可按左右键、Shift 与中键配置指令；ArcMenu 3.2 原生 YAML 方块手机与 10 页界面，Vault 资产页、首页翻页与无效头像回退；可选多侧卡默认隐藏，YAML / API 接入、按高度自动分栏居中与独立分页，见 `./Minecraft-26_3-plugin/MainMenu/SIDECARDS.md`；保留功能注册、管理与背包回退）· RealTime（`1_0_0` / `Beta_1_1_0`）· MainMenuRepair Fabric 模组（`1_0_0` / `Beta_1_2_0`，时钟右键空气先探测 `/cd clockair`；隐藏 dialog 警告并居中标题、收掉暂停菜单空行；新增手册正文整体居中、白色焦点框修复与重复页脚隐藏）·
 MinecraftMcp Fabric 模组（`Beta_0_1_0`，本机 MCP 26 项客户端测试工具；Java 21 协议核心 + Java 25 的 26.3 独立适配器，支持后续新增版本模块分别构建与发布）·
@@ -61,7 +61,7 @@ ConcertoMenu（`Beta_0_2_0`，主菜单唱片机 → 发 `concerto:menu` 指令�
 JoinAnnounce（`Beta_0_4_1`，进服公告：dialog 弹窗 / 聊天栏可切换 + 首次进服文案 / 进出服广播 + 主菜单「服务器公告」入口；`announce.once-per-day` 默认开、每位玩家每天首次进服才弹、跨天在线不打断、服务器重启重置；弹窗底部固定「开始冒险」+「查看完整更新日志」双按钮（外部链接）；`config-simple.yml` 为 SWUST 社团公告文案，无徽章）·
 ChatPrivacy（`Beta_0_1_0`，聊天防举报：把玩家公开聊天改写为无签名系统消息，客户端无法把它作为举报证据；纯 API、不依赖 NMS）·
 HandbookCore（`Beta_0_1_2`，293×162 紧凑画布、CE 图文与点击区域整体缩放、原逻辑 API 兼容；默认仅一条可删除的更新日志、玩法由插件贡献；旧示例备份迁移且删除后不再生成；Dialog 全局双页手册、多插件内容 API、分类/权限/全文检索/长文分页、当前页与总页数；独立动态书签、CE 图片与原版/CE 图标、原生物品预览、内部链接/外链/玩家指令；CE/MainMenu 可选，文字回退；安装包与 API jar 留档，素材和 26.3 实机记录见 `./Minecraft-26_3-plugin/HandbookCore/`，经验见 `./docs/exp/handbook-dialog.md`）·
-Town（`Beta_0_9_0`，CE 测绘识别/亮色边界、进镇提示/主菜单返回、地图缓存及 5 秒合包冷却；HandbookCore 小镇玩家指南（14 篇、配置刷新与 `/town guide`）；休闲经营小镇：单人成立、CraftEngine 政厅核心与自建建筑、自主连通区块、XZ 矩形地块/授权/外镇租赁、镇库与科技政策、托管现货/预付订单/离线结算/收件箱、可预览旋转和恢复的建筑迁移；ArcMenu 3.2 原生 YAML 26 页暖象牙/玉绿/黄铜界面，图标按库存模型分类、余额分行与长值缩写，缺失时指令兜底；Wallet / Vault Economy 可选、持久交易与人工核对，公开 TownApi+事件；85 项测试与 Folia 26.3 双客户端联调，美术来源和验证见 `./Minecraft-26_3-plugin/Town/assets/`；CE 合包投递、GitLab 原生分发、地图加载确认与图片锚点修复见 `./docs/exp/town-resource-packs.md`；菜单校准见 `./docs/exp/town-menu-layout.md`；Vault 恢复边界见 `./docs/exp/town-vault-economy.md`；API jar 在 `./libs/`，配置知识库在 `./docs/exp/arcmenu-yml知识库.md`，迁移经验在 `./docs/exp/town-transactions-migration.md`）·
+Town（`Beta_0_9_1`，统一镇名/邀请/经营输入会话、下一 tick 处理与取消/空值/异常反馈；铁砧点右侧结果提交；CE 测绘识别/亮色边界、进镇提示/主菜单返回、地图缓存及 5 秒合包冷却；HandbookCore 小镇玩家指南（14 篇、配置刷新与 `/town guide`）；休闲经营小镇：单人成立、CraftEngine 政厅核心与自建建筑、自主连通区块、XZ 矩形地块/授权/外镇租赁、镇库与科技政策、托管现货/预付订单/离线结算/收件箱、可预览旋转和恢复的建筑迁移；ArcMenu 3.2 原生 YAML 26 页暖象牙/玉绿/黄铜界面，图标按库存模型分类、余额分行与长值缩写，缺失时指令兜底；Wallet / Vault Economy 可选、持久交易与人工核对，公开 TownApi+事件；85 项测试与 Folia 26.3 双客户端联调，美术来源和验证见 `./Minecraft-26_3-plugin/Town/assets/`；CE 合包投递、GitLab 原生分发、地图加载确认与图片锚点修复见 `./docs/exp/town-resource-packs.md`；菜单校准见 `./docs/exp/town-menu-layout.md`；Vault 恢复边界见 `./docs/exp/town-vault-economy.md`；API jar 在 `./libs/`，配置知识库在 `./docs/exp/arcmenu-yml知识库.md`，迁移经验在 `./docs/exp/town-transactions-migration.md`）·
 yudream-minecraft-server（正式版 `2_0_0` / 测试中 `Beta_2_1_0`，反编译基线纳入本仓的 Bukkit 桥接插件，编译目标 spigot-api 1.13.2 + Java 8，含本地时长统计、断线补发与后端对齐；运行期反射适配 Folia）；
 结构 `./Minecraft-26_3-plugin/<插件名>/`（Folia 插件，沿用 `paper-plugin.yml`，MainMenu 提供功能注册 API）· `./fabric-26_3-mod/MainMenuRepair/`（独立 Gradle 工程）· `./fabric-26_3-mod/MinecraftMcp/`（core + versions 多模块独立工程）·
 `./templates/plugin-template/`（newPlugin 模板）· `./release/<项目名>/`（产物留档）· `./run/`（共用的 Folia 测试服）· `./docs/dev|exp|plan/`（规范 / 经验 / 计划）；

@@ -246,11 +246,11 @@ public final class TownMenus {
         m.frame("in-frame", 368, 174, 380, 48, ACC, 3, 2);
         m.text("in-preview", t(MUTE, "点击这里输入小镇名称"), 558, 198, 12, 5, CENTER, null);
         m.region("in-name", 368, 174, 380, 48,
-                MenuBuilder.spec(MenuBuilder.tooltip("&f点击唤起输入框，输入后回车提交"),
+                MenuBuilder.spec(MenuBuilder.tooltip("&f填写后点击提交；铁砧界面请点击右侧结果"),
                         MenuBuilder.click("all", "command: town ui-input name")));
         button(m, "go", 368, 248, 380, 46, GREEN, "输入名称并开始筹备",
                 "command: town ui-input name");
-        m.text("form-note", t(MUTE, "输入后按回车提交；现在只登记名称，成立时才扣费"), 558, 326, 10, 5, CENTER, null);
+        m.text("form-note", t(MUTE, "铁砧请点右侧结果提交；登记免费，成立时才扣费"), 558, 326, 10, 5, CENTER, null);
         return m;
     }
 
@@ -318,7 +318,7 @@ public final class TownMenus {
         m.frame("inv-frame", 20, 64, 330, 44, LINE, 3, 2);
         m.text("inv-preview", t(MUTE, "点击输入玩家名邀请"), 185, 86, 12, 5, CENTER, null);
         m.region("inv-input", 20, 64, 330, 44,
-                MenuBuilder.spec(MenuBuilder.tooltip("&f点击唤起输入框，输入后回车发送邀请"),
+                MenuBuilder.spec(MenuBuilder.tooltip("&f填写后点击提交；铁砧界面请点击右侧结果"),
                         MenuBuilder.click("all", "command: town ui-input invite")));
         button(m, "inv-go", 362, 64, 100, 44, GREEN, "邀请", "command: town ui-input invite");
         button(m, "inv-picker", 474, 64, 306, 44, RAISE, "在线玩家选择器",

@@ -1,0 +1,93 @@
+{
+  "date": "2026-10-27",
+  "version": "Beta_0_9_1",
+  "environment": {
+    "server": "Folia 26.3 build 5",
+    "java": 25,
+    "arcmenu": "3.2.0",
+    "client": "Minecraft 26.3, native AnvilScreen, 1280x720",
+    "player": "TownInput"
+  },
+  "artifact": {
+    "path": "./release/Town/Town-mc26_3-plugin-Beta_0_9_1.jar",
+    "sha256": "d694e83bddea3ba657694dce8a04311a56d28fafb65abdf9450c097ce4295f25"
+  },
+  "unitTests": {
+    "tests": 85,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "nativeClient": [
+    {
+      "case": "cancel",
+      "feedback": "已取消输入",
+      "status": "AUDIT status current=town-create inputs=0 town=none"
+    },
+    {
+      "case": "empty",
+      "feedback": "输入不能为空",
+      "status": "AUDIT status current=town-create inputs=0 town=none"
+    },
+    {
+      "case": "short",
+      "feedback": "小镇名至少需要 2",
+      "status": "AUDIT status current=town-create inputs=0 town=none"
+    },
+    {
+      "case": "invalid",
+      "feedback": "小镇名只能",
+      "status": "AUDIT status current=town-create inputs=0 town=none"
+    },
+    {
+      "case": "duplicate",
+      "feedback": "已经有人注册了名字",
+      "status": "AUDIT status current=town-create inputs=0 town=none"
+    },
+    {
+      "case": "valid-after-wait",
+      "feedback": "小镇 春溪镇 筹备中",
+      "status": "AUDIT status current=town-home-pending inputs=0 town=春溪镇"
+    },
+    {
+      "case": "invite-offline",
+      "status": "AUDIT status current=town-members inputs=0 town=春溪镇",
+      "feedback": [
+        "AUDIT status current=town-members inputs=0 town=春溪镇",
+        "[小镇] 目标玩家不在线。",
+        "AUDIT status current=town-home-pending inputs=0 town=春溪镇"
+      ]
+    }
+  ],
+  "faultInjection": {
+    "scope": "临时 TestPluginTownInput 包装 ArcMenu API；替身只模拟回调/会话，非 Editor 通道实测",
+    "observations": [
+      "race-kept: current=town-create, inputs=1, town=none；旧回调没有移除新输入",
+      "race-done: current=town-home-pending, inputs=0, town=回调镇；重复完成未重复创建",
+      "sync-done: current=town-home-pending, inputs=0, town=同步镇",
+      "null-done: current=town-create, inputs=0, town=none；提示输入框不可用",
+      "leave-done: current=null, inputs=0, town=none；晚到提交未创建或重开"
+    ]
+  },
+  "operationInput": {
+    "submitted": "12.50 → town-op-confirm；确认前没有贡献资金",
+    "cancelled": "Esc → town-op-civic，inputs=0",
+    "invalid": "bad → town-op-civic，inputs=0"
+  },
+  "navigation": {
+    "command": "/town mainmenu during input",
+    "waitTicks": 65,
+    "result": "MainMenu 手机首页；current=null, inputs=0；原小镇名未改"
+  },
+  "limitations": [
+    "ArcMenu Editor 专用文本框未实测",
+    "原版 Enter 无效已复现；旧版点击结果格成功，未复现所有用户报告的业务丢失",
+    "既有 Wallet 菜单警告保留；null 返回注入产生一次预期告警"
+  ],
+  "nativeMouseClick": {
+    "screenTitle": "镇名 · 点右侧结果提交",
+    "submittedValue": "春溪镇",
+    "method": "ui.click on real AnvilScreen result slot",
+    "result": "town-home-pending, inputs=0, town=春溪镇"
+  }
+}

@@ -2536,7 +2536,7 @@ AI 如果无法取得全目录、图片清单或依赖状态，只能保证单�
 - **现象**：Arcitx 输入框里按 Enter、或直接点 `submit` 指向的按钮都无效果；先按 Esc 退出编辑态后再点才生效。
 - **根因**：3.2 运行时的 Arcitx 编辑态会吞掉后续点击/回车，第一次交互只是结束编辑。
 - **规避**：不用 Arcitx。用 `ArcMenuTextInputOptions.builder().title(...).maxLength(...)` + `api.textInput().request(plugin, player, options, listener)`，
-  在 `onComplete` 里判断 `ArcMenuTextInputEndReason.SUBMITTED` 后直接执行业务（回调线程需自行 `Threads.forPlayer` 切回玩家区域线程）。
+  在 `onComplete` 里判断 `ArcMenuTextInputEndReason.SUBMITTED` 后执行业务。Town 自 `Beta_0_9_1` 起统一延后到玩家 EntityScheduler 下一 tick，等待输入通道完成清理与会话恢复；详见 [Town 输入生命周期记录](./town-menu-layout.md#文本输入期间保留页面完成后再处理业务)。
 
 ### 25.8 光标大小与跟手感是 ArcMenu 全局配置，与菜单缩放无关
 

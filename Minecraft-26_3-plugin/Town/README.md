@@ -2,7 +2,7 @@
 
 面向 **Minecraft/Folia 26.3、Java 25** 的休闲经营小镇系统。以政厅核心和玩家自建建筑为中心，提供自主区块领土、XZ 矩形地块、出租与授权、镇库发展、玩家商业及建筑迁移。
 
-- 版本：`Beta_0_9_0`，见 [ChangeLog](./Town-mc26_3-plugin-ChangeLog-Beta.md)。
+- 版本：`Beta_0_9_1`，见 [ChangeLog](./Town-mc26_3-plugin-ChangeLog-Beta.md)。
 - 主类：`com.example.town.TownPlugin`；公开查询接口：`com.example.town.api.TownApi`。
 - [实机验证记录](./assets/VALIDATION.md) · [美术素材与原始提示词](./assets/README.md)。
 
@@ -56,6 +56,13 @@ CraftEngine 已安装且配置了核心 ID 时，必须成功放置真实自定�
 按钮只打开常用入口或领取测绘工具，成立、购买、审批、施工仍使用各自的预览与确认流程。
 成立人数、费用、赠地总额、扩张价格和斜角连接规则读取当前 Town 配置；`/town reload` 原子替换指南，
 不会向 `plugins/HandbookCore/content/` 写入副本。HandbookCore 重载 YAML 保留插件贡献，Town 停用会注销自己的分类与文章。
+
+### 菜单文字输入
+
+点击镇名、邀请或经营表单的输入按钮后，按客户端显示的提交方式确认。
+原生客户端会打开铁砧：填写顶部文字后，**点击右侧结果格**提交；按回车不会提交。
+按 Esc 取消会收到提示并返回原页面；空输入、非法镇名、重名及业务校验失败都有明确反馈。
+创建名称只登记筹备档案，正式成立时才扣费。输入框不可用时，可使用 `/town create 名称` 或 `/town invite 玩家`。
 
 ### 资源包与领地地图
 
