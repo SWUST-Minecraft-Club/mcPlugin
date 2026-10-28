@@ -1,5 +1,7 @@
 # YudreamUI 原型验证
 
+本页保留 `Beta_0_1_0` 基线记录；`Beta_0_2_0` 的视觉、坐标映射与交易/素材回归见 [视觉验收](./VALIDATION-VISUAL.md)。
+
 验证日期：**2026-10-27**。版本为 YudreamUI plugin / Fabric `Beta_0_1_0`、MainMenu `Beta_1_10_0`、Town `Beta_0_11_0`。这是隔离环境的功能验收，尚未完成跨平台发布或箱子菜单延迟对照。
 
 [安装说明](./README.md) · [迁移范围](./MIGRATION.md) · [HTML 与协议](../../fabric-26_3-mod/YudreamUI/PROTOCOL.md)

@@ -24,13 +24,13 @@ def prepare():
   if not target.exists():target.symlink_to(REPO/'run'/name,target_is_directory=True)
  shutil.copyfile(REPO/'run/folia-26.3-5.jar',dst/'folia.jar')
  shutil.copyfile(REPO/'run/eula.txt',dst/'eula.txt')
- shutil.copyfile(REPO/'release/YudreamUI/YudreamUI-mc26_3-plugin-Beta_0_1_0.jar',dst/'plugins/YudreamUI.jar')
+ shutil.copyfile(REPO/'release/YudreamUI/YudreamUI-mc26_3-plugin-Beta_0_2_0.jar',dst/'plugins/YudreamUI.jar')
  properties={'server-ip':'127.0.0.1','server-port':SERVER_PORT,'online-mode':'false','enforce-secure-profile':'false','level-name':'verification','level-type':'minecraft:flat','generator-settings':json.dumps({'layers':[{'block':'minecraft:bedrock','height':1},{'block':'minecraft:dirt','height':2},{'block':'minecraft:grass_block','height':1}],'biome':'minecraft:plains'}),'gamemode':'creative','difficulty':'peaceful','spawn-protection':0,'view-distance':3,'simulation-distance':2,'max-players':2,'enable-rcon':'false','motd':'YudreamUI verification'}
  (dst/'server.properties').write_text('\n'.join(f'{k}={v}' for k,v in properties.items())+'\n')
  (dst/'ops.json').write_text(json.dumps([{'uuid':identity('UiTester'),'name':'UiTester','level':4,'bypassesPlayerLimit':True}]))
  dst=ROOT/'client';(dst/'mods').mkdir(parents=True,exist_ok=True);(dst/'config').mkdir(exist_ok=True)
  for name in ['MinecraftMcp.jar','fabric-api.jar']:shutil.copyfile(ORIGINAL/'mods'/name,dst/'mods'/name)
- shutil.copyfile(REPO/'release/YudreamUI/YudreamUI-mc26_3-fabric-Beta_0_1_0.jar',dst/'mods/YudreamUI.jar')
+ shutil.copyfile(REPO/'release/YudreamUI/YudreamUI-mc26_3-fabric-Beta_0_2_0.jar',dst/'mods/YudreamUI.jar')
  for name in ['libraries','assets']:
   if not (dst/name).exists():(dst/name).symlink_to(ORIGINAL/name,target_is_directory=True)
  overrides={'resourcePacks':'[]','incompatibleResourcePacks':'[]','maxFps':'120','renderDistance':'3','simulationDistance':'5','pauseOnLostFocus':'false','fullscreen':'false','autoJump':'false','guiScale':'2','enableVsync':'false','tutorialStep':'none'}

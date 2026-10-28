@@ -1,6 +1,7 @@
 # HTML/XHTML definitions live in menus/; assets are optional and never use global resource packs.
 # HTTPS URLs in production. Loopback HTTP is allowed only with the client's explicit test JVM flag.
 assets: []
+presentation-assets: []
 takeover:
   enabled: true
 # Example entry: {id: banner, kind: image, hash: SHA256, url: 'https://cdn.example/ui/banner.png'}

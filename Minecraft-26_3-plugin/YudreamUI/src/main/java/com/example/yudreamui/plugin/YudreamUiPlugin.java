@@ -65,6 +65,8 @@ public final class YudreamUiPlugin extends JavaPlugin implements Listener,Yudrea
                         importShop(ctx.getSource().getSender(),StringArgumentType.getString(ctx,"currency"));return 1;})))
                 .then(Commands.literal("refresh").requires(s->s.getSender().hasPermission("yudreamui.admin")).executes(ctx->{
                     if(ctx.getSource().getSender() instanceof Player p)onPlayer(p,()->{reloadDefinitions();show(p,true,"auto");});return 1;}))
+                .then(Commands.literal("theme").requires(s->s.getSender().hasPermission("yudreamui.admin")).executes(ctx->{
+                    if(ctx.getSource().getSender() instanceof Player p)onPlayer(p,()->{reloadConfig();var s=sessions.get(p.getUniqueId());if(s!=null&&s.original!=null){var d=s.original;open(p,new Document(d.title(),d.html(),d.assets(),s.state.deepCopy(),d.actions(),d.fallback()),s.pendingHandler);}});return 1;}))
                 .then(Commands.literal("status").executes(ctx->{if(ctx.getSource().getSender() instanceof Player p)onPlayer(p,()->{
                     var s=sessions.get(p.getUniqueId());p.sendMessage(Component.text("YudreamUI client="+isClientReady(p)+" backend="+(s==null?"closed":s.backend)+" revision="+(s==null?0:s.committed)));});return 1;}))
                 .then(Commands.literal("invoke").then(Commands.argument("ticket",StringArgumentType.word())
@@ -95,6 +97,7 @@ public final class YudreamUiPlugin extends JavaPlugin implements Listener,Yudrea
     }
     @Override public void registerFallback(FallbackProvider provider) { fallbacks.register(provider); }
     @Override public boolean isClientReady(Player player) { var peer=peers.get(player.getUniqueId());return peer!=null&&peer.features.containsAll(Set.of("rml:6.3","builtin:mc-1","fallback:1")); }
+    boolean supportsFeature(Player player,String feature){var peer=peers.get(player.getUniqueId());return isClientReady(player)&&peer.features.contains(feature);}
 
     private void receive(Player player,byte[] bytes) {
         var peer=peers.computeIfAbsent(player.getUniqueId(),id->new Peer());if(!peer.allow())return;
@@ -125,16 +128,25 @@ public final class YudreamUiPlugin extends JavaPlugin implements Listener,Yudrea
     private void open(Player player,Document document,BiConsumer<Player,Action> handler,String preferred) {
         requireOwner(player);Objects.requireNonNull(handler);
         validateState(document.state());
-        String html=HtmlCompiler.compile(document.html(),"");
+        String source=document.html();var manifest=document.assets().deepCopy();
+        for(var entry:getConfig().getMapList("presentation-assets")) {
+            String id=Objects.toString(entry.get("id"),"");
+            if(!Set.of("atlas-village","atlas-guide").contains(id)||!source.contains("builtin:"+id))continue;
+            var asset=new JsonObject();for(String key:List.of("id","url","hash"))asset.addProperty(key,Objects.toString(entry.get(key),""));asset.addProperty("kind","image");
+            manifest.add(asset);source=source.replace("builtin:"+id,"asset:"+id);
+        }
+        String html=HtmlCompiler.compile(source,"");
         if(document.actions().stream().anyMatch(a->!a.matches("server:[A-Za-z0-9_-]{1,64}")))throw new IllegalArgumentException("Invalid server action");
         for(var button:document.fallback().buttons())if(!document.actions().contains(button.action()))throw new IllegalArgumentException("Undeclared UI action");
-        var frozen=new Document(document.title(),html,document.assets().deepCopy(),document.state().deepCopy(),Set.copyOf(document.actions()),document.fallback());
+        var frozen=new Document(document.title(),html,manifest,document.state().deepCopy(),Set.copyOf(document.actions()),document.fallback());
         var s=sessions.computeIfAbsent(player.getUniqueId(),id->new Session());
         s.closed = null;
         String oldBackend=s.backend;
         if(!oldBackend.equals("rml"))fallbacks.close(player);
-        s.nextRevision++;s.pending=frozen;s.pendingHandler=handler;s.state=frozen.state().deepCopy();s.ticket=UUID.randomUUID().toString();
+        s.nextRevision++;s.original=document;s.pending=frozen;s.pendingHandler=handler;s.state=frozen.state().deepCopy();s.ticket=UUID.randomUUID().toString();
         boolean supports=isClientReady(player)&&(frozen.assets().isEmpty()||peers.get(player.getUniqueId()).features.contains("assets:sha256"));
+        supports=supports&&(!html.contains("ui-density=\"2\"")||peers.get(player.getUniqueId()).features.contains("atlas:2"));
+        supports=supports&&(!html.contains("<mcterrain")||peers.get(player.getUniqueId()).features.contains("terrain:local-1"));
         if(!preferred.equals("auto")||!supports) {
             if(oldBackend.equals("rml")&&s.committed>0){var cancel=address("cancel",s,s.committed);send(player,cancel);}
             fallback(player,s,preferred.equals("auto")?getConfig().getString("fallback.backend","inventory"):preferred);return;
@@ -242,7 +254,7 @@ public final class YudreamUiPlugin extends JavaPlugin implements Listener,Yudrea
     @Override public void onDisable(){mainMenuCleanup.run();if(shop!=null)shop.close();getServer().getServicesManager().unregisterAll(this);getServer().getMessenger().unregisterIncomingPluginChannel(this);getServer().getMessenger().unregisterOutgoingPluginChannel(this);sessions.clear();peers.clear();}
     private static final class Session {
         final String id=UUID.randomUUID().toString();String ticket="",backend="closed";long nextRevision,committed,lastSequence,actionWindow;int balance=120,actions;
-        JsonObject state=new JsonObject();Document pending,active;BiConsumer<Player,Action> pendingHandler,handler;
+        JsonObject state=new JsonObject();Document pending,active,original;BiConsumer<Player,Action> pendingHandler,handler;
         Runnable closed;
         boolean allowAction(){long now=System.nanoTime();if(now-actionWindow>1_000_000_000L){actionWindow=now;actions=0;}return ++actions<=20;}
     }

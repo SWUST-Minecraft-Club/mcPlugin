@@ -21,9 +21,12 @@ final class UiScreen extends Screen {
     @Override protected void init(){clearWidgets();proxies.clear();sync();}
     @Override public boolean isPauseScreen(){return false;}
     @Override public boolean isInGameUi(){return true;}
+    // The server document owns its backdrop, including fully transparent dialogue overlays.
+    @Override public void extractTransparentBackground(GuiGraphicsExtractor graphics){}
     @Override public void extractRenderState(GuiGraphicsExtractor graphics,int mx,int my,float delta){
         long start=System.nanoTime();
-        owner.renderer.render(graphics,owner.engine.frame(width,height,mx,my),mx,my);
+        int d=owner.density;
+        owner.renderer.render(graphics,owner.engine.frame(width*d,height*d,mx*d,my*d),mx,my,1f/d);
         sync();
         if(getFocused() instanceof EditBox box&&box.visible) {
             int x=box.getX()+6,y=box.getY()+4;
@@ -42,7 +45,7 @@ final class UiScreen extends Screen {
             var proxy=proxies.get(id);
             if(proxy==null){proxy=text?new EditBox(font,0,0,10,10,Component.literal(e.get("label").getAsString())):Button.builder(Component.literal(e.get("label").getAsString()),b->{}).bounds(0,0,10,10).build();proxies.put(id,proxy);addWidget(proxy);}
             proxy.setMessage(Component.literal(e.get("label").getAsString()));
-            proxy.setX(e.get("clipX").getAsInt());proxy.setY(e.get("clipY").getAsInt());proxy.setWidth(Math.max(1,e.get("clipWidth").getAsInt()));proxy.setHeight(Math.max(1,e.get("clipHeight").getAsInt()));
+            proxy.setX(e.get("clipX").getAsInt()/owner.density);proxy.setY(e.get("clipY").getAsInt()/owner.density);proxy.setWidth(Math.max(1,e.get("clipWidth").getAsInt()/owner.density));proxy.setHeight(Math.max(1,e.get("clipHeight").getAsInt()/owner.density));
             proxy.visible=e.get("visible").getAsBoolean();proxy.active=proxy.visible&&!e.get("disabled").getAsBoolean();
             if(proxy instanceof EditBox box&&!box.getValue().equals(e.get("value").getAsString()))box.setValue(e.get("value").getAsString());
             if(e.get("focused").getAsBoolean())focused=proxy;
@@ -52,11 +55,11 @@ final class UiScreen extends Screen {
     }
     private int button(int value){return value==com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT?0:value==com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_RIGHT?1:2;}
     private int modifiers(InputWithModifiers event){return(event.hasShiftDown()?1:0)|(event.hasControlDown()?2:0)|(event.hasAltDown()?4:0);}
-    @Override public void mouseMoved(double x,double y){owner.engine.mouse(0,(float)x,(float)y,0,0);}
-    @Override public boolean mouseClicked(MouseButtonEvent e,boolean doubleClick){owner.engine.mouse(1,(float)e.x(),(float)e.y(),button(e.button()),modifiers(e));owner.events();return true;}
-    @Override public boolean mouseReleased(MouseButtonEvent e){owner.engine.mouse(2,(float)e.x(),(float)e.y(),button(e.button()),modifiers(e));owner.events();return true;}
-    @Override public boolean mouseDragged(MouseButtonEvent e,double dx,double dy){owner.engine.mouse(0,(float)e.x(),(float)e.y(),button(e.button()),modifiers(e));owner.events();return true;}
-    @Override public boolean mouseScrolled(double x,double y,double horizontal,double vertical){owner.engine.scroll((float)x,(float)y,(float)vertical);owner.events();return true;}
+    @Override public void mouseMoved(double x,double y){owner.engine.mouse(0,(float)x*owner.density,(float)y*owner.density,0,0);}
+    @Override public boolean mouseClicked(MouseButtonEvent e,boolean doubleClick){owner.engine.mouse(1,(float)e.x()*owner.density,(float)e.y()*owner.density,button(e.button()),modifiers(e));owner.events();return true;}
+    @Override public boolean mouseReleased(MouseButtonEvent e){owner.engine.mouse(2,(float)e.x()*owner.density,(float)e.y()*owner.density,button(e.button()),modifiers(e));owner.events();return true;}
+    @Override public boolean mouseDragged(MouseButtonEvent e,double dx,double dy){owner.engine.mouse(0,(float)e.x()*owner.density,(float)e.y()*owner.density,button(e.button()),modifiers(e));owner.events();return true;}
+    @Override public boolean mouseScrolled(double x,double y,double horizontal,double vertical){owner.engine.scroll((float)x*owner.density,(float)y*owner.density,(float)vertical);owner.events();return true;}
     @Override public boolean keyPressed(KeyEvent e){owner.engine.clipboard(minecraft.keyboardHandler.getClipboard());owner.engine.key(e.key(),modifiers(e),true);owner.events();return true;}
     @Override public boolean keyReleased(KeyEvent e){owner.engine.key(e.key(),modifiers(e),false);owner.events();return true;}
     @Override public boolean charTyped(CharacterEvent e){composition=null;compositionTarget=null;owner.engine.type(e.codepointAsString());owner.events();return true;}

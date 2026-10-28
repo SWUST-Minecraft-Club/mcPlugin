@@ -25,6 +25,7 @@ public final class YudreamUiClient implements ClientModInitializer {
     NativeEngine engine;
     McRenderer renderer;
     UiScreen screen;
+    int density=1;
     String session="",pendingSession="";
     long pendingRevision;
     long revision,generation,sequence,ticks;
@@ -50,7 +51,7 @@ public final class YudreamUiClient implements ClientModInitializer {
     }
     private void hello() {
         var message=Wire.message("hello");message.addProperty("runtime","rmlui-6.3");message.addProperty("builtin","mc-1");
-        var features=new JsonArray();for(String feature:List.of("rml:6.3","builtin:mc-1","fallback:1","assets:sha256"))features.add(feature);message.add("features",features);send(message);
+        var features=new JsonArray();for(String feature:List.of("rml:6.3","builtin:mc-1","fallback:1","assets:sha256","atlas:2","terrain:local-1"))features.add(feature);message.add("features",features);send(message);
     }
     void send(JsonObject message) {
         if(client.getConnection()!=null&&ClientPlayNetworking.canSend(UiPayload.TYPE)) for(byte[] frame:Wire.encode(message)) ClientPlayNetworking.send(new UiPayload(frame));
@@ -83,12 +84,13 @@ public final class YudreamUiClient implements ClientModInitializer {
         String html=message.get("html").getAsString();
         var manifest=message.getAsJsonArray("assets");
         assets.prepare(manifest,io).thenApply(prepared->{
-            String source=HtmlCompiler.compile(html,theme);
+            var compiled=HtmlCompiler.compileDocument(html,theme);
+            String source=compiled.rml();
             for(var entry:prepared.names().entrySet()) {
                 source=source.replace("asset:"+entry.getKey()+"\"","asset:"+entry.getValue()+"\"");
                 source=source.replace("asset-font-"+entry.getKey(),entry.getKey()+"-"+entry.getValue());
             }
-            return new Prepared(source,prepared);
+            return new Prepared(source,prepared,compiled.density());
         }).whenComplete((prepared,failure)->client.execute(()->{
             if(token!=generation||client.player==null)return;
             if(failure!=null){error(failure);sendFailure(nextSession,nextRevision);return;}
@@ -102,7 +104,8 @@ public final class YudreamUiClient implements ClientModInitializer {
                     engine.font(data,name);fonts.add(name);fontBytes+=data.length;
                 }});
                 int w=client.getWindow().getGuiScaledWidth(),h=client.getWindow().getGuiScaledHeight();
-                engine.open(prepared.rml,w,h);engine.patch(message.getAsJsonObject("state"));
+                engine.open(prepared.rml,w*prepared.density,h*prepared.density);engine.patch(message.getAsJsonObject("state"));
+                density=prepared.density;
                 session=nextSession;revision=nextRevision;pendingSession="";lastError="";
                 if(screen==null||client.gui.screen()!=screen) {screen=new UiScreen(this,message.get("title").getAsString());client.gui.setScreen(screen);}
                 screen.title(message.get("title").getAsString());
@@ -135,15 +138,16 @@ public final class YudreamUiClient implements ClientModInitializer {
     void frameTiming(long nanos){timings.addLast(nanos);if(timings.size()>600)timings.removeFirst();}
     private void diagnostics() {
         if(!Boolean.getBoolean("yudreamui.diagnostics")||engine==null)return;
-        var value=new JsonObject();value.addProperty("session",session);value.addProperty("revision",revision);
+        var value=new JsonObject();value.addProperty("session",session);value.addProperty("revision",revision);value.addProperty("density",density);
         value.addProperty("assetRequests",assets.requests.get());value.addProperty("assetDownloads",assets.downloads.get());value.addProperty("cacheHits",assets.cacheHits.get());
         value.addProperty("lastError",lastError);value.addProperty("frames",engine.frames);value.addProperty("nativeFrameNanos",engine.lastFrameNanos);value.addProperty("maxNativeFrameNanos",engine.maxFrameNanos);
         var times=timings.stream().mapToLong(Long::longValue).sorted().toArray();
         if(times.length>0){value.addProperty("extractP50Nanos",times[times.length/2]);value.addProperty("extractP95Nanos",times[(int)((times.length-1)*.95)]);}
         value.add("elements",engine.inspect());
+        if(renderer!=null)value.add("terrain",renderer.terrain.diagnostics());
         String json=value.toString();io.execute(()->{Path temp=null;try{Files.createDirectories(root);temp=Files.createTempFile(root,"diagnostics-",".tmp");Files.writeString(temp,json);Files.move(temp,root.resolve("diagnostics.json"),StandardCopyOption.REPLACE_EXISTING);}catch(Exception e){LOG.debug("UI diagnostics unavailable",e);}finally{if(temp!=null)try{Files.deleteIfExists(temp);}catch(Exception ignored){}}});
     }
     private void error(Throwable failure){lastError=failure.toString();LOG.error("UI update failed",failure);if(client.player!=null)client.gui.hud.setOverlayMessage(Component.literal("界面更新失败，当前界面仍可使用。"),false);}
     private void reset(){generation++;decoder.clear();if(engine!=null){engine.close();engine=null;}if(renderer!=null){renderer.close();renderer=null;}screen=null;session="";revision=0;fonts.clear();fontBytes=0;timings.clear();welcomed=false;}
-    private record Prepared(String rml,AssetStore.Prepared assets){}
+    private record Prepared(String rml,AssetStore.Prepared assets,int density){}
 }

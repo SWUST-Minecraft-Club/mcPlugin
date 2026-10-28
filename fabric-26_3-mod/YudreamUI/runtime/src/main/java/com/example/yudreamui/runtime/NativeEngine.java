@@ -10,7 +10,8 @@ import java.util.function.Consumer;
 /** RmlUi owner. Every operation runs on the host's UI thread; the core has no game imports. */
 public final class NativeEngine implements AutoCloseable {
     public record Geometry(float[] xyuv, int[] colors, int[] indices) {}
-    public sealed interface Command permits Draw, Item {}
+    public sealed interface Command permits Draw, Item, Terrain {}
+    public record Terrain(com.example.yudreamui.protocol.TerrainSpec spec, float x, float y, float width, float height, int clipX, int clipY, int clipWidth, int clipHeight) implements Command {}
     public record Item(String identifier, float x, float y, float width, float height, int clipX, int clipY, int clipWidth, int clipHeight) implements Command {}
     public record Draw(Geometry geometry, long texture, float x, float y, int clipX, int clipY, int clipWidth, int clipHeight, float[] transform) implements Command {}
     public record Image(byte[] rgba, int width, int height) {}
@@ -26,6 +27,7 @@ public final class NativeEngine implements AutoCloseable {
     private final List<Event> events = new ArrayList<>();
     private final Textures textures;
     private final Consumer<String> logger;
+    private final Map<String,Image> builtins = new HashMap<>();
     public long frames, lastFrameNanos, maxFrameNanos;
 
     public NativeEngine(Textures textures, Consumer<String> logger) {
@@ -60,7 +62,13 @@ public final class NativeEngine implements AutoCloseable {
             return input.readAllBytes();
         } catch (IOException e) { throw new UncheckedIOException(e); }
     }
-    public void open(String rml, int width, int height) { open(handle, rml, width, height); pruneImages(handle); }
+    public void open(String rml, int width, int height) {
+        for (String name : List.of("village", "guide")) {
+            String id="builtin:atlas-"+name;
+            if (rml.contains(id)) image(id,builtins.computeIfAbsent(name,k->AssetStore.decode(readResource("/builtin/art/"+k+".png"))));
+        }
+        open(handle, rml, width, height); pruneImages(handle);
+    }
     public void hide() { hide(handle); pruneImages(handle); }
     public List<Command> frame(int width, int height, int mouseX, int mouseY) {
         long start = System.nanoTime(); draws.clear();
@@ -87,6 +95,9 @@ public final class NativeEngine implements AutoCloseable {
         if (value != null) draws.add(new Draw(value, texture, x, y, cx, cy, cw, ch, matrix));
     }
     private void item(String identifier,float x,float y,float width,float height,int cx,int cy,int cw,int ch) { draws.add(new Item(identifier,x,y,width,height,cx,cy,cw,ch)); }
+    private void terrain(String dimension,int chunkX,int chunkZ,int chunks,float x,float y,float width,float height,int cx,int cy,int cw,int ch) {
+        draws.add(new Terrain(new com.example.yudreamui.protocol.TerrainSpec(dimension,chunkX,chunkZ,chunks),x,y,width,height,cx,cy,cw,ch));
+    }
     private void texture(long id, byte[] rgba, int width, int height) { textures.create(id, new Image(rgba, width, height)); }
     private void release(long id, boolean texture) { if (texture) textures.retire(id); else geometries.remove(id); }
     private void event(String action, String id, String value) { events.add(new Event(action, id, value)); }

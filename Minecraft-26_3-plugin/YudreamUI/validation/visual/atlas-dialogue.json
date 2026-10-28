@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "bounds": [
+    {
+      "window": "1280x720",
+      "top": 456,
+      "height": 240,
+      "clearAboveFraction": 0.633
+    },
+    {
+      "window": "854x480",
+      "top": 264.4,
+      "height": 201.6,
+      "clearAboveFraction": 0.551
+    }
+  ],
+  "allThreeChoicesVisible": true,
+  "historyWithinPanel": true,
+  "branchAndClose": true,
+  "shopNavigation": true
+}

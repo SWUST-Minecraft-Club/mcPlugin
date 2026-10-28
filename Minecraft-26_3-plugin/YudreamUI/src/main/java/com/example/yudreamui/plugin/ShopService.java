@@ -72,46 +72,64 @@ final class ShopService implements AutoCloseable {
         if(!plugin.isEnabled())return;
         var state=new JsonObject();state.addProperty("shop-status",view.status);state.addProperty("shop-balance",view.balance);
         var body=new StringBuilder("<mc-panel id=\"shop\" class=\"shell\">").append(Views.heading(title));
-        body.append("<div class=\"row\"><span class=\"muted\">Wallet 余额</span><span bind=\"shop-balance\"></span></div><main id=\"shop-body\" class=\"body\">");
+        body.append("<div class=\"shop-account\"><span class=\"muted\">物资集市 / 系统商店</span><span>钱包余额　<span class=\"gold\" bind=\"shop-balance\"></span></span></div><main id=\"shop-body\" class=\"body\">");
         var actions=new HashSet<String>();
         if(view.stage.equals("catalog")) {
             var categories=new LinkedHashMap<String,List<Product>>();for(var p:products)if(allowed(player,p))categories.computeIfAbsent(p.category,k->new ArrayList<>()).add(p);
-            body.append("<mc-tabs>");int i=0;
-            for(var category:categories.keySet())body.append("<mc-tab id=\"tab-category").append(i).append("\" class=\"").append(i==0?"selected":"").append("\" action=\"tab:category").append(i++).append("\">").append(Views.escape(category)).append("</mc-tab>");
-            body.append("</mc-tabs>");i=0;
+            body.append(Views.hero("SUPPLIES / EQUIPMENT","为下一次冒险做好准备","从第一把铁镐，到远行时的护甲。让熟悉的方块物资陪你走得更远。"))
+                .append("<div class=\"shop-columns\"><section class=\"grow\"><div class=\"section-head\"><h2>物资陈列</h2><span class=\"muted\">").append(categories.values().stream().mapToInt(List::size).sum()).append(" 件商品</span></div><mc-tabs><mc-tab id=\"filter-all\" class=\"filter-button selected\" action=\"filter:all\">全部</mc-tab>");int i=0;
+            for(var entry:categories.entrySet())body.append("<mc-tab id=\"filter-category").append(i).append("\" class=\"filter-button\" action=\"filter:category").append(i++).append("\">").append(Views.escape(entry.getKey())).append(" · ").append(entry.getValue().size()).append("</mc-tab>");
+            body.append("</mc-tabs><div class=\"grid products\">");i=0;
             for(var entry:categories.entrySet()) {
-                body.append("<div id=\"category").append(i).append("\" class=\"tab-page ").append(i++==0?"":"hidden").append("\"><div class=\"grid\">");
                 for(var product:entry.getValue()) {
-                    body.append("<mc-card class=\"tile\"><div class=\"row\"><mc-slot item=\"minecraft:").append(product.material.name().toLowerCase(Locale.ROOT)).append("\"/><h2>")
-                        .append(Views.escape(product.name)).append("</h2></div><p class=\"muted\">").append(Views.escape(product.description)).append("</p><p>")
-                        .append(product.amount).append(" 个 / 份 · ").append(product.price.toPlainString()).append(" ").append(Views.escape(product.currency)).append("</p>");
+                    body.append("<mc-card id=\"card-").append(product.id).append("\" filter-category=\"category").append(i).append("\" class=\"tile product\"><div class=\"row product-head\"><mc-slot item=\"minecraft:").append(product.material.name().toLowerCase(Locale.ROOT)).append("\"/><div class=\"grow\"><span class=\"muted\">").append(Views.escape(product.category)).append(" / × ").append(product.amount).append("</span><h3>")
+                        .append(Views.escape(product.name)).append("</h3></div></div><p class=\"product-description muted\">").append(Views.escape(description(product))).append("</p><div class=\"product-price\"><span class=\"price\">")
+                        .append(product.price.toPlainString()).append("</span><span class=\"muted\">").append(Views.escape(product.currency)).append(" / 份</span></div>");
                     button(body,actions,"product-"+product.id,"挑选 "+product.name,product.material.name(),"挑选 "+product.name+" · "+product.amount+" 个 / "+product.price.toPlainString()+" "+product.currency);body.append("</mc-card>");
                 }
-                body.append("</div></div>");
+                i++;
             }
+            body.append("</div></section><section class=\"aside shop-aside\"><mc-card><span class=\"eyebrow\">YOUR SATCHEL</span><h2>行囊与订单</h2><div class=\"data-line\"><span>背包空位</span><span class=\"gold\">").append(Arrays.stream(player.getInventory().getStorageContents()).filter(s->s==null||s.getType().isAir()).count()).append(" / 36</span></div><div class=\"data-line\"><span>待处理订单</span><span>").append(orders.pending(player.getUniqueId()).size()).append("</span></div><div class=\"rule\"></div><p class=\"muted\">01　挑选物资与份数</p><p class=\"muted\">02　核对完整报价</p><p class=\"muted\">03　付款后放入背包</p></mc-card><mc-card><span class=\"eyebrow\">出发前的小提醒</span><p>给行囊留一点空间。</p><p class=\"muted\">已付款物资会保留领取记录，整理好背包后可以继续领取。</p></mc-card></section></div>");
             if(!orders.pending(player.getUniqueId()).isEmpty())button(body,actions,"recover","领取物资 / 重试原订单","CHEST");
         } else if(view.stage.equals("quantity")) {
             var product=view.selected;
-            body.append("<mc-card><h2>").append(Views.escape(product.name)).append("</h2><p>每份 ").append(product.amount).append(" 个，")
-                .append(product.price.toPlainString()).append(" ").append(Views.escape(product.currency)).append("</p><label>购买份数（1～64）</label><mc-slider id=\"quantity\" aria-label=\"购买份数\" min=\"1\" max=\"64\" step=\"1\" value=\"1\"/>");
-            actions.add("server:quote");body.append("<mc-button id=\"quote\" action=\"server:quote\" input-ids=\"quantity\" aria-label=\"查看报价\">查看报价</mc-button></mc-card>");
+            body.append("<div class=\"purchase-layout\"><div class=\"purchase-art\"><mc-slot item=\"minecraft:").append(product.material.name().toLowerCase(Locale.ROOT)).append("\"/><span class=\"eyebrow\">").append(Views.escape(product.category)).append(" / 物资详情</span><h2>").append(Views.escape(product.name)).append("</h2><p class=\"muted\">").append(Views.escape(product.description)).append("</p></div><mc-card class=\"purchase-form\"><span class=\"eyebrow\">01 / 选择份数</span><h2>").append(Views.escape(product.name)).append("</h2><p>每份 ").append(product.amount).append(" 个，")
+                .append(product.price.toPlainString()).append(" ").append(Views.escape(product.currency)).append("</p><label>购买份数（1～64）　<span class=\"gold\" id=\"quantity-value\">1</span> 份</label><mc-slider id=\"quantity\" value-target=\"quantity-value\" aria-label=\"购买份数\" min=\"1\" max=\"64\" step=\"1\" value=\"1\"/>");
+            actions.add("server:quote");body.append("<mc-button class=\"primary\" id=\"quote\" action=\"server:quote\" input-ids=\"quantity\" aria-label=\"查看报价\">查看报价 →</mc-button><p class=\"muted\">下一步核对总数与金额。</p></mc-card></div>");
             button(body,actions,"back","返回商店","ARROW");
         } else if(view.stage.equals("confirm")) {
             var quote=view.quote;String summary=quote.product.name+" × "+(quote.product.amount*quote.packs)+" · 合计 "+quote.total.toPlainString()+" "+quote.product.currency;
             state.addProperty("shop-quote",summary);
-            body.append("<mc-card><h2>确认购买</h2><p bind=\"shop-quote\"></p><p class=\"muted\">确认后从 Wallet 扣款并交付到背包。</p>");
+            body.append("<mc-card class=\"checkout\"><span class=\"eyebrow\">02 / 核对订单</span><h2>确认购买</h2><div class=\"row\"><mc-slot item=\"minecraft:").append(quote.product.material.name().toLowerCase(Locale.ROOT)).append("\"/><p class=\"quote-line\" bind=\"shop-quote\"></p></div><div class=\"rule\"></div><p class=\"muted\">确认后从钱包扣款，物资交付到背包。</p>");
             button(body,actions,"pay","确认付款","EMERALD");button(body,actions,"back","取消并返回","ARROW");body.append("</mc-card>");
         } else body.append("<mc-card><h2>正在处理订单</h2><p>订单完成后会显示结果，关闭界面也会保留交付记录。</p></mc-card>");
         body.append("</main><footer class=\"status\" id=\"shop-status\" bind=\"shop-status\"></footer></mc-panel>");
         plugin.open(player,Views.document(title,Views.page(title,"""
-            .shell{background-color:#dedbc8;border-top-color:#fff8df;border-left-color:#fff8df;border-bottom-color:#53664d;border-right-color:#53664d;}
-            .tile{background-color:#f4efdd;border-color:#aeb7a2;}.tile h2{font-size:13px;color:#31573c;}.tile p{margin-top:6px;}
-            .tile .mc-button{background-color:#52714b;border-top-color:#b1c79a;border-left-color:#b1c79a;}.tile .mc-button:hover{background-color:#719267;}
-            .mc-tabs{margin-top:8px;}.tile .mc-slot{background-color:#d4d8c5;border-top-color:#7e9175;border-left-color:#7e9175;}
+            .shop-account{display:flex;justify-content:space-between;gap:12px;flex-shrink:0;padding:9px 22px;font-size:12px;background-color:#14272b;}
+            .shop-columns{display:flex;align-items:flex-start;}.shop-aside{margin-top:20px;}.hero{height:100px;min-height:0;}.hero-copy{width:50%;padding:12px 20px;}.hero-copy h2{font-size:23px;margin-bottom:7px;}.hero-art{width:50%;height:100px;}
+            .product{width:23%;min-width:150px;flex-grow:0;padding:10px;}.product-head .mc-slot{width:45px;height:45px;border:0;background-color:#183038;}.product-head .muted{font-size:10px;}.product-head{margin-bottom:7px;gap:8px;}
+            .product h3{font-size:14px;margin:3px 0 0;}.product-description{font-size:10px;height:15px;overflow:hidden;margin:0;}.product-price{display:flex;align-items:center;gap:7px;margin:4px 0 5px;}.price{font-size:20px;color:#ecd19d;}
+            .product .mc-button{width:100%;min-width:0;font-size:11px;height:29px;padding:5px 2px;}.filter-button{font-size:12px;min-width:55px;}
+            .purchase-layout{display:flex;gap:24px;max-width:850px;margin:25px auto;}.purchase-art{width:40%;text-align:center;padding:20px;background-color:#1d3439;}.purchase-art .mc-slot{display:block;width:150px;height:150px;margin:0 auto 16px;}
+            .purchase-form{flex:1;min-width:0;padding:25px;}.purchase-form .mc-button{display:block;width:100%;margin:18px 0;}.checkout{width:80%;max-width:700px;margin:30px auto;padding:28px;}.checkout .mc-button{margin:14px 10px 0 0;}.quote-line{font-size:20px;color:#e8d6ad;}
+            @media(max-width:1100px){.shop-aside{display:none;}.product{width:23.5%;}}
+            @media(max-width:760px){.product{width:31%;min-width:125px;}.shop-account{padding:8px 14px;}.purchase-layout{gap:12px;}.purchase-form{padding:16px;}}
+            @media(max-width:520px){.product{width:47%;}.purchase-art{display:none;}.hero-art{display:none;}.hero-copy{width:100%;}.checkout{width:100%;}}
+            @media(max-height:530px){.hero{display:none;}.shop-columns .section-head{margin-top:0;}.shop-aside{display:none;}.purchase-layout{margin:5px auto;}.purchase-art .mc-slot{width:90px;height:90px;}.checkout{margin:5px auto;padding:20px;}}
             """,body.toString()),state,actions),view.handler);
     }
     private static void button(StringBuilder body,Set<String> actions,String id,String label,String icon) {
         button(body,actions,id,label,icon,label);
+    }
+    private static String description(Product product) {
+        if(!product.description.startsWith("原商店目录"))return product.description;
+        return switch(product.category) {
+            case "装备" -> "穿戴防护 · 为远行做好准备";
+            case "工具" -> "采集与建造 · 开始新的工程";
+            case "材料" -> "合成与储备 · 随时补充物资";
+            case "武器" -> "战斗与防御 · 探索未知之地";
+            default -> "冒险补给 · 备好你的行囊";
+        };
     }
     private static void button(StringBuilder body,Set<String> actions,String id,String label,String icon,String fallbackLabel) {
         actions.add("server:"+id);body.append("<mc-button id=\"").append(id).append("\" action=\"server:").append(id).append("\" aria-label=\"")

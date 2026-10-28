@@ -52,11 +52,11 @@
 - 不要在文档里写 `C:/D:` 盘符路径 —— 仓库改过名，写死路径的脚本已经因此坏过一次。
 - 不要把规范复制到 README 与 docs 两处：规范只写在 `docs/dev/`，README 只留指针。
 
-## 现状快照（2026-10-27，新增 YudreamUI 原生界面与菜单接管后更新本行）
+## 现状快照（2026-10-28，更新 YudreamUI 二次元视觉与高密度布局）
 
 插件 MainMenu（正式版 `1_0_1` / 测试中 `Beta_1_10_0`，自定义功能可按左右键、Shift 与中键配置指令；ArcMenu 3.2 原生 YAML 方块手机与 10 页界面，Vault 资产页、首页翻页与无效头像回退；可选多侧卡默认隐藏，YAML / API 接入、按高度自动分栏居中与独立分页，见 `./Minecraft-26_3-plugin/MainMenu/SIDECARDS.md`；保留功能注册、管理与背包回退）· RealTime（`1_0_0` / `Beta_1_1_0`）· MainMenuRepair Fabric 模组（`1_0_0` / `Beta_1_2_0`，时钟右键空气先探测 `/cd clockair`；隐藏 dialog 警告并居中标题、收掉暂停菜单空行；新增手册正文整体居中、白色焦点框修复与重复页脚隐藏）·
 MinecraftMcp Fabric 模组（`Beta_0_1_0`，本机 MCP 26 项客户端测试工具；Java 21 协议核心 + Java 25 的 26.3 独立适配器，支持后续新增版本模块分别构建与发布）·
-YudreamUI（`Beta_0_1_0`，Folia 服务端驱动真实 RmlUi 6.3 / Fabric 26.3 原生界面，协议与游戏适配分离；内置控件零外部请求、图片/字体热更新、RPG 对话、Wallet 商店与 MainMenu/Town 显示服务接管；无 Mod 使用 Inventory/Dialog，TrMenu 实验桥；当前原生留档仅 Linux x86_64，安装及实机范围见 `./Minecraft-26_3-plugin/YudreamUI/`）·
+YudreamUI（`Beta_0_2_0`，Folia 服务端驱动真实 RmlUi 6.3 / Fabric 26.3 原生界面，协议与游戏适配分离；底部二次元向导与 Minecraft 村庄美术、精细中文排版、紧凑商店与本地分类、镇务分栏、本地地形与圈地区块叠加；内置素材零外部请求、图片/字体热更新、RPG 对话、Wallet 商店与 MainMenu/Town 显示服务接管；无 Mod 使用 Inventory/Dialog，TrMenu 实验桥；当前原生留档仅 Linux x86_64，安装及实机范围见 `./Minecraft-26_3-plugin/YudreamUI/`）·
 YudreamPlaytime（正式版 `1_0_0` / 测试中 `Beta_1_1_0`，MainMenu 伴侣插件：菜单里显示查看者自己的在线时长）· Wallet（`Beta_0_7_0`，按币种配置本地/官网双来源、官网 code 映射；set 仅本地、add/take 双来源与 Tab 补全；菜单点击/拖拽拦截、币种筛选与独立打开；保留本地账本、Vault 主币种、一次性迁入与 UUID 跳过策略、测试模式及 WalletApi；配置与验证见 `./Minecraft-26_3-plugin/Wallet/README.md`）·
 Vehicles（`Beta_0_1_0`，Folia 26.3 双人小镇漫游车：原创薄荷绿/陶土橙/奶油白模型、独立车轮、WASD/刹车/倒车、地面碰撞、右键上车与安全下车；普通原版客户端加载资源包即可显示，MainMenu / CE 可选；会话内车辆，车主退服/重启回收；8 项物理测试和双客户端驾驶/掉线/停服回归；安装 ZIP、模型源文件及验证见 `./Minecraft-26_3-plugin/Vehicles/`，经验见 `./docs/exp/vehicles.md`）·
 ConcertoMenu（`Beta_0_2_0`，主菜单唱片机 → 发 `concerto:menu` 指令打开客户端 Concerto 主界面）·

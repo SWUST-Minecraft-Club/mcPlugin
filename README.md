@@ -401,6 +401,8 @@ WASD 驾驶，空格刹车、Shift 下车；车主开车，其他玩家坐副驾
 
 服务端插件 + 版本分离的 Fabric Mod，使用真实 RmlUi 6.3 排版受约束的 XHTML/RCSS。内置方块风格控件和中文字库零外部请求，图片/字体按哈希热更新，无需 Minecraft 资源包重载。
 
+`Beta_0_2_0` 增加 Minecraft 日常村庄插画、底部二次元向导、精细中文排版、紧凑商品流和镇务分栏；圈地支持客户端本地地形底图与服务端状态叠加。[视觉设计](./Minecraft-26_3-plugin/YudreamUI/DESIGN.md)与[实机截图](./Minecraft-26_3-plugin/YudreamUI/VALIDATION-VISUAL.md)。
+
 已接管仓库 MainMenu、Town 显示入口；RPG 分支对话可跳转 Wallet 系统商店，原 Arc 商店 8 页去重为 25 项默认购买目录。无 YudreamUI Mod 时直接使用 Inventory/Dialog。TrMenu 桥仍为实验状态；当前客户端原生留档仅 Linux x86_64，尚未证明跨平台或箱子菜单延迟对等。
 
 ```bash
@@ -515,7 +517,8 @@ dependencies {
 
 | 版本 | 提交 | 改动 |
 | --- | --- | --- |
-| `Beta_0_1_0` | 本次提交 | 新增 RmlUi 原生端、版本分离、热更新、RPG、Wallet 25 项商店、MainMenu/Town 接管与无 Mod 降级，附真实 MCP 验证及平台边界 |
+| `Beta_0_1_0` | `eaac2ea` | 新增 RmlUi 原生端、版本分离、热更新、RPG、Wallet 25 项商店、MainMenu/Town 接管与无 Mod 降级，附真实 MCP 验证及平台边界 |
+| `Beta_0_2_0` | 本次提交 | 底部二次元向导与 Minecraft 村庄美术、精细中文排版、紧凑商品流与本地分类、镇务分栏、本地地形组件、素材热更及宽窄实机截图 |
 
 **Town（插件）**
 

@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "density": 2,
+  "localFilterSameRevision": true,
+  "windows": [
+    "1280x720",
+    "854x480"
+  ],
+  "nativePages": [
+    "MainMenu",
+    "Wallet shop",
+    "RPG",
+    "Town",
+    "7x7 territory"
+  ],
+  "externalRequests": 0
+}

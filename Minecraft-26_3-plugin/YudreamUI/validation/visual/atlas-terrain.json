@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "center": [
+    -1,
+    -1
+  ],
+  "surfaceColors": 8,
+  "localUpdateSameRevision": true,
+  "unchangedTextureReused": true,
+  "panChunks": 6,
+  "unloadedShown": 35,
+  "confirmationCoordinates": true,
+  "narrowMapUnclipped": true,
+  "externalRequests": 0,
+  "maxChunkSampleNanos": 1186521
+}

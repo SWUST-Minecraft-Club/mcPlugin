@@ -5,6 +5,39 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import java.nio.charset.StandardCharsets;
 class NativeEngineTest {
+ @Test void terrainCommandPreservesMapCoordinatesAndViewportClipping(){
+  var textures=new NativeEngine.Textures(){public void create(long id,NativeEngine.Image image){}public void retire(long id){}};
+  String html="<html><head><style>body{margin:0;}#clip{width:140px;height:100px;overflow:hidden;}#map{display:block;width:224px;height:224px;}</style></head><body><div id='clip'><mc-terrain id='map' dimension='minecraft:overworld' chunk-x='-2' chunk-z='3' chunks='7'/></div></body></html>";
+  try(var ui=new NativeEngine(textures,System.out::println)){
+   ui.open(HtmlCompiler.compile(html,""),800,450);
+   var command=ui.frame(800,450,0,0).stream().filter(c->c instanceof NativeEngine.Terrain).map(c->(NativeEngine.Terrain)c).findFirst().orElseThrow();
+   assertEquals(-2,command.spec().chunkX());assertEquals(3,command.spec().chunkZ());assertEquals(224,command.width());assertEquals(140,command.clipWidth());assertEquals(100,command.clipHeight());
+   assertTrue(ui.drainEvents().isEmpty(),"rendering terrain does not send server actions");
+  }
+ }
+ @Test void valueLabelsRestoreWithoutDestroyingSelfOrAncestorTargets(){
+  var textures=new NativeEngine.Textures(){public void create(long id,NativeEngine.Image image){}public void retire(long id){}};
+  String theme=new String(NativeEngine.readResource("/builtin/minecraft.rcss"),StandardCharsets.UTF_8);
+  try(var ui=new NativeEngine(textures,System.out::println)){
+   String html="<html><head/><body><div id='parent'><mc-input id='text' value-target='output'/><span id='output'/></div></body></html>";
+   String rml=HtmlCompiler.compile(html,theme);ui.open(rml,800,450);click(ui,"text");ui.type("12");assertEquals("12",find(ui,"output").get("value").getAsString());
+   ui.open(rml,800,450);assertEquals("12",find(ui,"output").get("value").getAsString());
+   for(String target:new String[]{"text","parent"}){ui.open(HtmlCompiler.compile(html.replace("value-target='output'","value-target='"+target+"'"),theme),800,450);click(ui,"text");ui.type("3");assertTrue(find(ui,"text").get("value").getAsString().contains("3"));}
+  }
+ }
+ @Test void denseDocumentFiltersLocallyAndRetainsItsStateOnReplacement(){
+  var textures=new NativeEngine.Textures(){public void create(long id,NativeEngine.Image image){}public void retire(long id){}};
+  String html="<html ui-density='2'><head/><body><div><mc-tab id='all' class='filter-button selected' action='filter:all'>All</mc-tab><mc-tab id='tools' class='filter-button' action='filter:tools'>Tools</mc-tab><div id='pickaxe' filter-category='tools'>Pickaxe</div><div id='apple' filter-category='food'>Apple</div></div></body></html>";
+  var compiled=HtmlCompiler.compileDocument(html,new String(NativeEngine.readResource("/builtin/minecraft.rcss"),StandardCharsets.UTF_8));
+  assertEquals(2,compiled.density());
+  try(var ui=new NativeEngine(textures,System.out::println)){
+   ui.open(compiled.rml(),1280,720);click(ui,"tools");
+   assertTrue(find(ui,"pickaxe").get("visible").getAsBoolean());assertFalse(find(ui,"apple").get("visible").getAsBoolean());
+   assertTrue(ui.drainEvents().stream().noneMatch(e->e.action().startsWith("server:")));
+   ui.open(compiled.rml(),854,480);assertFalse(find(ui,"apple").get("visible").getAsBoolean());
+   click(ui,"all");assertTrue(find(ui,"apple").get("visible").getAsBoolean());
+  }
+ }
  @Test void realRmlUiLayoutInputAndHotReplacement(){
   var textures=new NativeEngine.Textures(){public void create(long id,NativeEngine.Image image){assertEquals(image.width()*image.height()*4,image.rgba().length);}public void retire(long id){}};
   try(var ui=new NativeEngine(textures,System.out::println)){

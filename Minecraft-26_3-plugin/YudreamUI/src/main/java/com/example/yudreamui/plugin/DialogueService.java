@@ -46,24 +46,34 @@ final class DialogueService {
     private void show(Player player,Conversation conversation,String id,List<String> history) {
         var node=conversation.nodes.get(id);var visible=node.choices.stream().filter(c->c.permission.isBlank()||player.hasPermission(c.permission)).toList();
         var state=new JsonObject();state.addProperty("speaker",conversation.speaker);state.addProperty("dialogue",node.text.replace("{player}",player.getName()));
-        var body=new StringBuilder("<mc-panel id=\"conversation\" class=\"shell dialogue\">").append(Views.heading(conversation.title));
-        body.append("<main class=\"body\"><div class=\"row speech\"><div class=\"portrait\"><mc-slot item=\"minecraft:").append(conversation.portrait.name().toLowerCase(Locale.ROOT))
-            .append("\"/><mc-badge>向导</mc-badge></div><div class=\"grow\"><h2 bind=\"speaker\"></h2><p id=\"dialogue-text\" bind=\"dialogue\"></p></div></div><div class=\"choices\">");
+        var body=new StringBuilder("<section id=\"conversation\" class=\"dialogue\"><div class=\"character\">").append(Views.art("guide","standing"));
+        body.append("</div><section id=\"dialogue-panel\" class=\"dialogue-panel\"><header class=\"dialogue-heading\"><div class=\"row\"><mc-slot item=\"minecraft:")
+            .append(conversation.portrait.name().toLowerCase(Locale.ROOT)).append("\"/><h2 bind=\"speaker\"></h2><span class=\"muted dialogue-status\">正在交谈</span></div><div class=\"row\"><mc-button id=\"history-toggle\" action=\"toggle:history\" aria-label=\"对话记录\">对话记录</mc-button><mc-button id=\"close\" action=\"ui:close\" aria-label=\"关闭\">×</mc-button></div></header>")
+            .append("<main class=\"dialogue-body\"><section class=\"speech\"><span class=\"eyebrow\">旅途中的相遇</span><p id=\"dialogue-text\" bind=\"dialogue\"></p></section><section class=\"choices\">");
         var actions=new HashSet<String>();for(int i=0;i<visible.size();i++) {
             var choice=visible.get(i);actions.add("server:choice"+i);
             body.append("<mc-button id=\"choice").append(i).append("\" action=\"server:choice").append(i).append("\" aria-label=\"").append(Views.escape(choice.label))
                 .append("\" fallback-icon=\"PAPER\">").append(i+1).append(". ").append(Views.escape(choice.label)).append("</mc-button>");
         }
-        body.append("</div><mc-button id=\"history-toggle\" action=\"toggle:history\" aria-label=\"对话记录\">对话记录</mc-button><div id=\"history\" class=\"hidden\">");
+        body.append("</section></main><div id=\"history\" class=\"hidden\"><h3>对话记录</h3>");
+        if(history.isEmpty())body.append("<p class=\"muted\">你们的交谈刚刚开始。</p>");
         for(String line:history)body.append("<p class=\"muted\">").append(Views.escape(line)).append("</p>");
-        body.append("</div></main></mc-panel>");
+        body.append("</div></section></section>");
         String css="""
-            body {background-color:#0004;align-items:flex-end;}
-            .dialogue {height:76%;max-height:78%;max-width:760px;margin-bottom:4%;background-color:#ded3b7;border-top-color:#fff5d7;border-left-color:#fff5d7;}
-            .speech {align-items:flex-start;margin-bottom:10px;}.portrait {width:62px;flex-shrink:0;display:flex;flex-direction:column;gap:5px;align-items:center;}
-            .portrait .mc-slot {width:50px;height:50px;}#dialogue-text {font-size:12px;line-height:1.7;white-space:pre-wrap;}
-            .choices {display:flex;flex-direction:column;gap:5px;margin-bottom:8px;}.choices .mc-button {width:100%;height:auto;min-height:27px;text-align:left;background-color:#546449;}
-            @media (max-width:520px) {.dialogue{height:90%;max-height:90%;margin-bottom:2%;}.portrait{width:40px;}.portrait .mc-slot{width:34px;height:34px;}#dialogue-text{font-size:11px;}}
+            body{background-color:transparent;align-items:flex-end;}
+            .dialogue{width:92%;max-width:1180px;height:240px;max-height:42%;margin-bottom:24px;display:flex;align-items:flex-end;gap:12px;}
+            .character{width:160px;height:100%;position:relative;flex-shrink:0;overflow:hidden;}.standing{position:absolute;width:100%;height:auto;bottom:0;left:0;}
+            .dialogue-panel{position:relative;flex:1;min-width:0;height:100%;display:flex;flex-direction:column;background-color:#17282dea;border:1px #94b9a97a;}
+            .dialogue-heading{display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:8px;padding:10px 16px;border-bottom:1px #78988b40;}
+            .dialogue-heading h2{font-size:18px;color:#e6dbb9;margin:0;}.dialogue-heading .mc-slot{width:26px;height:26px;}.dialogue-heading .mc-button{height:29px;padding:4px 9px;font-size:12px;}
+            #close{min-width:28px;width:28px;padding:2px;font-size:18px;}#history-toggle{background-color:transparent;}
+            .dialogue-body{display:flex;flex:1;min-height:0;overflow:hidden;padding:15px 18px;gap:20px;}
+            .speech{flex:1;min-width:0;overflow-y:auto;padding-right:14px;border-right:1px #78988b40;}#dialogue-text{font-size:16px;line-height:1.7;white-space:pre-wrap;}
+            .choices{width:37%;min-width:210px;display:flex;flex-direction:column;gap:7px;overflow-y:auto;}
+            .choices .mc-button{width:100%;height:auto;min-height:35px;flex-shrink:0;text-align:left;padding:8px 12px;}
+            #history{position:absolute;top:51px;bottom:0;left:0;right:0;padding:15px 18px;background-color:#17282dfc;overflow-y:auto;z-index:2;}#history p{font-size:14px;margin-bottom:10px;}
+            @media(max-width:900px){.dialogue{width:96%;margin-bottom:14px;gap:8px;}.character{width:128px;}.dialogue-heading{padding:8px 11px;}.dialogue-heading h2{font-size:16px;}.dialogue-status{display:none;}.dialogue-body{padding:12px;gap:12px;}#dialogue-text{font-size:14px;}.choices{width:39%;min-width:180px;}.choices .mc-button{padding:7px 9px;font-size:12px;min-height:32px;}#history{top:47px;padding:12px;}}
+            @media(max-width:620px){.character{display:none;}.dialogue{margin-bottom:10px;}.dialogue-heading .mc-slot{display:none;}.dialogue-heading h2{font-size:14px;}.choices{min-width:150px;}.speech{padding-right:8px;}.eyebrow{display:none;}}
             """;
         plugin.open(player,Views.document(conversation.title,Views.page(conversation.title,css,body.toString()),state,actions),(p,a)->{
             if(!a.name().startsWith("server:choice"))return;int selected=Integer.parseInt(a.name().substring("server:choice".length()));

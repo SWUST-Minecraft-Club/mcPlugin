@@ -92,7 +92,7 @@ struct Listener : EventListener {
 struct Host {
     JNIEnv* env;
     jobject callback;
-    jmethodID geometry, draw, texture, release, event, log, item;
+    jmethodID geometry, draw, texture, release, event, log, item, terrain;
     std::unique_ptr<Renderer> renderer;
     std::unique_ptr<Listener> listener;
     Context* context = nullptr;
@@ -103,6 +103,7 @@ struct Host {
     Host(JNIEnv* env, jobject callback) : env(env), callback(env->NewGlobalRef(callback)) {
         auto klass = env->GetObjectClass(callback);
         item = env->GetMethodID(klass, "item", "(Ljava/lang/String;FFFFIIII)V");
+        terrain = env->GetMethodID(klass, "terrain", "(Ljava/lang/String;IIIFFFFIIII)V");
         geometry = env->GetMethodID(klass, "geometry", "(J[F[I[I)V");
         draw = env->GetMethodID(klass, "draw", "(JJFFIIII[F)V");
         texture = env->GetMethodID(klass, "texture", "(J[BII)V");
@@ -134,6 +135,21 @@ protected:
     }
 };
 ElementInstancerGeneric<ItemSlot> itemSlots;
+class TerrainMap : public Element {
+public:
+    explicit TerrainMap(const String& tag) : Element(tag) {}
+protected:
+    void OnRender() override {
+        if(!active)return;
+        auto h=active;auto point=GetAbsoluteOffset(BoxArea::Border);auto size=GetBox().GetSize(BoxArea::Border);
+        auto& renderer=*h->renderer;auto dimension=javaString(h->env,GetAttribute<String>("dimension",""));
+        h->env->CallVoidMethod(h->callback,h->terrain,dimension,GetAttribute<int>("chunk-x",0),GetAttribute<int>("chunk-z",0),GetAttribute<int>("chunks",7),point.x,point.y,size.x,size.y,
+            renderer.scissor?renderer.clip.Left():0,renderer.scissor?renderer.clip.Top():0,
+            renderer.scissor?renderer.clip.Width():-1,renderer.scissor?renderer.clip.Height():-1);
+        h->env->DeleteLocalRef(dimension);
+    }
+};
+ElementInstancerGeneric<TerrainMap> terrainMaps;
 bool System::LogMessage(Log::Type type, const String& text) {
     if (active && type <= Log::LT_WARNING) {
         auto s = javaString(active->env, text);
@@ -196,10 +212,28 @@ TextureHandle Renderer::LoadTexture(Vector2i& size, const String& source) {
     return GenerateTexture(Span<const byte>(pixels.bytes.data(), pixels.bytes.size()), size);
 }
 void Renderer::ReleaseTexture(TextureHandle id) { owner->env->CallVoidMethod(owner->callback, owner->release, jlong(id), jboolean(true)); }
+void updateValueLabel(Element* element, ElementDocument* document) {
+    auto input=dynamic_cast<ElementFormControl*>(element);if(!input)return;
+    auto id=element->GetAttribute<String>("value-target","");if(id.empty())return;
+    auto output=document->GetElementById(id);if(!output)return;
+    if(output->GetTagName()!="span"&&output->GetTagName()!="p")return;
+    for(int i=0;i<output->GetNumChildren();++i)if(output->GetChild(i)->GetTagName()!="#text")return;
+    // A label must never replace the input itself or an ancestor owning the active event target.
+    for(auto ancestor=element;ancestor;ancestor=ancestor->GetParentNode())if(ancestor==output)return;
+    auto value=input->GetValue();
+    if(element->GetAttribute<String>("type","")=="range"&&value.find('.')!=String::npos){
+        while(!value.empty()&&value.back()=='0')value.pop_back();
+        if(!value.empty()&&value.back()=='.')value.pop_back();
+    }
+    output->SetInnerRML(escape(value));
+}
 void Listener::ProcessEvent(Event& event) {
     auto target = event.GetTargetElement();
     if (event.GetType() == "change") {
-        if (auto input = dynamic_cast<ElementFormControl*>(target)) owner->emit("change", target->GetId(), input->GetValue());
+        if (auto input = dynamic_cast<ElementFormControl*>(target)) {
+            updateValueLabel(target,owner->document);
+            owner->emit("change", target->GetId(), input->GetValue());
+        }
         return;
     }
     while (target && target != owner->document && !target->HasAttribute("action")) target = target->GetParentNode();
@@ -210,6 +244,12 @@ void Listener::ProcessEvent(Event& event) {
         for (auto page : pages) page->SetClass("hidden", page->GetId() != action.substr(4));
         ElementList tabs; owner->document->QuerySelectorAll(tabs, ".mc-tab");
         for (auto tab : tabs) tab->SetClass("selected", tab == target);
+    } else if (action.rfind("filter:", 0) == 0) {
+        auto category=action.substr(7);
+        ElementList entries; owner->document->QuerySelectorAll(entries,"[filter-category]");
+        for(auto entry:entries) entry->SetClass("hidden",category!="all"&&entry->GetAttribute<String>("filter-category","")!=category);
+        ElementList filters; owner->document->QuerySelectorAll(filters,".filter-button");
+        for(auto filter:filters) filter->SetClass("selected",filter==target);
     } else if (action.rfind("toggle:", 0) == 0) {
         if (auto element = owner->document->GetElementById(action.substr(7))) {
             bool opening=element->IsClassSet("hidden");element->SetClass("hidden",!opening);
@@ -250,6 +290,7 @@ JNIEXPORT jlong JNICALL Java_com_example_yudreamui_runtime_NativeEngine_create(J
     SetSystemInterface(&systemInterface); SetFileInterface(&files); SetRenderInterface(h->renderer.get());
     if (!Initialise()) { env->DeleteGlobalRef(h->callback); delete h; active = nullptr; return 0; }
     Factory::RegisterElementInstancer("mcslot", &itemSlots);
+    Factory::RegisterElementInstancer("mcterrain", &terrainMaps);
     h->context = CreateContext("yudream-ui", {800, 450});
     return reinterpret_cast<jlong>(h);
 }
@@ -271,7 +312,7 @@ JNIEXPORT void JNICALL Java_com_example_yudreamui_runtime_NativeEngine_open(JNIE
         ElementList elements; h->document->QuerySelectorAll(elements, "[id]");
         for (auto element : elements) {
             auto control = dynamic_cast<ElementFormControl*>(element);
-            saved[element->GetId()] = {control ? control->GetValue() : "", element->GetScrollLeft(), element->GetScrollTop(), element == h->context->GetFocusElement(), element->HasAttribute("checked"), element->IsClassSet("tab-page"), element->IsClassSet("hidden"), element->IsClassSet("mc-tab"), element->IsClassSet("selected"), element->GetAttribute<int>("count", -1)};
+            saved[element->GetId()] = {control ? control->GetValue() : "", element->GetScrollLeft(), element->GetScrollTop(), element == h->context->GetFocusElement(), element->HasAttribute("checked"), element->IsClassSet("tab-page")||element->HasAttribute("filter-category"), element->IsClassSet("hidden"), element->IsClassSet("mc-tab"), element->IsClassSet("selected"), element->GetAttribute<int>("count", -1)};
         }
     }
     h->context->SetDimensions({width, height});
@@ -288,6 +329,8 @@ JNIEXPORT void JNICALL Java_com_example_yudreamui_runtime_NativeEngine_open(JNIE
         if (pair.second.count >= 0) { element->SetAttribute("count", pair.second.count); element->SetInnerRML(std::to_string(pair.second.count)); }
     }
     if (previous) previous->Close();
+    ElementList outputs; next->QuerySelectorAll(outputs,"[value-target]");
+    for(auto element:outputs)updateValueLabel(element,next);
     h->context->Update();
     // Restore offsets only after hidden pages have their final layout and scroll extent.
     for (auto& pair : saved) if (auto element = next->GetElementById(pair.first)) {
@@ -390,6 +433,9 @@ JNIEXPORT jstring JNICALL Java_com_example_yudreamui_runtime_NativeEngine_inspec
                 << ",\"checked\":" << (element->HasAttribute("checked") ? "true" : "false")
                 << ",\"disabled\":" << (element->HasAttribute("disabled") ? "true" : "false")
                 << ",\"item\":" << quote(element->GetAttribute<String>("item", ""))
+                << ",\"dimension\":" << quote(element->GetAttribute<String>("dimension", ""))
+                << ",\"chunkX\":" << element->GetAttribute<int>("chunk-x",0) << ",\"chunkZ\":" << element->GetAttribute<int>("chunk-z",0)
+                << ",\"chunks\":" << element->GetAttribute<int>("chunks",0)
                 << ",\"visible\":" << (element->IsVisible(true) && vr>vx && vb>vy ? "true" : "false")
                 << ",\"focused\":" << (h->context->GetFocusElement() == element ? "true" : "false")
                 << ",\"x\":" << point.x << ",\"y\":" << point.y << ",\"width\":" << size.x << ",\"height\":" << size.y
