@@ -1,0 +1,13 @@
+{
+	"required": true,
+	"package": "com.example.yudreampresence.mixin",
+	"compatibilityLevel": "JAVA_13",
+	"mixins": [
+		"MinecraftServerMixin",
+		"PlayerListMixin",
+		"ServerGamePacketListenerImplMixin"
+	],
+	"injectors": {
+		"defaultRequire": 0
+	}
+}

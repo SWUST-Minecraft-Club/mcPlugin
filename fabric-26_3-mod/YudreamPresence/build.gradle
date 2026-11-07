@@ -1,0 +1,211 @@
+import groovy.json.JsonSlurper
+import java.security.MessageDigest
+
+plugins {
+	id 'java'
+}
+
+// 为什么不用 fabric-loom：与 ./fabric-26_3-mod/ 下的其它模组一致 —— 26.3 未混淆，
+// 不需要 mappings / remap；而 maven.fabricmc.net 在部分网络环境下会被限速。
+// 服务端模组的编译目标是官方 server jar，它藏在 server bundler 的
+// META-INF/versions/<版本>/server-<版本>.jar 里，由 downloadMinecraftServer 解出来。
+
+group = project.group
+version = project.version
+
+base {
+	archivesName = project.archives_base_name
+}
+
+// 只用于测试依赖（JUnit）；Minecraft / 服务端库全部走上面的官方清单下载，不依赖 Maven。
+repositories {
+	mavenCentral()
+}
+
+def serverBundle = layout.buildDirectory.file("minecraft/server-bundle-${project.minecraft_version}.jar")
+def serverJar = layout.buildDirectory.file("minecraft/server-${project.minecraft_version}.jar")
+def manifestFile = layout.buildDirectory.file("minecraft/version-${project.minecraft_version}.json")
+def librariesDir = layout.buildDirectory.dir('minecraft/libraries')
+def downloadCache = rootProject.file('.gradle/minecraft-downloads')
+def offline = gradle.startParameter.offline
+
+// 服务端编译边界实际会读到的库（javac 解析签名/类型批注时也会用到）。
+// 运行期由 Fabric 服务端提供，所以只用 compileOnly，不进模组 jar。
+def compileLibraries = [
+		'com.google.code.gson:gson', 'com.google.guava:guava', 'com.google.guava:failureaccess',
+		'com.mojang:authlib', 'com.mojang:brigadier', 'com.mojang:datafixerupper',
+		'io.netty:netty-buffer', 'io.netty:netty-common', 'it.unimi.dsi:fastutil',
+		'org.apache.commons:commons-lang3', 'org.joml:joml', 'org.slf4j:slf4j-api'
+] as Set
+
+// 下载并校验 SHA-1；成功一次后缓存，离线构建可从缓存复制。
+def downloadVerified = { String url, File target, String sha1 ->
+	def digest = { File file -> MessageDigest.getInstance('SHA-1').digest(file.bytes).encodeHex().toString() }
+	def valid = { File file -> file.exists() && digest(file) == sha1 }
+	def cached = new File(downloadCache, sha1)
+	target.parentFile.mkdirs()
+	downloadCache.mkdirs()
+	if (valid(target)) {
+		if (!valid(cached)) {
+			java.nio.file.Files.copy(target.toPath(), cached.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+		}
+		return
+	}
+	if (valid(cached)) {
+		java.nio.file.Files.copy(cached.toPath(), target.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+		return
+	}
+	if (offline) {
+		throw new GradleException("离线模式缺少缓存：${target.name}（sha1=${sha1}）")
+	}
+	def temporary = new File(cached.path + '.part')
+	try {
+		def connection = URI.create(url).toURL().openConnection()
+		connection.connectTimeout = 30000
+		connection.readTimeout = 180000
+		connection.getInputStream().withCloseable { input -> temporary.withOutputStream { it << input } }
+		if (digest(temporary) != sha1) {
+			throw new GradleException("下载校验失败：${target.name}")
+		}
+		java.nio.file.Files.move(temporary.toPath(), cached.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+		java.nio.file.Files.copy(cached.toPath(), target.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+	} finally {
+		temporary.delete()
+	}
+}
+
+tasks.register('downloadMinecraftServer') {
+	inputs.property('versionManifestUrl', project.version_manifest_url)
+	inputs.property('versionManifestSha1', project.version_manifest_sha1)
+	inputs.property('minecraftVersion', project.minecraft_version)
+	outputs.file(manifestFile)
+	outputs.file(serverJar)
+	doLast {
+		downloadVerified(project.version_manifest_url, manifestFile.get().asFile, project.version_manifest_sha1)
+		def manifest = new JsonSlurper().parse(manifestFile.get().asFile)
+		def server = manifest.downloads?.server
+		if (server == null) {
+			throw new GradleException("${project.minecraft_version} 版本清单里没有 server 下载项")
+		}
+		def bundle = serverBundle.get().asFile
+		downloadVerified(server.url, bundle, server.sha1)
+		def target = serverJar.get().asFile
+		if (!target.exists() || target.length() < 10_000_000L) {
+			target.parentFile.mkdirs()
+			new java.util.zip.ZipFile(bundle).withCloseable { zip ->
+				def entry = zip.getEntry("META-INF/versions/${project.minecraft_version}/server-${project.minecraft_version}.jar")
+				if (entry == null) {
+					throw new GradleException("server bundler 里找不到 server-${project.minecraft_version}.jar")
+				}
+				zip.getInputStream(entry).withCloseable { input -> target.withOutputStream { out -> out << input } }
+			}
+		}
+		logger.lifecycle("已准备服务端 jar：${target}（${target.length()} 字节）")
+	}
+}
+
+tasks.register('downloadMinecraftLibraries') {
+	dependsOn 'downloadMinecraftServer'
+	inputs.file(manifestFile)
+	inputs.property('compileLibraries', compileLibraries.sort())
+	outputs.dir(librariesDir)
+	doLast {
+		def manifest = new JsonSlurper().parse(manifestFile.get().asFile)
+		def pool = java.util.concurrent.Executors.newFixedThreadPool(8)
+		try {
+			def downloads = manifest.libraries.findAll { library ->
+				!library.name.contains('natives') &&
+						compileLibraries.contains(library.name.split(':').take(2).join(':'))
+			}.collect { library ->
+				pool.submit({
+					def artifact = library.downloads?.artifact
+					if (artifact) {
+						downloadVerified(artifact.url, new File(librariesDir.get().asFile, artifact.path), artifact.sha1)
+					}
+				} as Runnable)
+			}
+			downloads.each { it.get() }
+		} finally {
+			pool.shutdownNow()
+		}
+	}
+}
+
+// 注解桩：只参与编译，不打进模组 jar。
+// mixins：Fabric 26.3 自带的 Mixin 0.8.7 最高只接受 Java 13 字节码（class version 57），
+//         业务代码用 Java 25，Mixin 类单独按 Java 13 目标编译，否则注入会被静默拒绝。
+sourceSets {
+	mixinStubs {
+		java.srcDir 'src/mixin-stubs/java'
+		compileClasspath = files()
+		runtimeClasspath = files()
+	}
+	mixins {
+		java.srcDir 'src/mixins/java'
+		compileClasspath = sourceSets.main.compileClasspath + sourceSets.main.output
+		runtimeClasspath = files()
+	}
+}
+
+dependencies {
+	compileOnly files(serverJar)
+	compileOnly fileTree(librariesDir) { include '**/*.jar' }
+	compileOnly sourceSets.mixinStubs.output
+
+	testImplementation 'org.junit.jupiter:junit-jupiter:5.13.4'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.13.4'
+}
+
+tasks.named('compileMixinStubsJava') {
+	options.encoding = 'UTF-8'
+	options.release = 25
+}
+
+tasks.named('compileJava') {
+	dependsOn 'downloadMinecraftServer', 'downloadMinecraftLibraries', 'compileMixinStubsJava'
+	options.encoding = 'UTF-8'
+	options.release = 25
+}
+
+tasks.named('compileMixinsJava') {
+	dependsOn 'compileJava'
+	options.encoding = 'UTF-8'
+	// Fabric 26.3 的 Mixin 0.8.7 最高接受 JAVA_13（class version 57）；
+	// 业务代码仍是 Java 25，只有这三个 Mixin 类降到 13。
+	options.release = 13
+}
+
+tasks.named('compileTestJava') {
+	options.encoding = 'UTF-8'
+	options.release = 25
+}
+
+tasks.named('jar') {
+	dependsOn 'mixinsClasses'
+	from sourceSets.mixins.output
+}
+
+test {
+	useJUnitPlatform()
+}
+
+processResources {
+	def modVersion = project.version
+	inputs.property 'version', modVersion
+	filesMatching('fabric.mod.json') {
+		expand 'version': modVersion
+	}
+}
+
+// 每次构建都把产物归档到仓库根的 ./release/<项目名>/（文件名带版本，不会互相覆盖）
+tasks.register('archiveArtifact', Copy) {
+	group = 'build'
+	description = '把构建产物复制到仓库根 ./release/YudreamPresence/ 留档'
+	dependsOn 'jar', 'check'
+	from tasks.named('jar')
+	into rootProject.file("../../release/${project.name}")
+}
+
+tasks.named('build') {
+	dependsOn 'archiveArtifact'
+}

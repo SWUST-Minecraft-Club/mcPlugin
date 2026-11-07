@@ -81,9 +81,10 @@ Minecraft **26.3**（Folia）多插件仓库。所有插件放在 `./Minecraft-2
 │   ├── YudreamUI/                  # 服务端界面、RPG、Wallet 商店与菜单接管/降级
 │   ├── Vehicles/                   # 原创三色双人小车、驾驶物理与原版资源包
 │   └── yudream-minecraft-server/   # YuDream Admin 桥接插件：上报 + 本地时长统计 + 断线补发（Java 8 / Bukkit 1.13.2 目标）
-├── fabric-26_3-mod/                # Fabric 客户端模组（独立 Gradle 工程，不参与上面的插件构建）
+├── fabric-26_3-mod/                # Fabric 客户端 / 服务端模组（独立 Gradle 工程，不参与上面的插件构建）
 │   ├── MainMenuRepair/             # 清理 ESC 暂停菜单的界面修复模组
 │   ├── MinecraftMcp/               # MCP 客户端测试能力；共享核心 + 独立游戏版本适配器
+│   ├── YudreamPresence/            # 服务端在线上报：进服 / 退服 / AFK / 定时名单 → YuDream Admin
 │   └── YudreamUI/                  # protocol / runtime / JNI RmlUi / versions 独立适配器
 ├── release/                        # 各版本的构建产物留档（提交进仓库）
 ├── scripts/                        # 仓库维护脚本（如 rebuild-history.sh）
@@ -422,6 +423,17 @@ WASD 驾驶，空格刹车、Shift 下车；车主开车，其他玩家坐副驾
 ```
 
 默认端点 `http://127.0.0.1:8765/mcp`，Bearer 令牌由首次启动自动生成，保存在客户端实例的 `config/minecraft-mcp.json`。协议/参数校验/断言位于不引用 Minecraft 的 `core`；游戏调用位于 `versions/mc26_3`，后续可添加独立版本模块并分别发布 jar。连接配置、工具参数、多版本扩展和真实客户端冒烟步骤见 [`./fabric-26_3-mod/MinecraftMcp/README.md`](./fabric-26_3-mod/MinecraftMcp/README.md)。
+
+## 服务端上报模组：YudreamPresence
+
+`./fabric-26_3-mod/YudreamPresence/` 是 **Minecraft 26.3 的 Fabric 服务端模组**：把进服 / 退服 / AFK 起止 / 定时全量在线名单直连上报到 YuDream Admin 的 `minecraft-server` 插件，供后台核对在线状态与时长。待发事件落盘补发、停服 flush；不需要 Fabric API，也不要求客户端安装。
+
+```bash
+./gradlew -p ./fabric-26_3-mod/YudreamPresence build
+# 产物：./release/YudreamPresence/YudreamPresence-mc26_3-fabric-Beta_0_1_0.jar
+```
+
+配置在服务端 `config/yudream-presence.properties`（`base-url` / `server-id` / `api-key`），端点与 Bukkit 桥接插件一致；`api-key` 需要 `plugin:minecraft-server:report` 权限。安装、配置、验证与边界见 [`./fabric-26_3-mod/YudreamPresence/README.md`](./fabric-26_3-mod/YudreamPresence/README.md)。
 
 ## 开发约定
 

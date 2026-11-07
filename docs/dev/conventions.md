@@ -32,7 +32,9 @@
 ├── Minecraft-26_3-plugin/<插件名>/   # Folia 插件（沿用 paper-plugin.yml），一个目录一个插件
 ├── fabric-26_3-mod/
 │   ├── MainMenuRepair/             # 界面修复模组（独立 Gradle 工程）
-│   └── MinecraftMcp/               # MCP 测试模组（共享 core + versions 独立版本适配器）
+│   ├── MinecraftMcp/               # MCP 测试模组（共享 core + versions 独立版本适配器）
+│   ├── YudreamPresence/            # 服务端在线状态上报（Fabric server mod）
+│   └── YudreamUI/                  # 服务端驱动的原生界面（protocol + runtime + versions）
 ├── templates/plugin-template/       # newPlugin 脚手架模板
 ├── release/<项目名>/                 # 构建产物留档（提交进仓库）
 ├── run/                             # 共用的 Folia 测试服（不提交）
@@ -72,13 +74,22 @@
 - **权限**：新增命令 / 管理界面必须登记权限节点，并在 `paper-plugin.yml` 里写清默认值。
 - **测试插件**：联调用的临时插件命名 `TestPlugin*`，不参与产物留档、不随 Release 发布。
 
-## 4. Fabric 客户端模组约定
+## 4. Fabric 模组约定
 
-- **不引入 fabric-loom，不 remap**：26.3 客户端未混淆，编译只需官方客户端 jar + `src/mixin-stubs/java` 注解桩。
+- **不引入 fabric-loom，不 remap**：26.3 客户端 / 服务端均未混淆，编译不需要 mappings，构建也不需要 remap。
 - 客户端 jar 由 `downloadMinecraftClient` 从 `gradle.properties` 的 `client_jar_url` 下载到 `build/minecraft/`，
   不要提交进仓库。
+- **服务端模组**：官方 `server.jar` 是 bundler，真实 jar 在
+  `META-INF/versions/<版本>/server-<版本>.jar`；构建时解包后再作为 `compileOnly`，并按版本清单补齐
+  brigadier / fastutil / guava / authlib 等编译库（参考 `./fabric-26_3-mod/YudreamPresence/build.gradle`）。
+  `fabric.mod.json` 的 `environment` 写 `server`，入口用 `DedicatedServerModInitializer`，Mixin 配置用
+  `"mixins"` 或 `"server"` 列表；不要求服务端安装 Fabric API。
+- **Mixin 字节码与注解桩**：Fabric 26.3 自带的 Mixin 0.8.7 最高接受 `JAVA_13`（class version 57），
+  Mixin 类要单独 sourceSet 用 `--release 13` 编译（业务代码仍用 Java 25）；注解桩的保留级别必须与真实注解一致
+  （`@Mixin` CLASS，`@Inject` / `@At` / `@Redirect` RUNTIME），否则注入会静默失效。参考
+  `./fabric-26_3-mod/YudreamPresence/build.gradle`、`src/mixin-stubs/java/`。
 - Mixin 注入一律 `require = 0`：目标方法变化时模组不崩溃，只是该条改动失效。
-- 关键逻辑优先用 Fabric API 屏幕事件等官方通道实现，Mixin 只做增强（原因见 [exp/fabric-mod.md](../exp/fabric-mod.md)）。
+- 关键逻辑优先用 Fabric API 事件等官方通道实现，Mixin 只做增强（原因见 [exp/fabric-mod.md](../exp/fabric-mod.md)）。
 - 纯客户端模组：`fabric.mod.json` 的 `environment` 为 `client`，不要求服务端装任何东西（除非文案里写明依赖 MainMenu）。
 
 ## 5. 新增插件与模板

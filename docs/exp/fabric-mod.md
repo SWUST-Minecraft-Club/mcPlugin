@@ -7,16 +7,37 @@
 
   | 排查项 | 结论 |
   | --- | --- |
-  | 注解保留级别 | 早期排查曾统一改为 `RUNTIME`；2026.10.26 已核实需逐注解匹配真实签名，`@Mixin` 为 CLASS，`@Redirect` 为 RUNTIME，见 [后续验证](./handbook-dialog.md#注解桩保留级别应与真实注解一致) |
+  | 注解保留级别 | 逐注解匹配真实签名：`@Mixin` 为 CLASS，`@Inject` / `@At` / `@Redirect` 为 RUNTIME；写成 CLASS 会让 Mixin 只合并类、不插入调用（2026.11.07 在服务端模组上定位到，见下一条） |
   | `@Invoker` | 必须声明成**类**（`@Invoker` 接口），写成方法不生效 |
   | 注入参数 | 全部要 `remap = false`（本仓库手工编译、无 mappings） |
   | 构造时序 | 构造函数里控件还没创建，要排队到下一个 tick 再清理 |
   | 清理逻辑 | 静态方法与 lambda 不合并，需要内联 |
 
   逐项修完仍不生效 —— 结论是**不要把 Mixin 当作唯一通道**。
+  2026.11.07 补充：客户端模组的 `@Inject` / `@At` 桩当时仍是 CLASS 保留级别，且 Mixin 类以 Java 25 字节码编译；
+  这两点会叠加成“类合并了、注入没发生”，详见下一条。
 - **规避/解决**：真正生效的是 Fabric API 屏幕事件通道（`ScreenEvents.AFTER_INIT`）——按钮替换、控件清理都挂在这条通道上；
   Mixin 只保留 `require = 0` 的增强，失效也不让客户端崩溃。已升格进 `docs/dev/conventions.md` §4。
 - **来源**：2026.10.17~18，MainMenuRepair `Beta_0_1_2` → `Beta_0_2_0`；`./fabric-26_3-mod/MainMenuRepair/README.md`。
+
+## Fabric 26.3 的 Mixin 0.8.7 只接受 Java 13 字节码，注入注解必须是 RUNTIME
+
+- **现象**：服务端模组的日志出现 `Mixing MinecraftServerMixin ... into net.minecraft.server.MinecraftServer`，
+  目标类里也能看到合并进来的 handler 方法，但目标方法（`tickServer` / `stopServer`）里没有任何调用；
+  把 `require` 改成 `1` 也不报错。
+- **根因**（两点叠加）：
+  1. 注解桩的保留级别：真实 `@Inject` / `@At` 是 `RUNTIME`，桩里没写 `@Retention`（默认 CLASS）。
+     Mixin 读不到注入注解，只做类合并；`@Mixin` 本身确实是 CLASS，不能统一改成 RUNTIME。
+  2. 字节码版本：Fabric Loader 0.20.1 自带的 Mixin 0.8.7 的 `CompatibilityLevel` 最高 `JAVA_13`
+     （class version 57）。Java 25 编译的 Mixin 类是 class version 69，会被拒绝；
+     日志提示 `Class version 69 required is higher than ... JAVA_13 supports class version 57`，
+     注入同样静默失效。
+- **规避/解决**：注解桩按真实保留级别声明；Mixin 类单独 sourceSet 用 `--release 13` 编译，
+  业务代码仍用 Java 25；mixin JSON 写 `"compatibilityLevel": "JAVA_13"`。
+  验证方式：`javap -v` 确认 handler 方法下是 `RuntimeVisibleAnnotations`，并在目标方法字节码里看到
+  `invokevirtual ... yudream$attachServer` 之类的调用。
+- **来源**：2026.11.07，YudreamPresence `Beta_0_1_0`；`./fabric-26_3-mod/YudreamPresence/build.gradle`、
+  `src/mixin-stubs/java/`、[VALIDATION.md](../../fabric-26_3-mod/YudreamPresence/VALIDATION.md)。
 
 ## 用 fabric-loom 会卡死在下载（因此本仓库不用 loom）
 
@@ -76,3 +97,18 @@
 - **根因**：26.3 当前屏幕位于 `Minecraft.gui.screen()`，设置屏幕用 `gui.setScreen(...)`；输入后端为 SDL，`KeyEvent` 的前两个参数是扫描码和键码；容器操作使用 `ContainerInput` 与 `MultiPlayerGameMode.handleContainerInput(...)`。
 - **规避/解决**：用官方 26.3 客户端 jar 的 `javap` 输出核对签名；协议核心使用 `w/enter/escape` 等游戏键名，扫描码、SDL 键码和菜单类型只留在版本适配器。截图用 `Screenshot.takeScreenshot(RenderTarget, Consumer<NativeImage>)` 异步回调，PNG 编码后关闭 `NativeImage`；`getPixels()` 返回 ARGB，可传给 `BufferedImage.setRGB`。
 - **来源**：2026.10.26，MinecraftMcp `Beta_0_1_0`；官方客户端 SHA-1 `e877b6a07acd633fb3bb475002175cec036e7b87`，实现位于 `./fabric-26_3-mod/MinecraftMcp/versions/mc26_3/`。Fabric tick/停机接口另用 26.3 的 lifecycle API jar 核对。
+
+## Fabric 服务端模组：真实 server jar 藏在 bundler 里，编译还要补服务端库
+
+- **现象**：把官方 `server.jar` 直接当 `compileOnly` 时，`javac` 报 `程序包 net.minecraft.server 不存在`；`unzip -l` 里只有 `net/minecraft/bundler/Main.class` 和 `META-INF/versions/`。
+- **根因**：Mojang 下发的 `server.jar` 是 **server bundler**，真正的服务端 jar 在
+  `META-INF/versions/<版本>/server-<版本>.jar`。另外服务端类带 jspecify 类型批注，并引用 fastutil / brigadier / guava 等库；
+  javac 解析 `Entity` / `LivingEntity` 签名时要求这些库在编译类路径上，否则会报
+  “无法将类型批注附加到 …”或“找不到符号 getUUID()”。
+- **规避/解决**：构建时解 bundler 得到 server jar，再按版本清单下载服务端编译库，全部 `compileOnly`；
+  `src/mixin-stubs/java` 保留 jspecify / jetbrains 注解桩兜底。26.3 没有静态 `MinecraftServer.getServer()`，
+  用 `MinecraftServer#tickServer` 的 `@Inject` 捕获实例（`PlayerList#placeNewPlayer` 可兜底触发）。
+  Fabric 服务端入口用 `DedicatedServerModInitializer`，`fabric.mod.json` 写 `environment: server`，
+  mixin 配置用 `"mixins"`（或 `"server"`）列表；不依赖 Fabric API。调度器线程通过
+  `MinecraftServer#executeIfPossible` 把名单遍历排回服务端线程。
+- **来源**：2026.11.07，YudreamPresence `Beta_0_1_0`；`./fabric-26_3-mod/YudreamPresence/build.gradle`、`src/main/java/.../YudreamPresence.java`。
